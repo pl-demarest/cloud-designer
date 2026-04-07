@@ -1,0 +1,387 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #f8f8f8;
+  --surface: #ffffff;
+  --border: #ddd;
+  --accent: #2563eb;
+  --text: #111;
+  --text-dim: #666;
+  --sidebar-w: 320px;
+  --toolbar-h: 40px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Layout */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  height: var(--toolbar-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.viewport-wrap {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+/* Toolbar elements */
+.preset-name {
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-family: inherit;
+  width: 140px;
+  outline: none;
+}
+
+.toolbar-group {
+  display: flex;
+  gap: 2px;
+}
+
+button {
+  font-family: inherit;
+  font-size: 11px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+button:hover:not(:disabled) {
+  background: #f0f0f0;
+  border-color: #bbb;
+}
+
+button.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-reset {
+  margin-left: auto;
+  color: #c00;
+  border-color: #fcc;
+}
+
+.btn-reset:hover:not(:disabled) {
+  background: #fff0f0;
+}
+
+/* Accordion */
+.accordion {
+  border-bottom: 1px solid var(--border);
+}
+
+.accordion-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 0;
+  background: #f5f5f5;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.accordion-header:hover {
+  background: #ececec;
+}
+
+.accordion-header.open {
+  background: #efefef;
+  border-bottom: 1px solid var(--border);
+}
+
+.accordion-body {
+  padding: 0;
+}
+
+/* Panel sections */
+.panel-section {
+  padding: 0;
+}
+
+.panel-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  border-bottom: 1px solid #eee;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.panel-subsection {
+  border-top: 1px solid #f0f0f0;
+  padding: 0;
+}
+
+.panel-subsection-header {
+  padding: 4px 12px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* Slider rows */
+.slider-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 44px;
+  align-items: center;
+  padding: 3px 12px;
+  gap: 6px;
+}
+
+.slider-row label {
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.slider-row input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.slider-value {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Field rows */
+.field-row {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  align-items: center;
+  padding: 4px 12px;
+  gap: 6px;
+}
+
+.field-row label {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.field-row select,
+.field-row input[type="number"] {
+  font-family: inherit;
+  font-size: 11px;
+  padding: 2px 4px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--surface);
+  outline: none;
+}
+
+/* Swirl items */
+.swirl-list {
+  padding: 4px 0;
+}
+
+.swirl-item {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.swirl-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.swirl-item-header:hover {
+  background: #fafafa;
+}
+
+.swirl-item-body {
+  background: #fdfdfd;
+  border-top: 1px solid #f0f0f0;
+  padding: 2px 0;
+}
+
+/* Control points */
+.control-points {
+  padding: 4px 0;
+}
+
+.control-point-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 12px;
+}
+
+.cp-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  width: 18px;
+  flex-shrink: 0;
+}
+
+.cp-input {
+  font-family: inherit;
+  font-size: 10px;
+  width: 52px;
+  padding: 2px 4px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  text-align: right;
+  outline: none;
+}
+
+/* Setpoints */
+.setpoint-list {
+  padding: 4px 0;
+}
+
+.setpoint-row {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 4px 0;
+}
+
+.setpoint-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 12px;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.setpoint-fields {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 12px;
+}
+
+.btn-small {
+  padding: 1px 5px;
+  font-size: 10px;
+}
+
+.btn-remove {
+  padding: 1px 5px;
+  font-size: 11px;
+  color: #c00;
+  border-color: #fcc;
+}
+
+.btn-remove:hover:not(:disabled) {
+  background: #fff0f0;
+}
+
+/* Merge panel */
+.btn-regen {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.btn-regen:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.axis-coords {
+  padding: 6px 12px;
+  font-size: 10px;
+  color: var(--text-dim);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.axis-coords > div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.axis-hint {
+  font-style: italic;
+  opacity: 0.7;
+}
+
+/* Export panel */
+.export-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+}
+
+.btn-export {
+  width: 100%;
+  text-align: center;
+  padding: 6px;
+  font-size: 11px;
+}
