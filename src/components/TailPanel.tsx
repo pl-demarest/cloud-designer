@@ -22,12 +22,40 @@ export function TailPanel() {
         <button onClick={() => { addTailSetpoint(); commit(); }}>+ Point</button>
       </div>
       <SliderRow
+        label="Start radius"
+        value={tail.setpoints[0]?.width ?? 0.5}
+        min={0.05} max={1.5} step={0.01}
+        onChange={(v) => updateTailSetpoint(tail.setpoints[0].id, { width: v })}
+        onCommit={commit}
+      />
+      <SliderRow
+        label="End radius"
+        value={tail.setpoints[tail.setpoints.length - 1]?.width ?? 0.1}
+        min={0.05} max={1.5} step={0.01}
+        onChange={(v) => updateTailSetpoint(tail.setpoints[tail.setpoints.length - 1].id, { width: v })}
+        onCommit={commit}
+      />
+      <SliderRow
         label="Curl"
         value={tail.curlAmount}
         min={0} max={Math.PI * 2} step={0.05}
         onChange={(v) => setTail({ curlAmount: v })}
         onCommit={commit}
         format={(v) => `${(v / Math.PI).toFixed(2)}π`}
+      />
+      <SliderRow
+        label="Radial Density"
+        value={tail.radialSegments ?? 12}
+        min={4} max={24} step={1}
+        onChange={(v) => setTail({ radialSegments: v })}
+        onCommit={commit}
+      />
+      <SliderRow
+        label="Length Density"
+        value={tail.lengthSegments ?? 32}
+        min={8} max={64} step={1}
+        onChange={(v) => setTail({ lengthSegments: v })}
+        onCommit={commit}
       />
       <div className="field-row">
         <label>Attach</label>

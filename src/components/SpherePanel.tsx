@@ -1,15 +1,15 @@
 import { useCloudStore } from '../store/cloudStore';
-import type { SwirlDef } from '../types/cloud';
+import type { SphereDef } from '../types/cloud';
 import { useHistoryStore } from '../store/historyStore';
 import { SliderRow } from './ui/SliderRow';
 import { useState } from 'react';
 
-export function SwirlPanel() {
-  const swirls = useCloudStore((s) => s.preset.swirls);
+export function SpherePanel() {
+  const spheres = useCloudStore((s) => s.preset.spheres);
   const preset = useCloudStore((s) => s.preset);
-  const addSwirl = useCloudStore((s) => s.addSwirl);
-  const updateSwirl = useCloudStore((s) => s.updateSwirl);
-  const removeSwirl = useCloudStore((s) => s.removeSwirl);
+  const addSphere = useCloudStore((s) => s.addSphere);
+  const updateSphere = useCloudStore((s) => s.updateSphere);
+  const removeSphere = useCloudStore((s) => s.removeSphere);
   const push = useHistoryStore((s) => s.push);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
@@ -26,33 +26,33 @@ export function SwirlPanel() {
   }
 
   function handleAdd() {
-    addSwirl();
+    addSphere();
     commit();
   }
 
   function handleRemove(id: string) {
-    removeSwirl(id);
+    removeSphere(id);
     commit();
   }
 
-  function handleUpdate(id: string, patch: Partial<SwirlDef>) {
-    updateSwirl(id, patch);
+  function handleUpdate(id: string, patch: Partial<SphereDef>) {
+    updateSphere(id, patch);
   }
 
   return (
     <div className="panel-section">
       <div className="panel-section-header">
-        <span>Swirls ({swirls.length})</span>
+        <span>Spheres ({spheres.length})</span>
         <button onClick={handleAdd}>+ Add</button>
       </div>
       <div className="swirl-list">
-        {swirls.map((sw, i) => (
+        {spheres.map((sw, i) => (
           <div key={sw.id} className="swirl-item">
             <div
               className="swirl-item-header"
               onClick={() => toggleExpanded(sw.id)}
             >
-              <span>Swirl {i + 1} ({sw.shape})</span>
+              <span>Sphere {i + 1} ({sw.shape})</span>
               <div>
                 <span>{expanded.has(sw.id) ? '▲' : '▼'}</span>
                 <button
@@ -110,6 +110,38 @@ export function SwirlPanel() {
                   min={0.5} max={5.0} step={0.1}
                   onChange={(v) => handleUpdate(sw.id, { falloff: v })}
                   onCommit={commit}
+                />
+                <div className="field-row">
+                  <label>Half</label>
+                  <input
+                    type="checkbox"
+                    checked={sw.half ?? false}
+                    onChange={(e) => { handleUpdate(sw.id, { half: e.target.checked }); commit(); }}
+                  />
+                </div>
+                <SliderRow
+                  label="Rotate X"
+                  value={(sw.rotation ?? [0, 0, 0])[0]}
+                  min={-Math.PI} max={Math.PI} step={0.01}
+                  onChange={(v) => handleUpdate(sw.id, { rotation: [v, (sw.rotation ?? [0,0,0])[1], (sw.rotation ?? [0,0,0])[2]] })}
+                  onCommit={commit}
+                  format={(v) => `${(v / Math.PI * 180).toFixed(0)}°`}
+                />
+                <SliderRow
+                  label="Rotate Y"
+                  value={(sw.rotation ?? [0, 0, 0])[1]}
+                  min={-Math.PI} max={Math.PI} step={0.01}
+                  onChange={(v) => handleUpdate(sw.id, { rotation: [(sw.rotation ?? [0,0,0])[0], v, (sw.rotation ?? [0,0,0])[2]] })}
+                  onCommit={commit}
+                  format={(v) => `${(v / Math.PI * 180).toFixed(0)}°`}
+                />
+                <SliderRow
+                  label="Rotate Z"
+                  value={(sw.rotation ?? [0, 0, 0])[2]}
+                  min={-Math.PI} max={Math.PI} step={0.01}
+                  onChange={(v) => handleUpdate(sw.id, { rotation: [(sw.rotation ?? [0,0,0])[0], (sw.rotation ?? [0,0,0])[1], v] })}
+                  onCommit={commit}
+                  format={(v) => `${(v / Math.PI * 180).toFixed(0)}°`}
                 />
                 {sw.shape === 'ellipsoid' && (
                   <>

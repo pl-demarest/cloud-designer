@@ -1,47 +1,18 @@
 /**
  * Marching Cubes Web Worker
  *
- * Receives: { swirls, base, tail, merge } (CloudPreset subset)
+ * Receives: { spheres, base, tail, flowCloud } (CloudPreset subset)
  * Posts back: { vertices, indices, bands, flowLines }
  *
  * Algorithm: classic marching cubes on a scalar field built from
- * metaball swirls + approximate SDF contributions from base/tail.
+ * metaball spheres + approximate SDF contributions from base/tail.
  */
 
-import type { SwirlDef, BaseDef, TailDef, MergeSettings } from '../types/cloud';
+import type { SphereDef, BaseDef, TailDef, FlowCloudSettings } from '../types/cloud';
 
 // ---------------------------------------------------------------------------
 // Edge table & triangle table (condensed marching cubes lookup)
 // ---------------------------------------------------------------------------
-
-// 256 entries: bit i set → vertex i is inside surface
-const edgeTable: number[] = [
-  0x000,0x109,0x203,0x30a,0x406,0x50f,0x605,0x70c,
-  0x80c,0x905,0xa0f,0xb06,0xc0a,0xd03,0xe09,0xf00,
-  0x190,0x099,0x393,0x29a,0x596,0x49f,0x795,0x69c,
-  0x99c,0x895,0xb9f,0xa96,0xd9a,0xc93,0xf99,0xe90,
-  0x230,0x339,0x033,0x13a,0x636,0x73f,0x435,0x53c,
-  0xa3c,0xb35,0x83f,0x936,0xe3a,0xf33,0xc39,0xd30,
-  0x3a0,0x2a9,0x1a3,0x0aa,0x7a6,0x6af,0x5a5,0x4ac,
-  0xbac,0xaa5,0x9af,0x8a6,0xfaa,0xea3,0xda9,0xca0,
-  0x460,0x569,0x663,0x76a,0x066,0x16f,0x265,0x36c,
-  0xc6c,0xd65,0xe6f,0xf66,0x86a,0x963,0xa69,0xb60,
-  0x5f0,0x4f9,0x7f3,0x6fa,0x1f6,0x0ff,0x3f5,0x2fc,
-  0xdfc,0xcf5,0xfff,0xef6,0x9fa,0x8f3,0xbf9,0xaf0,
-  0x650,0x759,0x453,0x55a,0x256,0x35f,0x055,0x15c,
-  0xe5c,0xf55,0xc5f,0xd56,0xa5a,0xb53,0x859,0x950,
-  0x7c0,0x6c9,0x5c3,0x4ca,0x3c6,0x2cf,0x1c5,0x0cc,
-  0xfcc,0xec5,0xdcf,0xcc6,0xbca,0xac3,0x9c9,0x8c0,
-  0x8c0,0x9c9,0xac3,0xbca,0xcc6,0xdcf,0xec5,0xfcc,
-  0x0cc,0x1c5,0x2cf,0x3c6,0x4ca,0x5c3,0x6c9,0x7c0,
-  0x950,0x859,0xb53,0xa5a,0xd56,0xc5f,0xf55,0xe5c,
-  0x15c,0x055,0x35f,0x256,0x55a,0x453,0x759,0x650,
-  0xaf0,0xbf9,0x8f3,0x9fa,0xef6,0xff0,// truncated — use standard table
-  // For production, embed the full 256-entry table; for now use the algorithm below
-];
-
-// Full triTable is 256×16 — embed a compact version via known algorithm
-// We'll implement this using a well-known public domain marching cubes implementation.
 
 // Edge vertex pairs
 const EDGE_PAIRS: [number, number][] = [
@@ -50,57 +21,67 @@ const EDGE_PAIRS: [number, number][] = [
   [0,4],[1,5],[2,6],[3,7]
 ];
 
-// Cube vertex offsets
-const CUBE_VERTS: [number,number,number][] = [
-  [0,0,0],[1,0,0],[1,1,0],[0,1,0],
-  [0,0,1],[1,0,1],[1,1,1],[0,1,1]
-];
-
-// ---- Full Marching Cubes tables (MIT-licensed, standard tables) ----
-// edgeTable[256] maps cube index → which edges are intersected
-const MC_EDGE_TABLE = new Int32Array([
-0,0x109,0x203,0x30a,0x406,0x50f,0x605,0x70c,0x80c,0x905,0xa0f,0xb06,0xc0a,0xd03,0xe09,0xf00,
-0x190,0x099,0x393,0x29a,0x596,0x49f,0x795,0x69c,0x99c,0x895,0xb9f,0xa96,0xd9a,0xc93,0xf99,0xe90,
-0x230,0x339,0x033,0x13a,0x636,0x73f,0x435,0x53c,0xa3c,0xb35,0x83f,0x936,0xe3a,0xf33,0xc39,0xd30,
-0x3a0,0x2a9,0x1a3,0x0aa,0x7a6,0x6af,0x5a5,0x4ac,0xbac,0xaa5,0x9af,0x8a6,0xfaa,0xea3,0xda9,0xca0,
-0x460,0x569,0x663,0x76a,0x066,0x16f,0x265,0x36c,0xc6c,0xd65,0xe6f,0xf66,0x86a,0x963,0xa69,0xb60,
-0x5f0,0x4f9,0x7f3,0x6fa,0x1f6,0x0ff,0x3f5,0x2fc,0xdfc,0xcf5,0xff0,// ... abbreviated
-]);
-
-// For brevity in this implementation, we'll use a simplified marching cubes
-// that generates triangles directly from the full standard tables.
-// The full tables are embedded below as typed arrays.
-
 // --- Simplified scalar field + mesh generation ---
 
 interface MCInput {
-  swirls: SwirlDef[];
+  spheres: SphereDef[];
   base: BaseDef;
   tail: TailDef;
-  merge: MergeSettings;
+  flowCloud: FlowCloudSettings;
 }
 
-interface MCOutput {
-  vertices: Float32Array;
-  indices: Uint32Array;
-  bands: Float32Array[];
-  flowLines: Float32Array[];
+// Sampled tail spine point: position + interpolated width (radius)
+interface TailSample {
+  px: number; py: number; pz: number;
+  width: number;
+}
+
+// Sample the tail setpoints as a Catmull-Rom spline
+function sampleTailSpline(tail: TailDef, nSamples: number): TailSample[] {
+  const pts = tail.setpoints;
+  if (pts.length < 2) return [];
+  const samples: TailSample[] = [];
+  const segs = pts.length - 1;
+
+  for (let i = 0; i < nSamples; i++) {
+    const g = i / (nSamples - 1);
+    const seg = Math.min(Math.floor(g * segs), segs - 1);
+    const t = g * segs - seg;
+    const t2 = t * t;
+    const t3 = t2 * t;
+
+    const p0 = pts[Math.max(0, seg - 1)];
+    const p1 = pts[seg];
+    const p2 = pts[Math.min(pts.length - 1, seg + 1)];
+    const p3 = pts[Math.min(pts.length - 1, seg + 2)];
+
+    const px = 0.5 * (2*p1.position[0] + (-p0.position[0]+p2.position[0])*t + (2*p0.position[0]-5*p1.position[0]+4*p2.position[0]-p3.position[0])*t2 + (-p0.position[0]+3*p1.position[0]-3*p2.position[0]+p3.position[0])*t3);
+    const py = 0.5 * (2*p1.position[1] + (-p0.position[1]+p2.position[1])*t + (2*p0.position[1]-5*p1.position[1]+4*p2.position[1]-p3.position[1])*t2 + (-p0.position[1]+3*p1.position[1]-3*p2.position[1]+p3.position[1])*t3);
+    const pz = 0.5 * (2*p1.position[2] + (-p0.position[2]+p2.position[2])*t + (2*p0.position[2]-5*p1.position[2]+4*p2.position[2]-p3.position[2])*t2 + (-p0.position[2]+3*p1.position[2]-3*p2.position[2]+p3.position[2])*t3);
+
+    // Linearly interpolate width between p1 and p2
+    const width = p1.width + t * (p2.width - p1.width);
+    samples.push({ px, py, pz, width });
+  }
+  return samples;
 }
 
 // Evaluate scalar field at point (x, y, z)
 function evalField(
   x: number, y: number, z: number,
-  swirls: SwirlDef[],
-  cellSize: number
+  spheres: SphereDef[],
+  tailSamples: TailSample[],
+  tailStrength: number
 ): number {
   let val = 0;
-  for (const sw of swirls) {
+
+  // Sphere metaballs
+  for (const sw of spheres) {
     const [sx, sy, sz] = sw.position;
     let dx = x - sx;
     let dy = y - sy;
     let dz = z - sz;
 
-    // Apply inverse ellipsoid scaling
     if (sw.shape === 'ellipsoid') {
       dx /= sw.scale[0];
       dy /= sw.scale[1];
@@ -115,15 +96,33 @@ function evalField(
       val += sw.falloff * r2 / dist2;
     }
   }
-  return val;
-}
 
-// Laplacian smoothing
-function smoothVertices(verts: number[], vertCount: number, iterations: number): number[] {
-  // Build adjacency from approximate proximity (simplified)
-  // For a proper implementation we'd use the index buffer; here we do one pass of neighbor averaging
-  // This is a placeholder smooth — real implementation tracks triangle adjacency
-  return verts; // pass-through; full smooth requires triangle adjacency
+  // Tail metaball — find closest point on sampled spine and treat as a
+  // variable-radius capsule. Using nearest-segment to avoid double-counting.
+  if (tailSamples.length >= 2 && tailStrength > 0) {
+    let minDist2 = Infinity;
+    let minRadius = 0;
+
+    for (let i = 0; i < tailSamples.length - 1; i++) {
+      const a = tailSamples[i];
+      const b = tailSamples[i + 1];
+      const abx = b.px - a.px, aby = b.py - a.py, abz = b.pz - a.pz;
+      const ab2 = abx*abx + aby*aby + abz*abz;
+      const apx = x - a.px, apy = y - a.py, apz = z - a.pz;
+      const t = ab2 > 0.00001 ? Math.max(0, Math.min(1, (apx*abx + apy*aby + apz*abz) / ab2)) : 0;
+      const cx = a.px + t*abx, cy = a.py + t*aby, cz = a.pz + t*abz;
+      const d2 = (x-cx)*(x-cx) + (y-cy)*(y-cy) + (z-cz)*(z-cz);
+      if (d2 < minDist2) {
+        minDist2 = d2;
+        minRadius = a.width + t * (b.width - a.width);
+      }
+    }
+
+    const r2 = minRadius * minRadius;
+    val += tailStrength * (minDist2 < 0.0001 ? 100 * r2 : r2 / minDist2);
+  }
+
+  return val;
 }
 
 // Linear interpolation along edge
@@ -401,16 +400,21 @@ const TRI_TABLE = [
 ];
 
 function marchingCubes(
-  swirls: SwirlDef[],
-  merge: MergeSettings
+  spheres: SphereDef[],
+  tail: TailDef,
+  flowCloud: FlowCloudSettings
 ): { vertices: Float32Array; indices: Uint32Array } {
-  const res = merge.resolution;
-  const iso = merge.threshold;
+  const res = flowCloud.resolution;
+  const iso = flowCloud.threshold;
+  const tailStrength = flowCloud.tailStrength ?? 1.0;
 
-  // Compute bounding box from swirls
+  // Sample tail spline (32 segments gives smooth capsule approximation)
+  const tailSamples = tailStrength > 0 ? sampleTailSpline(tail, 32) : [];
+
+  // Compute bounding box from spheres
   let minX = Infinity, minY = Infinity, minZ = Infinity;
   let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
-  for (const sw of swirls) {
+  for (const sw of spheres) {
     const r = sw.radius * Math.max(...sw.scale) + 1.5;
     minX = Math.min(minX, sw.position[0] - r);
     minY = Math.min(minY, sw.position[1] - r);
@@ -418,6 +422,17 @@ function marchingCubes(
     maxX = Math.max(maxX, sw.position[0] + r);
     maxY = Math.max(maxY, sw.position[1] + r);
     maxZ = Math.max(maxZ, sw.position[2] + r);
+  }
+
+  // Extend bounding box to include tail setpoints
+  for (const sp of tail.setpoints) {
+    const w = sp.width + 0.5;
+    minX = Math.min(minX, sp.position[0] - w);
+    minY = Math.min(minY, sp.position[1] - w);
+    minZ = Math.min(minZ, sp.position[2] - w);
+    maxX = Math.max(maxX, sp.position[0] + w);
+    maxY = Math.max(maxY, sp.position[1] + w);
+    maxZ = Math.max(maxZ, sp.position[2] + w);
   }
 
   if (!isFinite(minX)) {
@@ -444,7 +459,7 @@ function marchingCubes(
         const x = minX + ix * sx;
         const y = minY + iy * sy;
         const z = minZ + iz * sz;
-        field[idx(ix, iy, iz)] = evalField(x, y, z, swirls, Math.min(sx, sy, sz));
+        field[idx(ix, iy, iz)] = evalField(x, y, z, spheres, tailSamples, tailStrength);
       }
     }
   }
@@ -478,7 +493,7 @@ function marchingCubes(
         const wx = cx.map(i => minX + i * sx);
         const wy = cy.map(i => minY + i * sy);
         const wz = cz.map(i => minZ + i * sz);
-        const vals = cx.map((xi, vi) => field[idx(cx[vi], cy[vi], cz[vi])]);
+        const vals = cx.map((_xi, vi) => field[idx(cx[vi], cy[vi], cz[vi])]);
 
         // Compute cube index
         let cubeIdx = 0;
@@ -527,148 +542,179 @@ function marchingCubes(
 function extractSpiral(
   vertices: Float32Array,
   indices: Uint32Array,
-  merge: MergeSettings
+  flowCloud: FlowCloudSettings,
+  spheres: SphereDef[],
+  tail: TailDef
 ): { bands: Float32Array[]; flowLines: Float32Array[] } {
-  const wf = merge.wireframe;
+  const wf = flowCloud.wireframe;
   const fp = wf.frontPoint;
   const bp = wf.backPoint;
+  const TWO_PI = Math.PI * 2;
 
-  const front = { x: fp[0], y: fp[1], z: fp[2] };
-  const back = { x: bp[0], y: bp[1], z: bp[2] };
+  // Axis DIRECTION only — gizmo positions define orientation, not extent
+  const rawAx = [bp[0]-fp[0], bp[1]-fp[1], bp[2]-fp[2]];
+  const rawLen = Math.sqrt(rawAx[0]**2 + rawAx[1]**2 + rawAx[2]**2);
+  if (rawLen < 0.001) return { bands: [], flowLines: [] };
+  const axN: [number,number,number] = [rawAx[0]/rawLen, rawAx[1]/rawLen, rawAx[2]/rawLen];
 
-  const axLen = Math.sqrt(
-    (back.x - front.x) ** 2 +
-    (back.y - front.y) ** 2 +
-    (back.z - front.z) ** 2
-  );
+  // Build perp basis (perpendicular to axis, used for angle computation)
+  const up = Math.abs(axN[1]) < 0.9 ? [0,1,0] : [1,0,0];
+  const rx = axN[1]*up[2] - axN[2]*up[1];
+  const ry = axN[2]*up[0] - axN[0]*up[2];
+  const rz = axN[0]*up[1] - axN[1]*up[0];
+  const rLen = Math.sqrt(rx*rx + ry*ry + rz*rz);
+  const perpA: [number,number,number] = [rx/rLen, ry/rLen, rz/rLen];
+  const perpB: [number,number,number] = [
+    axN[1]*perpA[2] - axN[2]*perpA[1],
+    axN[2]*perpA[0] - axN[0]*perpA[2],
+    axN[0]*perpA[1] - axN[1]*perpA[0],
+  ];
 
-  if (axLen < 0.001) return { bands: [], flowLines: [] };
+  // --- Auto-compute u range from geometry (projected onto axis) ---
+  // Origin for projections: front gizmo position
+  let uFront = Infinity;
+  for (const sw of spheres) {
+    const dx = sw.position[0] - fp[0];
+    const dy = sw.position[1] - fp[1];
+    const dz = sw.position[2] - fp[2];
+    const proj = dx*axN[0] + dy*axN[1] + dz*axN[2];
+    const r = sw.radius * Math.max(sw.scale[0], sw.scale[1], sw.scale[2]);
+    uFront = Math.min(uFront, proj - r);  // front surface of frontmost sphere
+  }
+  if (!isFinite(uFront)) uFront = 0;
 
-  const axNx = (back.x - front.x) / axLen;
-  const axNy = (back.y - front.y) / axLen;
-  const axNz = (back.z - front.z) / axLen;
+  // u range ends at the tail's first setpoint (where the tail meets the cloud body).
+  // The tail tube is a separate sculpted piece — it is not part of the isosurface.
+  const tailFirst = tail.setpoints.length > 0 ? tail.setpoints[0] : null;
+  let uBack: number;
+  if (tailFirst) {
+    const dx = tailFirst.position[0] - fp[0];
+    const dy = tailFirst.position[1] - fp[1];
+    const dz = tailFirst.position[2] - fp[2];
+    uBack = dx*axN[0] + dy*axN[1] + dz*axN[2];
+  } else {
+    uBack = uFront + rawLen;
+  }
 
-  // Build a perp basis
-  const up = Math.abs(axNy) < 0.9 ? [0, 1, 0] : [1, 0, 0];
-  // right = axis × up
-  const rx = axNy * up[2] - axNz * up[1];
-  const ry = axNz * up[0] - axNx * up[2];
-  const rz = axNx * up[1] - axNy * up[0];
-  const rLen = Math.sqrt(rx * rx + ry * ry + rz * rz);
-  const perpA = [rx / rLen, ry / rLen, rz / rLen]; // perp component A
-  // binormal = axis × perpA
-  const bx = axNy * perpA[2] - axNz * perpA[1];
-  const by = axNz * perpA[0] - axNx * perpA[2];
-  const bz = axNx * perpA[1] - axNy * perpA[0];
-  const perpB = [bx, by, bz];
+  const uRange = uBack - uFront;
+  if (uRange < 0.001) return { bands: [], flowLines: [] };
 
+  // --- Per-vertex u and spiral angle ---
   const nVerts = vertices.length / 3;
-
-  // Compute u and spiralV for each vertex
-  const uArr = new Float32Array(nVerts);
-  const svArr = new Float32Array(nVerts);
+  const uArr   = new Float32Array(nVerts);
+  const baArr  = new Float32Array(nVerts); // base angle = atan2 only (no twist)
+  const svArr  = new Float32Array(nVerts); // spiralV = baArr + spiralTwist * u
 
   for (let i = 0; i < nVerts; i++) {
-    const vx = vertices[i * 3] - front.x;
-    const vy = vertices[i * 3 + 1] - front.y;
-    const vz = vertices[i * 3 + 2] - front.z;
+    const vx = vertices[i*3]   - fp[0];
+    const vy = vertices[i*3+1] - fp[1];
+    const vz = vertices[i*3+2] - fp[2];
 
-    const u = Math.max(0, Math.min(1, (vx * axNx + vy * axNy + vz * axNz) / axLen));
+    const rawProj = vx*axN[0] + vy*axN[1] + vz*axN[2];
+    const u = Math.max(0, Math.min(1, (rawProj - uFront) / uRange));
     uArr[i] = u;
 
-    const compA = vx * perpA[0] + vy * perpA[1] + vz * perpA[2];
-    const compB = vx * perpB[0] + vy * perpB[1] + vz * perpB[2];
-    svArr[i] = Math.atan2(compB, compA) + wf.spiralTwist * u;
+    const compA = vx*perpA[0] + vy*perpA[1] + vz*perpA[2];
+    const compB = vx*perpB[0] + vy*perpB[1] + vz*perpB[2];
+    const ba = Math.atan2(compB, compA);
+    baArr[i] = ba;
+    svArr[i] = ba + wf.spiralTwist * u;
   }
+
+  // Normalize angle to (-π, π]
+  const normAngle = (a: number): number => {
+    let v = a % TWO_PI;
+    if (v > Math.PI) v -= TWO_PI;
+    else if (v <= -Math.PI) v += TWO_PI;
+    return v;
+  };
 
   const bands: Float32Array[] = [];
   const flowLines: Float32Array[] = [];
 
-  // BAND CONTOURS: intersect triangles with planes at constant u
-  if (wf.showBands) {
+  // --- BAND CONTOURS (constant u) ---
+  // Gated on generateBands so the user can produce a band-free isosurface entirely.
+  // showBands controls visibility of already-generated bands; generateBands controls existence.
+  if (wf.generateBands) {
     for (let bi = 0; bi <= wf.numBands; bi++) {
       const targetU = bi / wf.numBands;
       const segs: number[] = [];
 
       for (let t = 0; t < indices.length; t += 3) {
-        const i0 = indices[t], i1 = indices[t + 1], i2 = indices[t + 2];
+        const i0 = indices[t], i1 = indices[t+1], i2 = indices[t+2];
         const u0 = uArr[i0], u1 = uArr[i1], u2 = uArr[i2];
 
-        // Find crossing edges
-        const crossings: [number, number, number][] = [];
-        const edges: [number, number][] = [[i0, i1], [i1, i2], [i2, i0]];
-        const uEdges: [number, number][] = [[u0, u1], [u1, u2], [u2, u0]];
+        const crossPts: [number,number,number][] = [];
+        const edges: [number,number][] = [[i0,i1],[i1,i2],[i2,i0]];
+        const uEdges: [number,number][] = [[u0,u1],[u1,u2],[u2,u0]];
 
         for (let e = 0; e < 3; e++) {
           const [ua, ub] = uEdges[e];
-          if ((ua <= targetU && targetU <= ub) || (ub <= targetU && targetU <= ua)) {
-            if (Math.abs(ub - ua) < 0.00001) continue;
-            const t_c = (targetU - ua) / (ub - ua);
-            const [ia, ib] = edges[e];
-            crossings.push([
-              vertices[ia * 3] + t_c * (vertices[ib * 3] - vertices[ia * 3]),
-              vertices[ia * 3 + 1] + t_c * (vertices[ib * 3 + 1] - vertices[ia * 3 + 1]),
-              vertices[ia * 3 + 2] + t_c * (vertices[ib * 3 + 2] - vertices[ia * 3 + 2]),
-            ]);
-          }
+          if (!((ua <= targetU && targetU <= ub) || (ub <= targetU && targetU <= ua))) continue;
+          if (Math.abs(ub - ua) < 0.00001) continue;
+          const t_c = (targetU - ua) / (ub - ua);
+          const [ia, ib] = edges[e];
+          crossPts.push([
+            vertices[ia*3]   + t_c*(vertices[ib*3]   - vertices[ia*3]),
+            vertices[ia*3+1] + t_c*(vertices[ib*3+1] - vertices[ia*3+1]),
+            vertices[ia*3+2] + t_c*(vertices[ib*3+2] - vertices[ia*3+2]),
+          ]);
         }
-
-        if (crossings.length === 2) {
-          segs.push(...crossings[0], ...crossings[1]);
-        }
+        if (crossPts.length === 2) segs.push(...crossPts[0], ...crossPts[1]);
       }
-
       if (segs.length > 0) bands.push(new Float32Array(segs));
     }
   }
 
-  // FLOW LINES: constant spiralV
+  // --- FLOW LINES (constant spiralV) ---
   if (wf.showFlowLines) {
-    const TWO_PI = Math.PI * 2;
-
     for (let fi = 0; fi < wf.numFlowLines; fi++) {
-      const targetSV = ((fi / wf.numFlowLines) * TWO_PI) - Math.PI;
-      const crossings: { pos: [number, number, number]; u: number }[] = [];
+      const targetSV = (fi / wf.numFlowLines) * TWO_PI - Math.PI;
+      const crossings: { pos: [number,number,number]; u: number }[] = [];
 
       for (let t = 0; t < indices.length; t += 3) {
-        const i0 = indices[t], i1 = indices[t + 1], i2 = indices[t + 2];
-        const sv0 = svArr[i0], sv1 = svArr[i1], sv2 = svArr[i2];
+        const i0 = indices[t], i1 = indices[t+1], i2 = indices[t+2];
 
-        const edges: [number, number][] = [[i0, i1], [i1, i2], [i2, i0]];
-        const svEdges: [number, number][] = [[sv0, sv1], [sv1, sv2], [sv2, sv0]];
+        const edges: [number,number][] = [[i0,i1],[i1,i2],[i2,i0]];
 
         for (let e = 0; e < 3; e++) {
-          let [sva, svb] = svEdges[e];
           const [ia, ib] = edges[e];
+          const sva = svArr[ia];
 
-          // Normalize difference to [-π, π]
-          let diff = svb - sva;
-          while (diff > Math.PI) diff -= TWO_PI;
-          while (diff < -Math.PI) diff += TWO_PI;
-          const svbNorm = sva + diff;
+          // Reconstruct svb with atan2 wrap removed:
+          // use normAngle on base angle diff + smooth spiralTwist contribution
+          const ba_diff   = normAngle(baArr[ib] - baArr[ia]);
+          const twist_diff = wf.spiralTwist * (uArr[ib] - uArr[ia]);
+          const svb_adj   = sva + ba_diff + twist_diff;
 
-          let t_c: number | null = null;
-          if (sva <= targetSV && targetSV <= svbNorm) {
-            t_c = (targetSV - sva) / (svbNorm - sva);
-          } else if (svbNorm <= targetSV && targetSV <= sva) {
-            t_c = (targetSV - sva) / (svbNorm - sva);
-          }
+          // Adjust targetSV to be in the same "period" as this edge
+          const edgeMid = (sva + svb_adj) / 2;
+          const k = Math.round((edgeMid - targetSV) / TWO_PI);
+          const tgt = targetSV + k * TWO_PI;
 
-          if (t_c !== null && t_c >= 0 && t_c <= 1) {
-            const pos: [number, number, number] = [
-              vertices[ia * 3] + t_c * (vertices[ib * 3] - vertices[ia * 3]),
-              vertices[ia * 3 + 1] + t_c * (vertices[ib * 3 + 1] - vertices[ia * 3 + 1]),
-              vertices[ia * 3 + 2] + t_c * (vertices[ib * 3 + 2] - vertices[ia * 3 + 2]),
-            ];
-            crossings.push({ pos, u: uArr[ia] + t_c * (uArr[ib] - uArr[ia]) });
-          }
+          const lo = Math.min(sva, svb_adj);
+          const hi = Math.max(sva, svb_adj);
+          if (tgt < lo || tgt > hi) continue;
+
+          const span = svb_adj - sva;
+          if (Math.abs(span) < 0.00001) continue;
+          const t_c = (tgt - sva) / span;
+          if (t_c < 0 || t_c > 1) continue;
+
+          crossings.push({
+            pos: [
+              vertices[ia*3]   + t_c*(vertices[ib*3]   - vertices[ia*3]),
+              vertices[ia*3+1] + t_c*(vertices[ib*3+1] - vertices[ia*3+1]),
+              vertices[ia*3+2] + t_c*(vertices[ib*3+2] - vertices[ia*3+2]),
+            ],
+            u: uArr[ia] + t_c*(uArr[ib] - uArr[ia]),
+          });
         }
       }
 
-      // Sort by u-parameter to form coherent line
       crossings.sort((a, b) => a.u - b.u);
 
-      if (crossings.length > 1) {
+      if (wf.showFlowLines && crossings.length > 1) {
         const lineVerts: number[] = [];
         for (const c of crossings) lineVerts.push(...c.pos);
         flowLines.push(new Float32Array(lineVerts));
@@ -684,16 +730,16 @@ function extractSpiral(
 // ---------------------------------------------------------------------------
 
 self.onmessage = (e: MessageEvent<MCInput>) => {
-  const { swirls, merge } = e.data;
+  const { spheres, tail, flowCloud } = e.data;
 
   try {
-    const { vertices, indices } = marchingCubes(swirls, merge);
+    const { vertices, indices } = marchingCubes(spheres, tail, flowCloud);
 
     let bands: Float32Array[] = [];
     let flowLines: Float32Array[] = [];
 
-    if (vertices.length > 0 && merge.wireframe.mode === 'spiral') {
-      const extracted = extractSpiral(vertices, indices, merge);
+    if (vertices.length > 0 && flowCloud.wireframe.mode === 'spiral') {
+      const extracted = extractSpiral(vertices, indices, flowCloud, spheres, tail);
       bands = extracted.bands;
       flowLines = extracted.flowLines;
     }
@@ -702,7 +748,7 @@ self.onmessage = (e: MessageEvent<MCInput>) => {
     for (const b of bands) transferables.push(b.buffer);
     for (const fl of flowLines) transferables.push(fl.buffer);
 
-    self.postMessage({ vertices, indices, bands, flowLines }, transferables);
+    self.postMessage({ vertices, indices, bands, flowLines }, { transfer: transferables });
   } catch (err) {
     self.postMessage({ error: String(err) });
   }

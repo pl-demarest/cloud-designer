@@ -7,15 +7,21 @@ export class Viewport {
   camera: THREE.PerspectiveCamera;
   controls: OrbitControls;
 
-  swirlGroup: THREE.Group;
+  /** Parent group for all live editing modules. Always at world origin. */
+  activeUnitGroup: THREE.Group;
+  sphereGroup: THREE.Group;
   baseGroup: THREE.Group;
   tailGroup: THREE.Group;
-  mergeGroup: THREE.Group;
+  spiralGroup: THREE.Group;
+  flowCloudGroup: THREE.Group;
   gizmoGroup: THREE.Group;
+  /** Cut & Glue output — shown in Preview mode only. NOT inside activeUnitGroup. */
+  cutGlueGroup: THREE.Group;
 
   private animFrameId: number | null = null;
   private tickCallbacks: Array<(dt: number) => void> = [];
   private clock = new THREE.Clock();
+  private _claimedDrag = false;
 
   constructor(canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -49,28 +55,59 @@ export class Viewport {
     axes.name = 'axesHelper';
     this.scene.add(axes);
 
-    // Scene groups
-    this.swirlGroup = new THREE.Group();
-    this.swirlGroup.name = 'swirlGroup';
-    this.scene.add(this.swirlGroup);
+    // Active-unit parent — all editing groups live here so a single transform
+    // moves/scales the whole unit without touching preset values.
+    this.activeUnitGroup = new THREE.Group();
+    this.activeUnitGroup.name = 'activeUnitGroup';
+    this.scene.add(this.activeUnitGroup);
+
+    this.sphereGroup = new THREE.Group();
+    this.sphereGroup.name = 'sphereGroup';
+    this.activeUnitGroup.add(this.sphereGroup);
 
     this.baseGroup = new THREE.Group();
     this.baseGroup.name = 'baseGroup';
-    this.scene.add(this.baseGroup);
+    this.activeUnitGroup.add(this.baseGroup);
 
     this.tailGroup = new THREE.Group();
     this.tailGroup.name = 'tailGroup';
-    this.scene.add(this.tailGroup);
+    this.activeUnitGroup.add(this.tailGroup);
 
-    this.mergeGroup = new THREE.Group();
-    this.mergeGroup.name = 'mergeGroup';
-    this.scene.add(this.mergeGroup);
+    this.spiralGroup = new THREE.Group();
+    this.spiralGroup.name = 'spiralGroup';
+    this.activeUnitGroup.add(this.spiralGroup);
+
+    this.flowCloudGroup = new THREE.Group();
+    this.flowCloudGroup.name = 'flowCloudGroup';
+    this.activeUnitGroup.add(this.flowCloudGroup);
 
     this.gizmoGroup = new THREE.Group();
     this.gizmoGroup.name = 'gizmoGroup';
-    this.scene.add(this.gizmoGroup);
+    this.activeUnitGroup.add(this.gizmoGroup);
+
+    // Cut & Glue output lives directly on the scene (not inside activeUnitGroup)
+    this.cutGlueGroup = new THREE.Group();
+    this.cutGlueGroup.name = 'cutGlueGroup';
+    this.cutGlueGroup.visible = false;
+    this.scene.add(this.cutGlueGroup);
 
     window.addEventListener('resize', this.handleResize);
+  }
+
+  /**
+   * Called by a drag-handling module when it finds a hit and wants to start a drag.
+   * Returns true if the drag was successfully claimed (no other module is dragging).
+   * Returns false if another module already owns the current drag — caller should bail out.
+   */
+  claimDrag(): boolean {
+    if (this._claimedDrag) return false;
+    this._claimedDrag = true;
+    return true;
+  }
+
+  /** Called by a drag-handling module when its drag ends (pointerup or window pointerup). */
+  releaseDrag(): void {
+    this._claimedDrag = false;
   }
 
   onTick(cb: (dt: number) => void): void {
@@ -114,7 +151,7 @@ export class Viewport {
   }
 
   zoomToFit(box?: THREE.Box3): void {
-    const target = box ?? new THREE.Box3().setFromObject(this.mergeGroup.children.length > 0 ? this.mergeGroup : this.swirlGroup);
+    const target = box ?? new THREE.Box3().setFromObject(this.flowCloudGroup.children.length > 0 ? this.flowCloudGroup : this.sphereGroup);
     if (target.isEmpty()) return;
     const center = target.getCenter(new THREE.Vector3());
     const size = target.getSize(new THREE.Vector3());

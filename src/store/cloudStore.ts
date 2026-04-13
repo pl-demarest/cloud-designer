@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import type { CloudPreset, SwirlDef, BaseDef, TailDef, MergeSettings } from '../types/cloud';
+import type { CloudPreset, SphereDef, BaseDef, TailDef, SpiralDef, FlowCloudSettings } from '../types/cloud';
 import { DEFAULT_PRESET } from '../types/cloud';
 
 function nanoid(): string {
@@ -10,11 +10,11 @@ function nanoid(): string {
 interface CloudStore {
   preset: CloudPreset;
 
-  // Swirl actions
-  addSwirl: () => void;
-  updateSwirl: (id: string, patch: Partial<SwirlDef>) => void;
-  removeSwirl: (id: string) => void;
-  reorderSwirls: (fromIdx: number, toIdx: number) => void;
+  // Sphere actions
+  addSphere: () => void;
+  updateSphere: (id: string, patch: Partial<SphereDef>) => void;
+  removeSphere: (id: string) => void;
+  reorderSpheres: (fromIdx: number, toIdx: number) => void;
 
   // Base actions
   setBase: (patch: Partial<BaseDef>) => void;
@@ -28,8 +28,16 @@ interface CloudStore {
   removeTailSetpoint: (id: string) => void;
   updateTailSetpoint: (id: string, patch: { position?: [number, number, number]; width?: number }) => void;
 
-  // Merge / wireframe actions
-  setMerge: (patch: Partial<MergeSettings>) => void;
+  // Spiral actions
+  addSpiral: () => void;
+  updateSpiral: (id: string, patch: Partial<SpiralDef>) => void;
+  removeSpiral: (id: string) => void;
+
+  // Flow cloud actions
+  setFlowCloud: (patch: Partial<FlowCloudSettings>) => void;
+
+  // Surface mesh
+  setSurfaceMeshResolution: (resolution: number) => void;
 
   // Preset actions
   loadPreset: (preset: CloudPreset) => void;
@@ -38,45 +46,47 @@ interface CloudStore {
 }
 
 export const useCloudStore = create<CloudStore>()(
-  subscribeWithSelector((set, get) => ({
+  subscribeWithSelector((set) => ({
     preset: structuredClone(DEFAULT_PRESET),
 
-    addSwirl: () =>
+    addSphere: () =>
       set((s) => {
-        const last = s.preset.swirls[s.preset.swirls.length - 1];
+        const last = s.preset.spheres[s.preset.spheres.length - 1];
         const pos: [number, number, number] = last
           ? [last.position[0] + 1.2, last.position[1], last.position[2]]
           : [0, 0, 0];
-        const newSwirl: SwirlDef = {
-          id: `swirl-${nanoid()}`,
+        const newSphere: SphereDef = {
+          id: `sphere-${nanoid()}`,
           position: pos,
           radius: 1.0,
-          falloff: 2.0,
+          falloff: 0.5,
           shape: 'sphere',
           scale: [1, 1, 1],
+          rotation: [0, 0, 0],
+          half: false,
         };
-        return { preset: { ...s.preset, swirls: [...s.preset.swirls, newSwirl] } };
+        return { preset: { ...s.preset, spheres: [...s.preset.spheres, newSphere] } };
       }),
 
-    updateSwirl: (id, patch) =>
+    updateSphere: (id, patch) =>
       set((s) => ({
         preset: {
           ...s.preset,
-          swirls: s.preset.swirls.map((sw) => (sw.id === id ? { ...sw, ...patch } : sw)),
+          spheres: s.preset.spheres.map((sp) => (sp.id === id ? { ...sp, ...patch } : sp)),
         },
       })),
 
-    removeSwirl: (id) =>
+    removeSphere: (id) =>
       set((s) => ({
-        preset: { ...s.preset, swirls: s.preset.swirls.filter((sw) => sw.id !== id) },
+        preset: { ...s.preset, spheres: s.preset.spheres.filter((sp) => sp.id !== id) },
       })),
 
-    reorderSwirls: (fromIdx, toIdx) =>
+    reorderSpheres: (fromIdx, toIdx) =>
       set((s) => {
-        const swirls = [...s.preset.swirls];
-        const [item] = swirls.splice(fromIdx, 1);
-        swirls.splice(toIdx, 0, item);
-        return { preset: { ...s.preset, swirls } };
+        const spheres = [...s.preset.spheres];
+        const [item] = spheres.splice(fromIdx, 1);
+        spheres.splice(toIdx, 0, item);
+        return { preset: { ...s.preset, spheres } };
       }),
 
     setBase: (patch) =>
@@ -157,12 +167,68 @@ export const useCloudStore = create<CloudStore>()(
         },
       })),
 
-    setMerge: (patch) =>
+    addSpiral: () =>
+      set((s) => {
+        const existingCount = (s.preset.spirals ?? []).length;
+        const newSpiral: SpiralDef = {
+          id: `spiral-${nanoid()}`,
+          position: [existingCount * 0.5, 3, 0],
+          rotation: [0, 0, 0],
+          startRadius: 0.1,
+          endRadius: 1.5,
+          turns: 2,
+          separation: 0.3,
+          taperPower: 1,
+          rungDensity: 8,
+          spiralType: 'golden',
+          thickness: 0.15,
+          cornerRadius: 0.04,
+        };
+        return { preset: { ...s.preset, spirals: [...(s.preset.spirals ?? []), newSpiral] } };
+      }),
+
+    updateSpiral: (id, patch) =>
       set((s) => ({
-        preset: { ...s.preset, merge: { ...s.preset.merge, ...patch } },
+        preset: {
+          ...s.preset,
+          spirals: (s.preset.spirals ?? []).map((sp) => (sp.id === id ? { ...sp, ...patch } : sp)),
+        },
       })),
 
-    loadPreset: (preset) => set({ preset: structuredClone(preset) }),
+    removeSpiral: (id) =>
+      set((s) => ({
+        preset: { ...s.preset, spirals: (s.preset.spirals ?? []).filter((sp) => sp.id !== id) },
+      })),
+
+    setFlowCloud: (patch) =>
+      set((s) => ({
+        preset: { ...s.preset, flowCloud: { ...s.preset.flowCloud, ...patch } },
+      })),
+
+    setSurfaceMeshResolution: (resolution) =>
+      set((s) => ({
+        preset: { ...s.preset, surfaceMeshResolution: resolution },
+      })),
+
+    // Normalize fields so old presets without them don't crash
+    loadPreset: (preset) => {
+      const cloned = structuredClone(preset);
+      if (!cloned.spirals) cloned.spirals = [];
+      if (!cloned.flowCloud.position) cloned.flowCloud.position = [0, 0, 0];
+      if (cloned.flowCloud.wireframe.generateBands === undefined) {
+        cloned.flowCloud.wireframe.generateBands = false;
+      }
+      cloned.base.ringSegments ??= 16;
+      cloned.base.lengthSegments ??= 24;
+      cloned.tail.radialSegments ??= 12;
+      cloned.tail.lengthSegments ??= 32;
+      cloned.surfaceMeshResolution ??= 64;
+      for (const sp of cloned.spirals) {
+        sp.thickness ??= 0;
+        sp.cornerRadius ??= 0;
+      }
+      set({ preset: cloned });
+    },
 
     resetToDefault: () => set({ preset: structuredClone(DEFAULT_PRESET) }),
 

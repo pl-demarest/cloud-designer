@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { Viewport } from './Viewport';
 import { useCloudStore } from '../store/cloudStore';
 
-const FRONT_MAT = new THREE.MeshBasicMaterial({ color: 0x2563eb });
-const BACK_MAT = new THREE.MeshBasicMaterial({ color: 0xdc2626 });
+const FRONT_MAT = new THREE.MeshBasicMaterial({ color: 0x2563eb, depthTest: false });
+const BACK_MAT = new THREE.MeshBasicMaterial({ color: 0xdc2626, depthTest: false });
 
 export class AxisGizmo {
   private viewport: Viewport;
@@ -13,6 +13,7 @@ export class AxisGizmo {
   private group: THREE.Group;
 
   private dragTarget: 'front' | 'back' | null = null;
+  private dragMoved = false;
   private dragPlane = new THREE.Plane();
   private raycaster = new THREE.Raycaster();
   private pointer = new THREE.Vector2();
@@ -24,10 +25,11 @@ export class AxisGizmo {
     this.viewport = viewport;
     this.group = viewport.gizmoGroup;
 
-    const hGeo = new THREE.SphereGeometry(0.15, 12, 8);
+    const hGeo = new THREE.SphereGeometry(0.2, 12, 8);
     this.frontHandle = new THREE.Mesh(hGeo, FRONT_MAT);
     this.frontHandle.userData.isAxisGizmo = true;
     this.frontHandle.userData.which = 'front';
+    this.frontHandle.renderOrder = 999;
 
     // Add text label sprites via canvas
     this.frontHandle.add(this.makeLabel('F'));
@@ -35,6 +37,7 @@ export class AxisGizmo {
     this.backHandle = new THREE.Mesh(hGeo.clone(), BACK_MAT);
     this.backHandle.userData.isAxisGizmo = true;
     this.backHandle.userData.which = 'back';
+    this.backHandle.renderOrder = 999;
     this.backHandle.add(this.makeLabel('B'));
 
     const dir = new THREE.Vector3(0, 0, -1);
@@ -44,16 +47,17 @@ export class AxisGizmo {
 
     // Sync from store
     this.unsubscribe = useCloudStore.subscribe(
-      (s) => s.preset.merge.wireframe,
+      (s) => s.preset.flowCloud.wireframe,
       (wf) => this.applyPositions(wf.frontPoint, wf.backPoint)
     );
-    const wf = useCloudStore.getState().preset.merge.wireframe;
+    const wf = useCloudStore.getState().preset.flowCloud.wireframe;
     this.applyPositions(wf.frontPoint, wf.backPoint);
 
     const canvas = viewport.renderer.domElement;
     canvas.addEventListener('pointerdown', this.onPointerDown);
     canvas.addEventListener('pointermove', this.onPointerMove);
     canvas.addEventListener('pointerup', this.onPointerUp);
+    window.addEventListener('pointerup', this.onWindowPointerUp);
   }
 
   private makeLabel(text: string): THREE.Sprite {
@@ -100,35 +104,43 @@ export class AxisGizmo {
     this.raycaster.setFromCamera(this.pointer, this.viewport.camera);
     const hits = this.raycaster.intersectObjects([this.frontHandle, this.backHandle]);
     if (hits.length === 0) return;
+    if (!this.viewport.claimDrag()) return;
 
     const hit = hits[0];
     this.dragTarget = hit.object.userData.which as 'front' | 'back';
-    this.viewport.controls.enabled = false;
+    this.dragMoved = false;
+    // Defer controls.enabled = false until first move to avoid freezing on a mere click
 
     const normal = this.viewport.camera.position.clone().sub(hit.point).normalize();
     this.dragPlane.setFromNormalAndCoplanarPoint(normal, hit.point);
-    const wf = useCloudStore.getState().preset.merge.wireframe;
+    const wf = useCloudStore.getState().preset.flowCloud.wireframe;
     const pos = this.dragTarget === 'front' ? wf.frontPoint : wf.backPoint;
-    this.dragOffset.copy(hit.point).sub(new THREE.Vector3(...pos));
+    const localPos = new THREE.Vector3(...pos);
+    this.dragOffset.copy(hit.point).sub(this.viewport.activeUnitGroup.localToWorld(localPos));
 
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   };
 
   private onPointerMove = (e: PointerEvent): void => {
     if (!this.dragTarget) return;
+    if (!this.dragMoved) {
+      this.viewport.controls.enabled = false;
+      this.dragMoved = true;
+    }
     this.getPointer(e);
     this.raycaster.setFromCamera(this.pointer, this.viewport.camera);
     const target = new THREE.Vector3();
     this.raycaster.ray.intersectPlane(this.dragPlane, target);
     target.sub(this.dragOffset);
 
-    const wf = useCloudStore.getState().preset.merge.wireframe;
+    this.viewport.activeUnitGroup.worldToLocal(target);
+    const wf = useCloudStore.getState().preset.flowCloud.wireframe;
     if (this.dragTarget === 'front') {
-      useCloudStore.getState().setMerge({
+      useCloudStore.getState().setFlowCloud({
         wireframe: { ...wf, frontPoint: [target.x, target.y, target.z] },
       });
     } else {
-      useCloudStore.getState().setMerge({
+      useCloudStore.getState().setFlowCloud({
         wireframe: { ...wf, backPoint: [target.x, target.y, target.z] },
       });
     }
@@ -137,8 +149,19 @@ export class AxisGizmo {
   private onPointerUp = (e: PointerEvent): void => {
     if (this.dragTarget) {
       this.dragTarget = null;
+      this.dragMoved = false;
       this.viewport.controls.enabled = true;
+      this.viewport.releaseDrag();
       (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+    }
+  };
+
+  private onWindowPointerUp = (): void => {
+    if (this.dragTarget) {
+      this.dragTarget = null;
+      this.dragMoved = false;
+      this.viewport.controls.enabled = true;
+      this.viewport.releaseDrag();
     }
   };
 
@@ -148,5 +171,6 @@ export class AxisGizmo {
     canvas.removeEventListener('pointerdown', this.onPointerDown);
     canvas.removeEventListener('pointermove', this.onPointerMove);
     canvas.removeEventListener('pointerup', this.onPointerUp);
+    window.removeEventListener('pointerup', this.onWindowPointerUp);
   }
 }

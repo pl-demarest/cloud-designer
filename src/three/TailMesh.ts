@@ -7,9 +7,6 @@ import { BaseMesh } from './BaseMesh';
 const WIRE_MAT = new THREE.LineBasicMaterial({ color: 0x000000 });
 const HANDLE_MAT = new THREE.MeshBasicMaterial({ color: 0xdc2626 });
 
-const TUBE_SIDES = 8;
-const TUBE_SAMPLES = 64;
-
 export class TailMesh {
   private group: THREE.Group;
   private viewport: Viewport;
@@ -41,82 +38,7 @@ export class TailMesh {
     canvas.addEventListener('pointerdown', this.onPointerDown);
     canvas.addEventListener('pointermove', this.onPointerMove);
     canvas.addEventListener('pointerup', this.onPointerUp);
-  }
-
-  private buildGeo(tail: TailDef): THREE.BufferGeometry {
-    const setpoints = this.resolveSetpoints(tail);
-    if (setpoints.length < 2) return new THREE.BufferGeometry();
-
-    const curve = new THREE.CatmullRomCurve3(
-      setpoints.map((sp) => new THREE.Vector3(...sp.position)),
-      false,
-      'catmullrom',
-      0.5
-    );
-
-    const arcLengths = curve.getLengths(TUBE_SAMPLES);
-    const totalLength = arcLengths[arcLengths.length - 1];
-
-    // Sample curve + compute radius at each sample
-    const points: THREE.Vector3[] = [];
-    const radii: number[] = [];
-    const frames = curve.computeFrenetFrames(TUBE_SAMPLES, false);
-
-    for (let i = 0; i <= TUBE_SAMPLES; i++) {
-      const t = i / TUBE_SAMPLES;
-      const pt = curve.getPoint(t);
-      points.push(pt);
-
-      // Interpolate radius from setpoints by arc-length parameter
-      const arcT = arcLengths[Math.min(i, arcLengths.length - 1)] / totalLength;
-      const r = this.interpolateRadius(arcT, setpoints);
-      radii.push(r);
-    }
-
-    // Build variable-radius tube geometry
-    const positions: number[] = [];
-    const indices: number[] = [];
-
-    for (let i = 0; i <= TUBE_SAMPLES; i++) {
-      const t = i / TUBE_SAMPLES;
-      const curlFraction = Math.max(0, (t - 0.8) / 0.2); // only last 20%
-      const curlAngle = tail.curlAmount * curlFraction;
-
-      const normal = frames.normals[Math.min(i, frames.normals.length - 1)];
-      const binormal = frames.binormals[Math.min(i, frames.binormals.length - 1)];
-      const r = radii[i];
-
-      for (let j = 0; j < TUBE_SIDES; j++) {
-        const angle = (j / TUBE_SIDES) * Math.PI * 2 + curlAngle;
-        const cos = Math.cos(angle);
-        const sin = Math.sin(angle);
-        const nx = normal.x * cos + binormal.x * sin;
-        const ny = normal.y * cos + binormal.y * sin;
-        const nz = normal.z * cos + binormal.z * sin;
-        positions.push(
-          points[i].x + nx * r,
-          points[i].y + ny * r,
-          points[i].z + nz * r
-        );
-      }
-    }
-
-    // Connect rings into quads → triangles
-    for (let i = 0; i < TUBE_SAMPLES; i++) {
-      for (let j = 0; j < TUBE_SIDES; j++) {
-        const a = i * TUBE_SIDES + j;
-        const b = i * TUBE_SIDES + (j + 1) % TUBE_SIDES;
-        const c = (i + 1) * TUBE_SIDES + j;
-        const d = (i + 1) * TUBE_SIDES + (j + 1) % TUBE_SIDES;
-        indices.push(a, b, d, a, d, c);
-      }
-    }
-
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geo.setIndex(indices);
-    geo.computeVertexNormals();
-    return geo;
+    window.addEventListener('pointerup', this.onWindowPointerUp);
   }
 
   private resolveSetpoints(tail: TailDef): TailSetpoint[] {
@@ -142,17 +64,86 @@ export class TailMesh {
     return setpoints[i].width + (setpoints[i + 1].width - setpoints[i].width) * f;
   }
 
+  private buildWireframe(tail: TailDef): THREE.BufferGeometry {
+    const setpoints = this.resolveSetpoints(tail);
+    if (setpoints.length < 2) return new THREE.BufferGeometry();
+
+    const radSegs = tail.radialSegments ?? 12;
+    const lenSegs = tail.lengthSegments ?? 32;
+
+    const curve = new THREE.CatmullRomCurve3(
+      setpoints.map((sp) => new THREE.Vector3(...sp.position)),
+      false,
+      'catmullrom',
+      0.5
+    );
+
+    const arcLengths = curve.getLengths(lenSegs);
+    const totalLength = arcLengths[arcLengths.length - 1];
+    const frames = curve.computeFrenetFrames(lenSegs, false);
+
+    // Build all ring vertices
+    const rings: THREE.Vector3[][] = [];
+    for (let i = 0; i <= lenSegs; i++) {
+      const t = i / lenSegs;
+      const pt = curve.getPoint(t);
+
+      // Interpolate radius from setpoints by arc-length parameter
+      const arcT = arcLengths[Math.min(i, arcLengths.length - 1)] / totalLength;
+      const r = this.interpolateRadius(arcT, setpoints);
+
+      // Curl in the last 20% of arc
+      const curlFraction = Math.max(0, (t - 0.8) / 0.2);
+      const curlAngle = tail.curlAmount * curlFraction;
+
+      const normal = frames.normals[Math.min(i, frames.normals.length - 1)];
+      const binormal = frames.binormals[Math.min(i, frames.binormals.length - 1)];
+      const ring: THREE.Vector3[] = [];
+
+      for (let j = 0; j < radSegs; j++) {
+        const angle = (j / radSegs) * Math.PI * 2 + curlAngle;
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        const nx = normal.x * cos + binormal.x * sin;
+        const ny = normal.y * cos + binormal.y * sin;
+        const nz = normal.z * cos + binormal.z * sin;
+        ring.push(new THREE.Vector3(pt.x + nx * r, pt.y + ny * r, pt.z + nz * r));
+      }
+      rings.push(ring);
+    }
+
+    // Emit ring + longitudinal segments
+    const verts: number[] = [];
+    for (let i = 0; i <= lenSegs; i++) {
+      const ring = rings[i];
+      for (let j = 0; j < radSegs; j++) {
+        const a = ring[j];
+        const b = ring[(j + 1) % radSegs];
+        verts.push(a.x, a.y, a.z, b.x, b.y, b.z);
+      }
+    }
+    for (let j = 0; j < radSegs; j++) {
+      for (let i = 0; i < lenSegs; i++) {
+        const a = rings[i][j];
+        const b = rings[i + 1][j];
+        verts.push(a.x, a.y, a.z, b.x, b.y, b.z);
+      }
+    }
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+    return geo;
+  }
+
   private sync(tail: TailDef): void {
     // Rebuild wire
     if (this.wire) {
       this.group.remove(this.wire);
       this.wire.geometry.dispose();
     }
-    const geo = this.buildGeo(tail);
-    const edges = new THREE.EdgesGeometry(geo, 20);
-    this.wire = new THREE.LineSegments(edges, WIRE_MAT);
+    const wireGeo = this.buildWireframe(tail);
+    this.wire = new THREE.LineSegments(wireGeo, WIRE_MAT);
     this.group.add(this.wire);
-    geo.dispose();
 
     // Rebuild handles
     for (const h of this.handles) {
@@ -184,6 +175,7 @@ export class TailMesh {
     this.raycaster.setFromCamera(this.pointer, this.viewport.camera);
     const hits = this.raycaster.intersectObjects(this.handles);
     if (hits.length === 0) return;
+    if (!this.viewport.claimDrag()) return;
 
     const hit = hits[0];
     this.dragId = hit.object.userData.spId as string;
@@ -192,7 +184,8 @@ export class TailMesh {
     const normal = this.viewport.camera.position.clone().sub(hit.point).normalize();
     this.dragPlane.setFromNormalAndCoplanarPoint(normal, hit.point);
     const sp = useCloudStore.getState().preset.tail.setpoints.find((p) => p.id === this.dragId);
-    this.dragOffset.copy(hit.point).sub(new THREE.Vector3(...(sp?.position ?? [0, 0, 0])));
+    const localPos = new THREE.Vector3(...(sp?.position ?? [0, 0, 0]));
+    this.dragOffset.copy(hit.point).sub(this.viewport.activeUnitGroup.localToWorld(localPos));
 
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   };
@@ -209,6 +202,7 @@ export class TailMesh {
     const tail = useCloudStore.getState().preset.tail;
     if (tail.attachToBase !== 'none' && tail.setpoints[0]?.id === this.dragId) return;
 
+    this.viewport.activeUnitGroup.worldToLocal(target);
     useCloudStore.getState().updateTailSetpoint(this.dragId, {
       position: [target.x, target.y, target.z],
     });
@@ -218,9 +212,35 @@ export class TailMesh {
     if (this.dragId) {
       this.dragId = null;
       this.viewport.controls.enabled = true;
+      this.viewport.releaseDrag();
       (e.target as HTMLElement).releasePointerCapture(e.pointerId);
     }
   };
+
+  private onWindowPointerUp = (): void => {
+    if (this.dragId) {
+      this.dragId = null;
+      this.viewport.controls.enabled = true;
+      this.viewport.releaseDrag();
+    }
+  };
+
+  getEdges(): Float32Array {
+    const verts: number[] = [];
+    const v = new THREE.Vector3();
+    this.group.traverse((obj) => {
+      if ((obj instanceof THREE.LineSegments || obj instanceof THREE.Line) && !obj.userData.isHandle) {
+        obj.updateWorldMatrix(true, false);
+        const pos = obj.geometry.attributes.position;
+        if (!pos) return;
+        for (let i = 0; i < pos.count; i++) {
+          v.fromBufferAttribute(pos, i).applyMatrix4(obj.matrixWorld);
+          verts.push(v.x, v.y, v.z);
+        }
+      }
+    });
+    return new Float32Array(verts);
+  }
 
   dispose(): void {
     this.unsubscribe();
@@ -236,5 +256,6 @@ export class TailMesh {
     canvas.removeEventListener('pointerdown', this.onPointerDown);
     canvas.removeEventListener('pointermove', this.onPointerMove);
     canvas.removeEventListener('pointerup', this.onPointerUp);
+    window.removeEventListener('pointerup', this.onWindowPointerUp);
   }
 }

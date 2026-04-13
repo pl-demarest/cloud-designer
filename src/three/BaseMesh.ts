@@ -35,51 +35,7 @@ export class BaseMesh {
     canvas.addEventListener('pointerdown', this.onPointerDown);
     canvas.addEventListener('pointermove', this.onPointerMove);
     canvas.addEventListener('pointerup', this.onPointerUp);
-  }
-
-  /** Build a closed oval cross-section shape */
-  private buildCrossSection(def: BaseDef): THREE.Shape {
-    const shape = new THREE.Shape();
-    const hw = def.crossSectionWidth / 2;
-    const hh = def.crossSectionHeight / 2;
-
-    if (def.crossSectionShape === 'oval') {
-      const N = 16;
-      for (let i = 0; i <= N; i++) {
-        const a = (i / N) * Math.PI * 2;
-        const x = Math.cos(a) * hw;
-        const y = Math.sin(a) * hh;
-        i === 0 ? shape.moveTo(x, y) : shape.lineTo(x, y);
-      }
-      shape.closePath();
-    } else {
-      shape.moveTo(-hw, -hh);
-      shape.lineTo(hw, -hh);
-      shape.lineTo(hw, hh);
-      shape.lineTo(-hw, hh);
-      shape.closePath();
-    }
-    return shape;
-  }
-
-  private buildGeo(def: BaseDef): THREE.BufferGeometry {
-    if (def.controlPoints.length < 2) return new THREE.BufferGeometry();
-
-    const curve = new THREE.CatmullRomCurve3(
-      def.controlPoints.map((p) => new THREE.Vector3(...p)),
-      def.closed,
-      'catmullrom',
-      0.5
-    );
-
-    const shape = this.buildCrossSection(def);
-    const extrudeSettings: THREE.ExtrudeGeometryOptions = {
-      steps: Math.max(20, def.controlPoints.length * 6),
-      bevelEnabled: false,
-      extrudePath: curve,
-    };
-
-    return new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    window.addEventListener('pointerup', this.onWindowPointerUp);
   }
 
   /** Returns the world-space point on the base curve at parameter t ∈ [0,1] */
@@ -93,17 +49,94 @@ export class BaseMesh {
     return curve.getPointAt(Math.max(0, Math.min(1, t)));
   }
 
+  private buildWireframe(def: BaseDef): THREE.BufferGeometry {
+    if (def.controlPoints.length < 2) return new THREE.BufferGeometry();
+
+    const ringSegs = def.ringSegments ?? 16;
+    const lenSegs = def.lengthSegments ?? 24;
+
+    const curve = new THREE.CatmullRomCurve3(
+      def.controlPoints.map((p) => new THREE.Vector3(...p)),
+      def.closed,
+      'catmullrom',
+      0.5
+    );
+
+    const frames = curve.computeFrenetFrames(lenSegs, def.closed);
+    // hx/hy swap per buildCrossSection: local X gets height, local Y gets width
+    const hx = def.crossSectionHeight / 2;
+    const hy = def.crossSectionWidth / 2;
+    const isOval = def.crossSectionShape === 'oval';
+
+    // Build all ring vertices
+    const rings: THREE.Vector3[][] = [];
+    for (let i = 0; i <= lenSegs; i++) {
+      const t = i / lenSegs;
+      const center = curve.getPointAt(t);
+      const N = frames.normals[i];
+      const B = frames.binormals[i];
+      const ring: THREE.Vector3[] = [];
+
+      for (let j = 0; j < ringSegs; j++) {
+        const a = (j / ringSegs) * Math.PI * 2;
+        let localN: number, localB: number;
+        if (isOval) {
+          localN = Math.cos(a) * hx;
+          localB = Math.sin(a) * hy;
+        } else {
+          // Rect: distribute vertices along 4 sides
+          const perimeter = 4;
+          const side = (a / (Math.PI * 2)) * perimeter;
+          const sideIdx = Math.floor(side) % 4;
+          const frac = side - Math.floor(side);
+          switch (sideIdx) {
+            case 0: localN = -hx + frac * 2 * hx; localB = -hy; break;
+            case 1: localN = hx; localB = -hy + frac * 2 * hy; break;
+            case 2: localN = hx - frac * 2 * hx; localB = hy; break;
+            default: localN = -hx; localB = hy - frac * 2 * hy; break;
+          }
+        }
+        ring.push(new THREE.Vector3(
+          center.x + localN * N.x + localB * B.x,
+          center.y + localN * N.y + localB * B.y,
+          center.z + localN * N.z + localB * B.z,
+        ));
+      }
+      rings.push(ring);
+    }
+
+    // Emit ring + longitudinal segments
+    const verts: number[] = [];
+    for (let i = 0; i <= lenSegs; i++) {
+      const ring = rings[i];
+      for (let j = 0; j < ringSegs; j++) {
+        const a = ring[j];
+        const b = ring[(j + 1) % ringSegs];
+        verts.push(a.x, a.y, a.z, b.x, b.y, b.z);
+      }
+    }
+    for (let j = 0; j < ringSegs; j++) {
+      for (let i = 0; i < lenSegs; i++) {
+        const a = rings[i][j];
+        const b = rings[i + 1][j];
+        verts.push(a.x, a.y, a.z, b.x, b.y, b.z);
+      }
+    }
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+    return geo;
+  }
+
   private sync(def: BaseDef): void {
     // Rebuild wire
     if (this.wire) {
       this.group.remove(this.wire);
       this.wire.geometry.dispose();
     }
-    const geo = this.buildGeo(def);
-    const edges = new THREE.EdgesGeometry(geo, 20);
-    this.wire = new THREE.LineSegments(edges, WIRE_MAT);
+    const wireGeo = this.buildWireframe(def);
+    this.wire = new THREE.LineSegments(wireGeo, WIRE_MAT);
     this.group.add(this.wire);
-    geo.dispose();
 
     // Rebuild handles
     for (const h of this.handles) {
@@ -134,6 +167,7 @@ export class BaseMesh {
     this.raycaster.setFromCamera(this.pointer, this.viewport.camera);
     const hits = this.raycaster.intersectObjects(this.handles);
     if (hits.length === 0) return;
+    if (!this.viewport.claimDrag()) return;
 
     const hit = hits[0];
     this.dragIdx = hit.object.userData.cpIdx as number;
@@ -142,7 +176,8 @@ export class BaseMesh {
     const normal = this.viewport.camera.position.clone().sub(hit.point).normalize();
     this.dragPlane.setFromNormalAndCoplanarPoint(normal, hit.point);
     const pts = useCloudStore.getState().preset.base.controlPoints;
-    this.dragOffset.copy(hit.point).sub(new THREE.Vector3(...pts[this.dragIdx]));
+    const localPos = new THREE.Vector3(...pts[this.dragIdx]);
+    this.dragOffset.copy(hit.point).sub(this.viewport.activeUnitGroup.localToWorld(localPos));
 
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   };
@@ -154,6 +189,7 @@ export class BaseMesh {
     const target = new THREE.Vector3();
     this.raycaster.ray.intersectPlane(this.dragPlane, target);
     target.sub(this.dragOffset);
+    this.viewport.activeUnitGroup.worldToLocal(target);
     useCloudStore.getState().updateBasePoint(this.dragIdx, [target.x, target.y, target.z]);
   };
 
@@ -161,9 +197,35 @@ export class BaseMesh {
     if (this.dragIdx >= 0) {
       this.dragIdx = -1;
       this.viewport.controls.enabled = true;
+      this.viewport.releaseDrag();
       (e.target as HTMLElement).releasePointerCapture(e.pointerId);
     }
   };
+
+  private onWindowPointerUp = (): void => {
+    if (this.dragIdx >= 0) {
+      this.dragIdx = -1;
+      this.viewport.controls.enabled = true;
+      this.viewport.releaseDrag();
+    }
+  };
+
+  getEdges(): Float32Array {
+    const verts: number[] = [];
+    const v = new THREE.Vector3();
+    this.group.traverse((obj) => {
+      if ((obj instanceof THREE.LineSegments || obj instanceof THREE.Line) && !obj.userData.isHandle) {
+        obj.updateWorldMatrix(true, false);
+        const pos = obj.geometry.attributes.position;
+        if (!pos) return;
+        for (let i = 0; i < pos.count; i++) {
+          v.fromBufferAttribute(pos, i).applyMatrix4(obj.matrixWorld);
+          verts.push(v.x, v.y, v.z);
+        }
+      }
+    });
+    return new Float32Array(verts);
+  }
 
   dispose(): void {
     this.unsubscribe();
@@ -179,5 +241,6 @@ export class BaseMesh {
     canvas.removeEventListener('pointerdown', this.onPointerDown);
     canvas.removeEventListener('pointermove', this.onPointerMove);
     canvas.removeEventListener('pointerup', this.onPointerUp);
+    window.removeEventListener('pointerup', this.onWindowPointerUp);
   }
 }

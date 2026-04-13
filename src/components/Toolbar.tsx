@@ -14,7 +14,6 @@ interface Props {
 export function Toolbar({ mode, onModeChange, showAxes, onToggleAxes, showGrid, onToggleGrid, onZoomFit }: Props) {
   const preset = useCloudStore((s) => s.preset);
   const setPresetName = useCloudStore((s) => s.setPresetName);
-  const resetToDefault = useCloudStore((s) => s.resetToDefault);
   const loadPreset = useCloudStore((s) => s.loadPreset);
   const undo = useHistoryStore((s) => s.undo);
   const redo = useHistoryStore((s) => s.redo);
@@ -62,7 +61,7 @@ export function Toolbar({ mode, onModeChange, showAxes, onToggleAxes, showGrid, 
         <button className={showGrid ? 'active' : ''} onClick={onToggleGrid}>Grid</button>
         <button onClick={onZoomFit}>Fit</button>
       </div>
-      <button onClick={resetToDefault} className="btn-reset">Reset</button>
+      <button onClick={() => window.location.reload()} className="btn-reset">Reset</button>
     </div>
   );
 }
