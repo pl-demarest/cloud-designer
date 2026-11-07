@@ -11,7 +11,7 @@
 import type { SphereDef, BaseDef, TailDef, FlowCloudSettings } from '../types/cloud';
 import { fillField, gridFromBounds, polygonise } from '../geometry/marchingCubes/polygonise';
 import { sampleTailSpline } from '../geometry/primitives/tail';
-import type { TailSample } from '../geometry/primitives/tail';
+import { evalMetaballField } from '../geometry/flowField';
 
 // --- Simplified scalar field + mesh generation ---
 
@@ -20,65 +20,6 @@ interface MCInput {
   base: BaseDef;
   tail: TailDef;
   flowCloud: FlowCloudSettings;
-}
-
-// Evaluate scalar field at point (x, y, z)
-function evalField(
-  x: number, y: number, z: number,
-  spheres: SphereDef[],
-  tailSamples: TailSample[],
-  tailStrength: number
-): number {
-  let val = 0;
-
-  // Sphere metaballs
-  for (const sw of spheres) {
-    const [sx, sy, sz] = sw.position;
-    let dx = x - sx;
-    let dy = y - sy;
-    let dz = z - sz;
-
-    if (sw.shape === 'ellipsoid') {
-      dx /= sw.scale[0];
-      dy /= sw.scale[1];
-      dz /= sw.scale[2];
-    }
-
-    const dist2 = dx * dx + dy * dy + dz * dz;
-    const r2 = sw.radius * sw.radius;
-    if (dist2 < 0.0001) {
-      val += sw.falloff * 100;
-    } else {
-      val += sw.falloff * r2 / dist2;
-    }
-  }
-
-  // Tail metaball — find closest point on sampled spine and treat as a
-  // variable-radius capsule. Using nearest-segment to avoid double-counting.
-  if (tailSamples.length >= 2 && tailStrength > 0) {
-    let minDist2 = Infinity;
-    let minRadius = 0;
-
-    for (let i = 0; i < tailSamples.length - 1; i++) {
-      const a = tailSamples[i];
-      const b = tailSamples[i + 1];
-      const abx = b.px - a.px, aby = b.py - a.py, abz = b.pz - a.pz;
-      const ab2 = abx*abx + aby*aby + abz*abz;
-      const apx = x - a.px, apy = y - a.py, apz = z - a.pz;
-      const t = ab2 > 0.00001 ? Math.max(0, Math.min(1, (apx*abx + apy*aby + apz*abz) / ab2)) : 0;
-      const cx = a.px + t*abx, cy = a.py + t*aby, cz = a.pz + t*abz;
-      const d2 = (x-cx)*(x-cx) + (y-cy)*(y-cy) + (z-cz)*(z-cz);
-      if (d2 < minDist2) {
-        minDist2 = d2;
-        minRadius = a.width + t * (b.width - a.width);
-      }
-    }
-
-    const r2 = minRadius * minRadius;
-    val += tailStrength * (minDist2 < 0.0001 ? 100 * r2 : r2 / minDist2);
-  }
-
-  return val;
 }
 
 function marchingCubes(
@@ -124,7 +65,7 @@ function marchingCubes(
   const grid = gridFromBounds(minX, minY, minZ, maxX, maxY, maxZ, res);
 
   // Build scalar field
-  const field = fillField(grid, (x, y, z) => evalField(x, y, z, spheres, tailSamples, tailStrength));
+  const field = fillField(grid, (x, y, z) => evalMetaballField(x, y, z, spheres, tailSamples, tailStrength));
 
   // March cubes
   const { positions, indices } = polygonise(field, grid, { kind: 'density', iso });
