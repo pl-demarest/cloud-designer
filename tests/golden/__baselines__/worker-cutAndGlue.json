@@ -1,0 +1,1310 @@
+{
+  "bands": {
+    "input": {
+      "sphereEdgeGroups": [
+        {
+          "sphereId": "sphere-0",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1.2000000476837158,
+            "max": 1.2000000476837158,
+            "sum": -37.001605331897736,
+            "sumSq": 780.4800193805912,
+            "sha256": "d2a2ec63a9dc9e23d4621ffec9b21fb1666dec925bc07953f344ac363f468cf7"
+          }
+        },
+        {
+          "sphereId": "sphere-1",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1,
+            "max": 2.5999999046325684,
+            "sum": 998.965330094099,
+            "sumSq": 1934.6519802704915,
+            "sha256": "c54ef279ce436edc5db10be616e6bda880e245cbed2ab5bc73036a96d2fc666b"
+          }
+        },
+        {
+          "sphereId": "sphere-2",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.5,
+            "max": 1.100000023841858,
+            "sum": -786.5512101054192,
+            "sumSq": 1868.4568329449546,
+            "sha256": "54da5ba9d2385460ffa6f9473b5ef7a3d1999e4af0169607790ac48420867dd8"
+          }
+        }
+      ],
+      "baseEdges": {
+        "type": "Float32Array",
+        "length": 4704,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 2.6140646934509277,
+        "sum": -1489.5660495925695,
+        "sumSq": 5218.70445842145,
+        "sha256": "36a9a76fa64f853b7544845ef5059480f52e9c5a2f7413c4cd9f472890737e5c"
+      },
+      "tailEdges": {
+        "type": "Float32Array",
+        "length": 4680,
+        "nan": 0,
+        "inf": 0,
+        "min": -1.5532505512237549,
+        "max": 4.2687668800354,
+        "sum": 5516.324992832728,
+        "sumSq": 19881.437676906724,
+        "sha256": "b42a70b618cee78c4d3aadec006c27dbb0cd9fe80bf3f730bcfebd6dc9c6af47"
+      },
+      "spiralEdges": {
+        "type": "Float32Array",
+        "length": 0,
+        "nan": 0,
+        "inf": 0,
+        "min": null,
+        "max": null,
+        "sum": 0,
+        "sumSq": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "flowCloudEdges": {
+        "type": "Float32Array",
+        "length": 14358,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.32100510597229,
+        "max": 2.406944751739502,
+        "sum": 1014.3326406536056,
+        "sumSq": 13109.5105350981,
+        "sha256": "73ffbf6ffa7b6612a03423b1331a5544522a23420b2979b96e2b82937ba84d9a"
+      }
+    },
+    "output": {
+      "keys": [
+        "clippedEdges"
+      ],
+      "clippedEdges": {
+        "type": "Float32Array",
+        "length": 13056,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 4.2687668800354,
+        "sum": 4195.696395703126,
+        "sumSq": 28227.609435862367,
+        "sha256": "ca63b169838d93b8c32bcfc847eac723f2a51c3410724b148c7d692e0bfc15c3"
+      },
+      "transferIsOutputBuffer": true
+    }
+  },
+  "default": {
+    "input": {
+      "sphereEdgeGroups": [
+        {
+          "sphereId": "sphere-0",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1.2000000476837158,
+            "max": 1.2000000476837158,
+            "sum": -37.001605331897736,
+            "sumSq": 780.4800193805912,
+            "sha256": "d2a2ec63a9dc9e23d4621ffec9b21fb1666dec925bc07953f344ac363f468cf7"
+          }
+        },
+        {
+          "sphereId": "sphere-1",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1,
+            "max": 2.5999999046325684,
+            "sum": 998.965330094099,
+            "sumSq": 1934.6519802704915,
+            "sha256": "c54ef279ce436edc5db10be616e6bda880e245cbed2ab5bc73036a96d2fc666b"
+          }
+        },
+        {
+          "sphereId": "sphere-2",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.5,
+            "max": 1.100000023841858,
+            "sum": -786.5512101054192,
+            "sumSq": 1868.4568329449546,
+            "sha256": "54da5ba9d2385460ffa6f9473b5ef7a3d1999e4af0169607790ac48420867dd8"
+          }
+        }
+      ],
+      "baseEdges": {
+        "type": "Float32Array",
+        "length": 4704,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 2.6140646934509277,
+        "sum": -1489.5660495925695,
+        "sumSq": 5218.70445842145,
+        "sha256": "36a9a76fa64f853b7544845ef5059480f52e9c5a2f7413c4cd9f472890737e5c"
+      },
+      "tailEdges": {
+        "type": "Float32Array",
+        "length": 4680,
+        "nan": 0,
+        "inf": 0,
+        "min": -1.5532505512237549,
+        "max": 4.2687668800354,
+        "sum": 5516.324992832728,
+        "sumSq": 19881.437676906724,
+        "sha256": "b42a70b618cee78c4d3aadec006c27dbb0cd9fe80bf3f730bcfebd6dc9c6af47"
+      },
+      "spiralEdges": {
+        "type": "Float32Array",
+        "length": 0,
+        "nan": 0,
+        "inf": 0,
+        "min": null,
+        "max": null,
+        "sum": 0,
+        "sumSq": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "flowCloudEdges": {
+        "type": "Float32Array",
+        "length": 25668,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.306339979171753,
+        "max": 2.3713364601135254,
+        "sum": 1121.4662522363897,
+        "sumSq": 24252.29430894648,
+        "sha256": "5bbf1b600a9296808bef5741dc27ee6ff9a372da545bbd5759b316a80e06bd6a"
+      }
+    },
+    "output": {
+      "keys": [
+        "clippedEdges"
+      ],
+      "clippedEdges": {
+        "type": "Float32Array",
+        "length": 13254,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 4.2687668800354,
+        "sum": 4124.250947762746,
+        "sumSq": 28325.523300852026,
+        "sha256": "15663c49ab0d1aaf690a6d28a8ec69b6a701e1d71e6150280744f3367f26a05d"
+      },
+      "transferIsOutputBuffer": true
+    }
+  },
+  "degenerateBase": {
+    "input": {
+      "sphereEdgeGroups": [
+        {
+          "sphereId": "sphere-0",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1.2000000476837158,
+            "max": 1.2000000476837158,
+            "sum": -37.001605331897736,
+            "sumSq": 780.4800193805912,
+            "sha256": "d2a2ec63a9dc9e23d4621ffec9b21fb1666dec925bc07953f344ac363f468cf7"
+          }
+        },
+        {
+          "sphereId": "sphere-1",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1,
+            "max": 2.5999999046325684,
+            "sum": 998.965330094099,
+            "sumSq": 1934.6519802704915,
+            "sha256": "c54ef279ce436edc5db10be616e6bda880e245cbed2ab5bc73036a96d2fc666b"
+          }
+        },
+        {
+          "sphereId": "sphere-2",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.5,
+            "max": 1.100000023841858,
+            "sum": -786.5512101054192,
+            "sumSq": 1868.4568329449546,
+            "sha256": "54da5ba9d2385460ffa6f9473b5ef7a3d1999e4af0169607790ac48420867dd8"
+          }
+        }
+      ],
+      "baseEdges": {
+        "type": "Float32Array",
+        "length": 4704,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6177263259887695,
+        "max": 2.611755132675171,
+        "sum": -1489.5660432835575,
+        "sumSq": 5187.344456500097,
+        "sha256": "21dd5099cdaead29f80e24993bbe4fab8c723e1943fc3e4faaeab3efaa096014"
+      },
+      "tailEdges": {
+        "type": "Float32Array",
+        "length": 4680,
+        "nan": 0,
+        "inf": 0,
+        "min": -1.5532505512237549,
+        "max": 4.2687668800354,
+        "sum": 5516.324992832728,
+        "sumSq": 19881.437676906724,
+        "sha256": "b42a70b618cee78c4d3aadec006c27dbb0cd9fe80bf3f730bcfebd6dc9c6af47"
+      },
+      "spiralEdges": {
+        "type": "Float32Array",
+        "length": 0,
+        "nan": 0,
+        "inf": 0,
+        "min": null,
+        "max": null,
+        "sum": 0,
+        "sumSq": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "flowCloudEdges": {
+        "type": "Float32Array",
+        "length": 12420,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.32100510597229,
+        "max": 2.406944751739502,
+        "sum": 860.5711153560682,
+        "sumSq": 11775.0445148529,
+        "sha256": "6a7f96795ae074f4cd85595fd4aa6de8578532ba45bf78af322866e2a23017ef"
+      }
+    },
+    "output": {
+      "keys": [
+        "clippedEdges"
+      ],
+      "clippedEdges": {
+        "type": "Float32Array",
+        "length": 13110,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6177263259887695,
+        "max": 4.2687668800354,
+        "sum": 4067.095451465342,
+        "sumSq": 28196.95869705846,
+        "sha256": "5b80e7323de3a9903e5e548698090edd3f9d63ded46fe1f13dd45a57ceb1bb1e"
+      },
+      "transferIsOutputBuffer": true
+    }
+  },
+  "degenerateEllipsoid": {
+    "input": {
+      "sphereEdgeGroups": [
+        {
+          "sphereId": "sphere-0",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1176,
+            "nan": 0,
+            "inf": 0,
+            "min": -1.2000000476837158,
+            "max": 1.2000000476837158,
+            "sum": -6.032807469367983,
+            "sumSq": 299.52000674674144,
+            "sha256": "4410194990fa151c90e597d99379a6777a45b9da78d2086fcdd36f119886d0e8"
+          }
+        },
+        {
+          "sphereId": "sphere-1",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1,
+            "max": 2.5999999046325684,
+            "sum": 998.965330094099,
+            "sumSq": 1934.6519802704915,
+            "sha256": "c54ef279ce436edc5db10be616e6bda880e245cbed2ab5bc73036a96d2fc666b"
+          }
+        },
+        {
+          "sphereId": "sphere-2",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.5,
+            "max": 1.100000023841858,
+            "sum": -786.5512101054192,
+            "sumSq": 1868.4568329449546,
+            "sha256": "54da5ba9d2385460ffa6f9473b5ef7a3d1999e4af0169607790ac48420867dd8"
+          }
+        }
+      ],
+      "baseEdges": {
+        "type": "Float32Array",
+        "length": 4704,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 2.6140646934509277,
+        "sum": -1489.5660495925695,
+        "sumSq": 5218.70445842145,
+        "sha256": "36a9a76fa64f853b7544845ef5059480f52e9c5a2f7413c4cd9f472890737e5c"
+      },
+      "tailEdges": {
+        "type": "Float32Array",
+        "length": 4680,
+        "nan": 0,
+        "inf": 0,
+        "min": -1.5532505512237549,
+        "max": 4.2687668800354,
+        "sum": 5516.324992832728,
+        "sumSq": 19881.437676906724,
+        "sha256": "b42a70b618cee78c4d3aadec006c27dbb0cd9fe80bf3f730bcfebd6dc9c6af47"
+      },
+      "spiralEdges": {
+        "type": "Float32Array",
+        "length": 0,
+        "nan": 0,
+        "inf": 0,
+        "min": null,
+        "max": null,
+        "sum": 0,
+        "sumSq": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "flowCloudEdges": {
+        "type": "Float32Array",
+        "length": 9912,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.286566972732544,
+        "max": 2.3468871116638184,
+        "sum": 859.8203471132438,
+        "sumSq": 10061.535134706297,
+        "sha256": "3fae7e05c1c2f077fe9e6f9f723da73f2a1f8f13d82af9d7e5f5cfcfb318a43b"
+      }
+    },
+    "output": {
+      "keys": [
+        "clippedEdges"
+      ],
+      "clippedEdges": {
+        "type": "Float32Array",
+        "length": 13014,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 4.2687668800354,
+        "sum": 3892.666121007991,
+        "sumSq": 27754.689096428687,
+        "sha256": "82ab22e7c6d352115dbe525f3d56052792bcb88fa7694795a9908fad8277287a"
+      },
+      "transferIsOutputBuffer": true
+    }
+  },
+  "edgesMode": {
+    "input": {
+      "sphereEdgeGroups": [
+        {
+          "sphereId": "sphere-0",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1.2000000476837158,
+            "max": 1.2000000476837158,
+            "sum": -37.001605331897736,
+            "sumSq": 780.4800193805912,
+            "sha256": "d2a2ec63a9dc9e23d4621ffec9b21fb1666dec925bc07953f344ac363f468cf7"
+          }
+        },
+        {
+          "sphereId": "sphere-1",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1,
+            "max": 2.5999999046325684,
+            "sum": 998.965330094099,
+            "sumSq": 1934.6519802704915,
+            "sha256": "c54ef279ce436edc5db10be616e6bda880e245cbed2ab5bc73036a96d2fc666b"
+          }
+        },
+        {
+          "sphereId": "sphere-2",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.5,
+            "max": 1.100000023841858,
+            "sum": -786.5512101054192,
+            "sumSq": 1868.4568329449546,
+            "sha256": "54da5ba9d2385460ffa6f9473b5ef7a3d1999e4af0169607790ac48420867dd8"
+          }
+        }
+      ],
+      "baseEdges": {
+        "type": "Float32Array",
+        "length": 4704,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 2.6140646934509277,
+        "sum": -1489.5660495925695,
+        "sumSq": 5218.70445842145,
+        "sha256": "36a9a76fa64f853b7544845ef5059480f52e9c5a2f7413c4cd9f472890737e5c"
+      },
+      "tailEdges": {
+        "type": "Float32Array",
+        "length": 4680,
+        "nan": 0,
+        "inf": 0,
+        "min": -1.5532505512237549,
+        "max": 4.2687668800354,
+        "sum": 5516.324992832728,
+        "sumSq": 19881.437676906724,
+        "sha256": "b42a70b618cee78c4d3aadec006c27dbb0cd9fe80bf3f730bcfebd6dc9c6af47"
+      },
+      "spiralEdges": {
+        "type": "Float32Array",
+        "length": 0,
+        "nan": 0,
+        "inf": 0,
+        "min": null,
+        "max": null,
+        "sum": 0,
+        "sumSq": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "flowCloudEdges": {
+        "type": "Float32Array",
+        "length": 2166,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.324742555618286,
+        "max": 2.4096579551696777,
+        "sum": 135.8635602518916,
+        "sumSq": 2327.7545542461035,
+        "sha256": "ff0490045984520269c1ffaec59b2626f72d7a14d3bc04fe7a3bf9c5c5e0de29"
+      }
+    },
+    "output": {
+      "keys": [
+        "clippedEdges"
+      ],
+      "clippedEdges": {
+        "type": "Float32Array",
+        "length": 12594,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 4.2687668800354,
+        "sum": 4077.836587425787,
+        "sumSq": 27990.83774315228,
+        "sha256": "7eeca028d4ef9fb17817923f30e4cb08876726424eedc27258eb2c8f0e7014dd"
+      },
+      "transferIsOutputBuffer": true
+    }
+  },
+  "flatSpiral": {
+    "input": {
+      "sphereEdgeGroups": [
+        {
+          "sphereId": "sphere-0",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1.2000000476837158,
+            "max": 1.2000000476837158,
+            "sum": -37.001605331897736,
+            "sumSq": 780.4800193805912,
+            "sha256": "d2a2ec63a9dc9e23d4621ffec9b21fb1666dec925bc07953f344ac363f468cf7"
+          }
+        },
+        {
+          "sphereId": "sphere-1",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1,
+            "max": 2.5999999046325684,
+            "sum": 998.965330094099,
+            "sumSq": 1934.6519802704915,
+            "sha256": "c54ef279ce436edc5db10be616e6bda880e245cbed2ab5bc73036a96d2fc666b"
+          }
+        },
+        {
+          "sphereId": "sphere-2",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.5,
+            "max": 1.100000023841858,
+            "sum": -786.5512101054192,
+            "sumSq": 1868.4568329449546,
+            "sha256": "54da5ba9d2385460ffa6f9473b5ef7a3d1999e4af0169607790ac48420867dd8"
+          }
+        }
+      ],
+      "baseEdges": {
+        "type": "Float32Array",
+        "length": 4704,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 2.6140646934509277,
+        "sum": -1489.5660495925695,
+        "sumSq": 5218.70445842145,
+        "sha256": "36a9a76fa64f853b7544845ef5059480f52e9c5a2f7413c4cd9f472890737e5c"
+      },
+      "tailEdges": {
+        "type": "Float32Array",
+        "length": 4680,
+        "nan": 0,
+        "inf": 0,
+        "min": -1.5532505512237549,
+        "max": 4.2687668800354,
+        "sum": 5516.324992832728,
+        "sumSq": 19881.437676906724,
+        "sha256": "b42a70b618cee78c4d3aadec006c27dbb0cd9fe80bf3f730bcfebd6dc9c6af47"
+      },
+      "spiralEdges": {
+        "type": "Float32Array",
+        "length": 1638,
+        "nan": 0,
+        "inf": 0,
+        "min": -0.9290982484817505,
+        "max": 3.2922604084014893,
+        "sum": 1363.2248378060758,
+        "sumSq": 3470.4294985681836,
+        "sha256": "0b2f58190a67a144634ddb7fe73099b9bbb2317cea635abad8961f1c0b2b24ae"
+      },
+      "flowCloudEdges": {
+        "type": "Float32Array",
+        "length": 12420,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.32100510597229,
+        "max": 2.406944751739502,
+        "sum": 860.5711153560682,
+        "sumSq": 11775.0445148529,
+        "sha256": "6a7f96795ae074f4cd85595fd4aa6de8578532ba45bf78af322866e2a23017ef"
+      }
+    },
+    "output": {
+      "keys": [
+        "clippedEdges"
+      ],
+      "clippedEdges": {
+        "type": "Float32Array",
+        "length": 14532,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 4.2687668800354,
+        "sum": 5473.496447895188,
+        "sumSq": 31613.650612119498,
+        "sha256": "7872d2080623111075685e6fbcc99777cde6723f439082204cad475a235c20ee"
+      },
+      "transferIsOutputBuffer": true
+    }
+  },
+  "rectClosedBase": {
+    "input": {
+      "sphereEdgeGroups": [
+        {
+          "sphereId": "sphere-0",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1.2000000476837158,
+            "max": 1.2000000476837158,
+            "sum": -37.001605331897736,
+            "sumSq": 780.4800193805912,
+            "sha256": "d2a2ec63a9dc9e23d4621ffec9b21fb1666dec925bc07953f344ac363f468cf7"
+          }
+        },
+        {
+          "sphereId": "sphere-1",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1,
+            "max": 2.5999999046325684,
+            "sum": 998.965330094099,
+            "sumSq": 1934.6519802704915,
+            "sha256": "c54ef279ce436edc5db10be616e6bda880e245cbed2ab5bc73036a96d2fc666b"
+          }
+        },
+        {
+          "sphereId": "sphere-2",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.5,
+            "max": 1.100000023841858,
+            "sum": -786.5512101054192,
+            "sumSq": 1868.4568329449546,
+            "sha256": "54da5ba9d2385460ffa6f9473b5ef7a3d1999e4af0169607790ac48420867dd8"
+          }
+        }
+      ],
+      "baseEdges": {
+        "type": "Float32Array",
+        "length": 4704,
+        "nan": 0,
+        "inf": 0,
+        "min": -3.377049207687378,
+        "max": 3.615844249725342,
+        "sum": -1582.8536609970906,
+        "sumSq": 6817.0828946823185,
+        "sha256": "07f0ae3584d4ea4be53d54a3471ef07dd0eb66da186ff6a543f0da0de48e998a"
+      },
+      "tailEdges": {
+        "type": "Float32Array",
+        "length": 4680,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6890525817871094,
+        "max": 4.269155979156494,
+        "sum": 3788.6249951063655,
+        "sumSq": 17042.31391835881,
+        "sha256": "b5e9a53d4e00ba8cf92a413935f4d8ea3d7d2e1218b13c8c22ccd15705a1dc5d"
+      },
+      "spiralEdges": {
+        "type": "Float32Array",
+        "length": 0,
+        "nan": 0,
+        "inf": 0,
+        "min": null,
+        "max": null,
+        "sum": 0,
+        "sumSq": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "flowCloudEdges": {
+        "type": "Float32Array",
+        "length": 12420,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.32100510597229,
+        "max": 2.406944751739502,
+        "sum": 860.5711153560682,
+        "sumSq": 11775.0445148529,
+        "sha256": "6a7f96795ae074f4cd85595fd4aa6de8578532ba45bf78af322866e2a23017ef"
+      }
+    },
+    "output": {
+      "keys": [
+        "clippedEdges"
+      ],
+      "clippedEdges": {
+        "type": "Float32Array",
+        "length": 12462,
+        "nan": 0,
+        "inf": 0,
+        "min": -3.377049207687378,
+        "max": 4.269155979156494,
+        "sum": 1866.1097111802083,
+        "sumSq": 26362.085795350882,
+        "sha256": "c3141d1e805014ee5ee95b19bd2e98677c7210d59593b75b291dbc9fb552afee"
+      },
+      "transferIsOutputBuffer": true
+    }
+  },
+  "rotated": {
+    "input": {
+      "sphereEdgeGroups": [
+        {
+          "sphereId": "sphere-0",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1.2000000476837158,
+            "max": 1.2000000476837158,
+            "sum": -37.001605331897736,
+            "sumSq": 780.4800193805912,
+            "sha256": "d2a2ec63a9dc9e23d4621ffec9b21fb1666dec925bc07953f344ac363f468cf7"
+          }
+        },
+        {
+          "sphereId": "sphere-1",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1.025086760520935,
+            "max": 2.8825156688690186,
+            "sum": 1002.4778696671128,
+            "sumSq": 1957.0596461021557,
+            "sha256": "efea75a9ccf810bb38655d69b78a7b1672654465c8187fa27ce93e6486dd1f8a"
+          }
+        },
+        {
+          "sphereId": "sphere-2",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1704,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.4999759197235107,
+            "max": 1.0972418785095215,
+            "sum": -536.0486622340977,
+            "sumSq": 2436.86066942553,
+            "sha256": "f706067c0ab040b0069f9dfef0db03eb7ff5364e3d3e0614451a78e0fcf39f7a"
+          }
+        }
+      ],
+      "baseEdges": {
+        "type": "Float32Array",
+        "length": 4704,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 2.6140646934509277,
+        "sum": -1489.5660495925695,
+        "sumSq": 5218.70445842145,
+        "sha256": "36a9a76fa64f853b7544845ef5059480f52e9c5a2f7413c4cd9f472890737e5c"
+      },
+      "tailEdges": {
+        "type": "Float32Array",
+        "length": 4680,
+        "nan": 0,
+        "inf": 0,
+        "min": -1.5532505512237549,
+        "max": 4.2687668800354,
+        "sum": 5516.324992832728,
+        "sumSq": 19881.437676906724,
+        "sha256": "b42a70b618cee78c4d3aadec006c27dbb0cd9fe80bf3f730bcfebd6dc9c6af47"
+      },
+      "spiralEdges": {
+        "type": "Float32Array",
+        "length": 0,
+        "nan": 0,
+        "inf": 0,
+        "min": null,
+        "max": null,
+        "sum": 0,
+        "sumSq": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "flowCloudEdges": {
+        "type": "Float32Array",
+        "length": 12108,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.3285884857177734,
+        "max": 2.682352066040039,
+        "sum": 672.9521871637721,
+        "sumSq": 11714.056739990378,
+        "sha256": "3efd44d968d46e5574237cfdf3f4adf53700e30ebd83219296dd879580a7705a"
+      }
+    },
+    "output": {
+      "keys": [
+        "clippedEdges"
+      ],
+      "clippedEdges": {
+        "type": "Float32Array",
+        "length": 15330,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 4.2687668800354,
+        "sum": 2902.584937759617,
+        "sumSq": 31547.512232265726,
+        "sha256": "d08a070d15f760b139529479d11175ab2b01f15befe076855428ce65591ec8ab"
+      },
+      "transferIsOutputBuffer": true
+    }
+  },
+  "tailNone": {
+    "input": {
+      "sphereEdgeGroups": [
+        {
+          "sphereId": "sphere-0",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1.2000000476837158,
+            "max": 1.2000000476837158,
+            "sum": -37.001605331897736,
+            "sumSq": 780.4800193805912,
+            "sha256": "d2a2ec63a9dc9e23d4621ffec9b21fb1666dec925bc07953f344ac363f468cf7"
+          }
+        },
+        {
+          "sphereId": "sphere-1",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1,
+            "max": 2.5999999046325684,
+            "sum": 998.965330094099,
+            "sumSq": 1934.6519802704915,
+            "sha256": "c54ef279ce436edc5db10be616e6bda880e245cbed2ab5bc73036a96d2fc666b"
+          }
+        },
+        {
+          "sphereId": "sphere-2",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.5,
+            "max": 1.100000023841858,
+            "sum": -786.5512101054192,
+            "sumSq": 1868.4568329449546,
+            "sha256": "54da5ba9d2385460ffa6f9473b5ef7a3d1999e4af0169607790ac48420867dd8"
+          }
+        }
+      ],
+      "baseEdges": {
+        "type": "Float32Array",
+        "length": 4704,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 2.6140646934509277,
+        "sum": -1489.5660495925695,
+        "sumSq": 5218.70445842145,
+        "sha256": "36a9a76fa64f853b7544845ef5059480f52e9c5a2f7413c4cd9f472890737e5c"
+      },
+      "tailEdges": {
+        "type": "Float32Array",
+        "length": 4680,
+        "nan": 0,
+        "inf": 0,
+        "min": -1.6215797662734985,
+        "max": 4.3411946296691895,
+        "sum": 5560.571124651004,
+        "sumSq": 20442.960934262974,
+        "sha256": "b4c59dbbfa8f906c7389a7051e401a2b503fd1e71ccd45d8f009178697655218"
+      },
+      "spiralEdges": {
+        "type": "Float32Array",
+        "length": 0,
+        "nan": 0,
+        "inf": 0,
+        "min": null,
+        "max": null,
+        "sum": 0,
+        "sumSq": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "flowCloudEdges": {
+        "type": "Float32Array",
+        "length": 12552,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.316988945007324,
+        "max": 2.4019811153411865,
+        "sum": 958.8499563910286,
+        "sumSq": 11903.996896795668,
+        "sha256": "4efea5963254346eba52eedca64b239e856fc04e870e39dcbeaca0e45aac7822"
+      }
+    },
+    "output": {
+      "keys": [
+        "clippedEdges"
+      ],
+      "clippedEdges": {
+        "type": "Float32Array",
+        "length": 12720,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 4.3411946296691895,
+        "sum": 3996.9749016661663,
+        "sumSq": 28340.130189187377,
+        "sha256": "c705db024471d4a25ac09e56ceed6a0f2595875cd2980a857ccc4926f47658c3"
+      },
+      "transferIsOutputBuffer": true
+    }
+  },
+  "tailStart": {
+    "input": {
+      "sphereEdgeGroups": [
+        {
+          "sphereId": "sphere-0",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1.2000000476837158,
+            "max": 1.2000000476837158,
+            "sum": -37.001605331897736,
+            "sumSq": 780.4800193805912,
+            "sha256": "d2a2ec63a9dc9e23d4621ffec9b21fb1666dec925bc07953f344ac363f468cf7"
+          }
+        },
+        {
+          "sphereId": "sphere-1",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1,
+            "max": 2.5999999046325684,
+            "sum": 998.965330094099,
+            "sumSq": 1934.6519802704915,
+            "sha256": "c54ef279ce436edc5db10be616e6bda880e245cbed2ab5bc73036a96d2fc666b"
+          }
+        },
+        {
+          "sphereId": "sphere-2",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.5,
+            "max": 1.100000023841858,
+            "sum": -786.5512101054192,
+            "sumSq": 1868.4568329449546,
+            "sha256": "54da5ba9d2385460ffa6f9473b5ef7a3d1999e4af0169607790ac48420867dd8"
+          }
+        }
+      ],
+      "baseEdges": {
+        "type": "Float32Array",
+        "length": 4704,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 2.6140646934509277,
+        "sum": -1489.5660495925695,
+        "sumSq": 5218.70445842145,
+        "sha256": "36a9a76fa64f853b7544845ef5059480f52e9c5a2f7413c4cd9f472890737e5c"
+      },
+      "tailEdges": {
+        "type": "Float32Array",
+        "length": 4680,
+        "nan": 0,
+        "inf": 0,
+        "min": -1.8749852180480957,
+        "max": 4.341495513916016,
+        "sum": 4740.631176611409,
+        "sumSq": 18333.257688251535,
+        "sha256": "9cc37edaf3166157ebd50784461cd7d120be6e40d125aa6272876c456780d4c0"
+      },
+      "spiralEdges": {
+        "type": "Float32Array",
+        "length": 0,
+        "nan": 0,
+        "inf": 0,
+        "min": null,
+        "max": null,
+        "sum": 0,
+        "sumSq": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "flowCloudEdges": {
+        "type": "Float32Array",
+        "length": 12552,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.316988945007324,
+        "max": 2.4019811153411865,
+        "sum": 958.8499563910286,
+        "sumSq": 11903.996896795668,
+        "sha256": "4efea5963254346eba52eedca64b239e856fc04e870e39dcbeaca0e45aac7822"
+      }
+    },
+    "output": {
+      "keys": [
+        "clippedEdges"
+      ],
+      "clippedEdges": {
+        "type": "Float32Array",
+        "length": 12414,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 4.341495513916016,
+        "sum": 3259.7268803939223,
+        "sumSq": 26206.813679308925,
+        "sha256": "8f0bcc70ca8e281e4630a62045a7da9c1df12fe72b0ec1f388b435380f9f26be"
+      },
+      "transferIsOutputBuffer": true
+    }
+  },
+  "tailStrength": {
+    "input": {
+      "sphereEdgeGroups": [
+        {
+          "sphereId": "sphere-0",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1.2000000476837158,
+            "max": 1.2000000476837158,
+            "sum": -37.001605331897736,
+            "sumSq": 780.4800193805912,
+            "sha256": "d2a2ec63a9dc9e23d4621ffec9b21fb1666dec925bc07953f344ac363f468cf7"
+          }
+        },
+        {
+          "sphereId": "sphere-1",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1,
+            "max": 2.5999999046325684,
+            "sum": 998.965330094099,
+            "sumSq": 1934.6519802704915,
+            "sha256": "c54ef279ce436edc5db10be616e6bda880e245cbed2ab5bc73036a96d2fc666b"
+          }
+        },
+        {
+          "sphereId": "sphere-2",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.5,
+            "max": 1.100000023841858,
+            "sum": -786.5512101054192,
+            "sumSq": 1868.4568329449546,
+            "sha256": "54da5ba9d2385460ffa6f9473b5ef7a3d1999e4af0169607790ac48420867dd8"
+          }
+        }
+      ],
+      "baseEdges": {
+        "type": "Float32Array",
+        "length": 4704,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 2.6140646934509277,
+        "sum": -1489.5660495925695,
+        "sumSq": 5218.70445842145,
+        "sha256": "36a9a76fa64f853b7544845ef5059480f52e9c5a2f7413c4cd9f472890737e5c"
+      },
+      "tailEdges": {
+        "type": "Float32Array",
+        "length": 4680,
+        "nan": 0,
+        "inf": 0,
+        "min": -1.5532505512237549,
+        "max": 4.2687668800354,
+        "sum": 5516.324992832728,
+        "sumSq": 19881.437676906724,
+        "sha256": "b42a70b618cee78c4d3aadec006c27dbb0cd9fe80bf3f730bcfebd6dc9c6af47"
+      },
+      "spiralEdges": {
+        "type": "Float32Array",
+        "length": 0,
+        "nan": 0,
+        "inf": 0,
+        "min": null,
+        "max": null,
+        "sum": 0,
+        "sumSq": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "flowCloudEdges": {
+        "type": "Float32Array",
+        "length": 16290,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.127520799636841,
+        "max": 4.515419006347656,
+        "sum": 4828.446376223001,
+        "sumSq": 27883.41765069975,
+        "sha256": "a7b4290978c8f0cbdeb35b0a1d9982b5a24d7bc499c5767f17bede8f325efafe"
+      }
+    },
+    "output": {
+      "keys": [
+        "clippedEdges"
+      ],
+      "clippedEdges": {
+        "type": "Float32Array",
+        "length": 20382,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 4.515419006347656,
+        "sum": 9371.112382228486,
+        "sumSq": 47599.91292427248,
+        "sha256": "f7e857a0fe7e40248cb0912aeafba6bb4f89e676da8cd7ab800144d3ac05309b"
+      },
+      "transferIsOutputBuffer": true
+    }
+  },
+  "thickSpiral": {
+    "input": {
+      "sphereEdgeGroups": [
+        {
+          "sphereId": "sphere-0",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1.2000000476837158,
+            "max": 1.2000000476837158,
+            "sum": -37.001605331897736,
+            "sumSq": 780.4800193805912,
+            "sha256": "d2a2ec63a9dc9e23d4621ffec9b21fb1666dec925bc07953f344ac363f468cf7"
+          }
+        },
+        {
+          "sphereId": "sphere-1",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -1,
+            "max": 2.5999999046325684,
+            "sum": 998.965330094099,
+            "sumSq": 1934.6519802704915,
+            "sha256": "c54ef279ce436edc5db10be616e6bda880e245cbed2ab5bc73036a96d2fc666b"
+          }
+        },
+        {
+          "sphereId": "sphere-2",
+          "edges": {
+            "type": "Float32Array",
+            "length": 1626,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.5,
+            "max": 1.100000023841858,
+            "sum": -786.5512101054192,
+            "sumSq": 1868.4568329449546,
+            "sha256": "54da5ba9d2385460ffa6f9473b5ef7a3d1999e4af0169607790ac48420867dd8"
+          }
+        }
+      ],
+      "baseEdges": {
+        "type": "Float32Array",
+        "length": 4704,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 2.6140646934509277,
+        "sum": -1489.5660495925695,
+        "sumSq": 5218.70445842145,
+        "sha256": "36a9a76fa64f853b7544845ef5059480f52e9c5a2f7413c4cd9f472890737e5c"
+      },
+      "tailEdges": {
+        "type": "Float32Array",
+        "length": 4680,
+        "nan": 0,
+        "inf": 0,
+        "min": -1.5532505512237549,
+        "max": 4.2687668800354,
+        "sum": 5516.324992832728,
+        "sumSq": 19881.437676906724,
+        "sha256": "b42a70b618cee78c4d3aadec006c27dbb0cd9fe80bf3f730bcfebd6dc9c6af47"
+      },
+      "spiralEdges": {
+        "type": "Float32Array",
+        "length": 6360,
+        "nan": 0,
+        "inf": 0,
+        "min": -0.938376247882843,
+        "max": 3.245286464691162,
+        "sum": 5340.241211401764,
+        "sumSq": 12175.61841871865,
+        "sha256": "89ae6b160e7a17cc4a6ff93a7bccff67f5e503cf63324ab0a88ba17a42d9d8dd"
+      },
+      "flowCloudEdges": {
+        "type": "Float32Array",
+        "length": 12420,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.32100510597229,
+        "max": 2.406944751739502,
+        "sum": 860.5711153560682,
+        "sumSq": 11775.0445148529,
+        "sha256": "6a7f96795ae074f4cd85595fd4aa6de8578532ba45bf78af322866e2a23017ef"
+      }
+    },
+    "output": {
+      "keys": [
+        "clippedEdges"
+      ],
+      "clippedEdges": {
+        "type": "Float32Array",
+        "length": 19254,
+        "nan": 0,
+        "inf": 0,
+        "min": -2.6184959411621094,
+        "max": 4.2687668800354,
+        "sum": 9450.512821490876,
+        "sumSq": 40318.83953227027,
+        "sha256": "6c8de1d4ec19f057bf2f9799c05f2f1f270f948c5cf09f709bff115fdc797664"
+      },
+      "transferIsOutputBuffer": true
+    }
+  }
+}

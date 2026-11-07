@@ -1,0 +1,1394 @@
+{
+  "bands": {
+    "hasSurfaceMesh": true,
+    "edges": {
+      "type": "Float32Array",
+      "length": 13056,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.6184959411621094,
+      "max": 4.2687668800354,
+      "sum": 4195.696395703126,
+      "sumSq": 28227.609435862367,
+      "sha256": "ca63b169838d93b8c32bcfc847eac723f2a51c3410724b148c7d692e0bfc15c3"
+    },
+    "group": [
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": true,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 13056,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.6184959411621094,
+            "max": 4.2687668800354,
+            "sum": 4195.696395703126,
+            "sumSq": 28227.609435862367,
+            "sha256": "ca63b169838d93b8c32bcfc847eac723f2a51c3410724b148c7d692e0bfc15c3"
+          },
+          "index": null
+        }
+      },
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": false,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 22824,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.525149345397949,
+            "max": 4.231587886810303,
+            "sum": 2789.660351659055,
+            "sumSq": 33734.28513060036,
+            "sha256": "94cdf1e4a289a94d2cd25da790c4f7bd25a2d1bc3301f979b19eac56fc561cce"
+          },
+          "index": null
+        }
+      }
+    ],
+    "afterSurfaceMeshVisible": [
+      {
+        "type": "LineSegments",
+        "visible": false
+      },
+      {
+        "type": "LineSegments",
+        "visible": true
+      }
+    ]
+  },
+  "default": {
+    "hasSurfaceMesh": true,
+    "edges": {
+      "type": "Float32Array",
+      "length": 13254,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.6184959411621094,
+      "max": 4.2687668800354,
+      "sum": 4124.250947762746,
+      "sumSq": 28325.523300852026,
+      "sha256": "15663c49ab0d1aaf690a6d28a8ec69b6a701e1d71e6150280744f3367f26a05d"
+    },
+    "group": [
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": true,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 13254,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.6184959411621094,
+            "max": 4.2687668800354,
+            "sum": 4124.250947762746,
+            "sumSq": 28325.523300852026,
+            "sha256": "15663c49ab0d1aaf690a6d28a8ec69b6a701e1d71e6150280744f3367f26a05d"
+          },
+          "index": null
+        }
+      },
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": false,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 94140,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.6648693084716797,
+            "max": 4.290078163146973,
+            "sum": 12112.928669412155,
+            "sumSq": 140779.57613667805,
+            "sha256": "adfd444fdf08f2685cea559a2adcf7b6799b6ea4260da75656c2febd7c21da4f"
+          },
+          "index": null
+        }
+      }
+    ],
+    "afterSurfaceMeshVisible": [
+      {
+        "type": "LineSegments",
+        "visible": false
+      },
+      {
+        "type": "LineSegments",
+        "visible": true
+      }
+    ]
+  },
+  "degenerateBase": {
+    "hasSurfaceMesh": true,
+    "edges": {
+      "type": "Float32Array",
+      "length": 13110,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.6177263259887695,
+      "max": 4.2687668800354,
+      "sum": 4067.095451465342,
+      "sumSq": 28196.95869705846,
+      "sha256": "5b80e7323de3a9903e5e548698090edd3f9d63ded46fe1f13dd45a57ceb1bb1e"
+    },
+    "group": [
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": true,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 13110,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.6177263259887695,
+            "max": 4.2687668800354,
+            "sum": 4067.095451465342,
+            "sumSq": 28196.95869705846,
+            "sha256": "5b80e7323de3a9903e5e548698090edd3f9d63ded46fe1f13dd45a57ceb1bb1e"
+          },
+          "index": null
+        }
+      },
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": false,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 3444,
+            "nan": 129,
+            "inf": 0,
+            "min": -2.4379794597625732,
+            "max": 4.231587886810303,
+            "sum": 3187.76887553453,
+            "sumSq": 12560.184947754624,
+            "sha256": "7f7de225aca422aa7fa7cd4a8673a026985788474286c160b03d21f3bab15306"
+          },
+          "index": null
+        }
+      }
+    ],
+    "afterSurfaceMeshVisible": [
+      {
+        "type": "LineSegments",
+        "visible": false
+      },
+      {
+        "type": "LineSegments",
+        "visible": true
+      }
+    ]
+  },
+  "degenerateEllipsoid": {
+    "hasSurfaceMesh": true,
+    "edges": {
+      "type": "Float32Array",
+      "length": 13014,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.6184959411621094,
+      "max": 4.2687668800354,
+      "sum": 3892.666121007991,
+      "sumSq": 27754.689096428687,
+      "sha256": "82ab22e7c6d352115dbe525f3d56052792bcb88fa7694795a9908fad8277287a"
+    },
+    "group": [
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": true,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 13014,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.6184959411621094,
+            "max": 4.2687668800354,
+            "sum": 3892.666121007991,
+            "sumSq": 27754.689096428687,
+            "sha256": "82ab22e7c6d352115dbe525f3d56052792bcb88fa7694795a9908fad8277287a"
+          },
+          "index": null
+        }
+      },
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": false,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 19908,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.525149345397949,
+            "max": 4.231587886810303,
+            "sum": 2633.779061425361,
+            "sumSq": 31895.222202783454,
+            "sha256": "4bcb3bdff8c387a0f6190e34673b1b3c95782b3883ae94e92b6fc392babd98e9"
+          },
+          "index": null
+        }
+      }
+    ],
+    "afterSurfaceMeshVisible": [
+      {
+        "type": "LineSegments",
+        "visible": false
+      },
+      {
+        "type": "LineSegments",
+        "visible": true
+      }
+    ]
+  },
+  "edgesMode": {
+    "hasSurfaceMesh": true,
+    "edges": {
+      "type": "Float32Array",
+      "length": 12594,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.6184959411621094,
+      "max": 4.2687668800354,
+      "sum": 4077.836587425787,
+      "sumSq": 27990.83774315228,
+      "sha256": "7eeca028d4ef9fb17817923f30e4cb08876726424eedc27258eb2c8f0e7014dd"
+    },
+    "group": [
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": true,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 12594,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.6184959411621094,
+            "max": 4.2687668800354,
+            "sum": 4077.836587425787,
+            "sumSq": 27990.83774315228,
+            "sha256": "7eeca028d4ef9fb17817923f30e4cb08876726424eedc27258eb2c8f0e7014dd"
+          },
+          "index": null
+        }
+      },
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": false,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 22824,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.525149345397949,
+            "max": 4.231587886810303,
+            "sum": 2789.660351659055,
+            "sumSq": 33734.28513060036,
+            "sha256": "94cdf1e4a289a94d2cd25da790c4f7bd25a2d1bc3301f979b19eac56fc561cce"
+          },
+          "index": null
+        }
+      }
+    ],
+    "afterSurfaceMeshVisible": [
+      {
+        "type": "LineSegments",
+        "visible": false
+      },
+      {
+        "type": "LineSegments",
+        "visible": true
+      }
+    ]
+  },
+  "flatSpiral": {
+    "hasSurfaceMesh": true,
+    "edges": {
+      "type": "Float32Array",
+      "length": 14532,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.6184959411621094,
+      "max": 4.2687668800354,
+      "sum": 5473.496447895188,
+      "sumSq": 31613.650612119498,
+      "sha256": "7872d2080623111075685e6fbcc99777cde6723f439082204cad475a235c20ee"
+    },
+    "group": [
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": true,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 14532,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.6184959411621094,
+            "max": 4.2687668800354,
+            "sum": 5473.496447895188,
+            "sumSq": 31613.650612119498,
+            "sha256": "7872d2080623111075685e6fbcc99777cde6723f439082204cad475a235c20ee"
+          },
+          "index": null
+        }
+      },
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": false,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 22824,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.525149345397949,
+            "max": 4.231587886810303,
+            "sum": 2789.660351659055,
+            "sumSq": 33734.28513060036,
+            "sha256": "94cdf1e4a289a94d2cd25da790c4f7bd25a2d1bc3301f979b19eac56fc561cce"
+          },
+          "index": null
+        }
+      }
+    ],
+    "afterSurfaceMeshVisible": [
+      {
+        "type": "LineSegments",
+        "visible": false
+      },
+      {
+        "type": "LineSegments",
+        "visible": true
+      }
+    ]
+  },
+  "rectClosedBase": {
+    "hasSurfaceMesh": true,
+    "edges": {
+      "type": "Float32Array",
+      "length": 12462,
+      "nan": 0,
+      "inf": 0,
+      "min": -3.377049207687378,
+      "max": 4.269155979156494,
+      "sum": 1866.1097111802083,
+      "sumSq": 26362.085795350882,
+      "sha256": "c3141d1e805014ee5ee95b19bd2e98677c7210d59593b75b291dbc9fb552afee"
+    },
+    "group": [
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": true,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 12462,
+            "nan": 0,
+            "inf": 0,
+            "min": -3.377049207687378,
+            "max": 4.269155979156494,
+            "sum": 1866.1097111802083,
+            "sumSq": 26362.085795350882,
+            "sha256": "c3141d1e805014ee5ee95b19bd2e98677c7210d59593b75b291dbc9fb552afee"
+          },
+          "index": null
+        }
+      },
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": false,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 23472,
+            "nan": 0,
+            "inf": 0,
+            "min": -3.179018974304199,
+            "max": 4.231587886810303,
+            "sum": 1728.0478234559996,
+            "sumSq": 35735.77272530082,
+            "sha256": "566a62edd914808557006b828a7aeca2c7e34fd0ed626c20006d12784d056143"
+          },
+          "index": null
+        }
+      }
+    ],
+    "afterSurfaceMeshVisible": [
+      {
+        "type": "LineSegments",
+        "visible": false
+      },
+      {
+        "type": "LineSegments",
+        "visible": true
+      }
+    ]
+  },
+  "rotated": {
+    "hasSurfaceMesh": true,
+    "edges": {
+      "type": "Float32Array",
+      "length": 15330,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.6184959411621094,
+      "max": 4.2687668800354,
+      "sum": 2902.584937759617,
+      "sumSq": 31547.512232265726,
+      "sha256": "d08a070d15f760b139529479d11175ab2b01f15befe076855428ce65591ec8ab"
+    },
+    "group": [
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": true,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 15330,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.6184959411621094,
+            "max": 4.2687668800354,
+            "sum": 2902.584937759617,
+            "sumSq": 31547.512232265726,
+            "sha256": "d08a070d15f760b139529479d11175ab2b01f15befe076855428ce65591ec8ab"
+          },
+          "index": null
+        }
+      },
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": false,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 20808,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.4589293003082275,
+            "max": 4.198227882385254,
+            "sum": 3111.585747382138,
+            "sumSq": 31404.884736524535,
+            "sha256": "b200326d045250c3b611f7747c249547df8608183ccb283bb5bd400fcff5f44c"
+          },
+          "index": null
+        }
+      }
+    ],
+    "afterSurfaceMeshVisible": [
+      {
+        "type": "LineSegments",
+        "visible": false
+      },
+      {
+        "type": "LineSegments",
+        "visible": true
+      }
+    ]
+  },
+  "tailNone": {
+    "hasSurfaceMesh": true,
+    "edges": {
+      "type": "Float32Array",
+      "length": 12720,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.6184959411621094,
+      "max": 4.3411946296691895,
+      "sum": 3996.9749016661663,
+      "sumSq": 28340.130189187377,
+      "sha256": "c705db024471d4a25ac09e56ceed6a0f2595875cd2980a857ccc4926f47658c3"
+    },
+    "group": [
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": true,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 12720,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.6184959411621094,
+            "max": 4.3411946296691895,
+            "sum": 3996.9749016661663,
+            "sumSq": 28340.130189187377,
+            "sha256": "c705db024471d4a25ac09e56ceed6a0f2595875cd2980a857ccc4926f47658c3"
+          },
+          "index": null
+        }
+      },
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": false,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 23508,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.523918867111206,
+            "max": 4.331940650939941,
+            "sum": 3395.304084542673,
+            "sumSq": 36453.43205246055,
+            "sha256": "71132eee84902766047e23bf8ebd6a3cdc2698906235f6e0daae7f0f3401da64"
+          },
+          "index": null
+        }
+      }
+    ],
+    "afterSurfaceMeshVisible": [
+      {
+        "type": "LineSegments",
+        "visible": false
+      },
+      {
+        "type": "LineSegments",
+        "visible": true
+      }
+    ]
+  },
+  "tailStart": {
+    "hasSurfaceMesh": true,
+    "edges": {
+      "type": "Float32Array",
+      "length": 12414,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.6184959411621094,
+      "max": 4.341495513916016,
+      "sum": 3259.7268803939223,
+      "sumSq": 26206.813679308925,
+      "sha256": "8f0bcc70ca8e281e4630a62045a7da9c1df12fe72b0ec1f388b435380f9f26be"
+    },
+    "group": [
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": true,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 12414,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.6184959411621094,
+            "max": 4.341495513916016,
+            "sum": 3259.7268803939223,
+            "sumSq": 26206.813679308925,
+            "sha256": "8f0bcc70ca8e281e4630a62045a7da9c1df12fe72b0ec1f388b435380f9f26be"
+          },
+          "index": null
+        }
+      },
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": false,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 23508,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.523918867111206,
+            "max": 4.331940650939941,
+            "sum": 3395.304084542673,
+            "sumSq": 36453.43205246055,
+            "sha256": "71132eee84902766047e23bf8ebd6a3cdc2698906235f6e0daae7f0f3401da64"
+          },
+          "index": null
+        }
+      }
+    ],
+    "afterSurfaceMeshVisible": [
+      {
+        "type": "LineSegments",
+        "visible": false
+      },
+      {
+        "type": "LineSegments",
+        "visible": true
+      }
+    ]
+  },
+  "tailStrength": {
+    "hasSurfaceMesh": true,
+    "edges": {
+      "type": "Float32Array",
+      "length": 20382,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.6184959411621094,
+      "max": 4.515419006347656,
+      "sum": 9371.112382228486,
+      "sumSq": 47599.91292427248,
+      "sha256": "f7e857a0fe7e40248cb0912aeafba6bb4f89e676da8cd7ab800144d3ac05309b"
+    },
+    "group": [
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": true,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 20382,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.6184959411621094,
+            "max": 4.515419006347656,
+            "sum": 9371.112382228486,
+            "sumSq": 47599.91292427248,
+            "sha256": "f7e857a0fe7e40248cb0912aeafba6bb4f89e676da8cd7ab800144d3ac05309b"
+          },
+          "index": null
+        }
+      },
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": false,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 23148,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.5466134548187256,
+            "max": 4.658077239990234,
+            "sum": 4076.6629643165506,
+            "sumSq": 39824.234676059445,
+            "sha256": "0936afc26f4323e26f4befd34f03b0dcfe26f61d69fed646a678cf287d549657"
+          },
+          "index": null
+        }
+      }
+    ],
+    "afterSurfaceMeshVisible": [
+      {
+        "type": "LineSegments",
+        "visible": false
+      },
+      {
+        "type": "LineSegments",
+        "visible": true
+      }
+    ]
+  },
+  "thickSpiral": {
+    "hasSurfaceMesh": true,
+    "edges": {
+      "type": "Float32Array",
+      "length": 19254,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.6184959411621094,
+      "max": 4.2687668800354,
+      "sum": 9450.512821490876,
+      "sumSq": 40318.83953227027,
+      "sha256": "6c8de1d4ec19f057bf2f9799c05f2f1f270f948c5cf09f709bff115fdc797664"
+    },
+    "group": [
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": true,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 19254,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.6184959411621094,
+            "max": 4.2687668800354,
+            "sum": 9450.512821490876,
+            "sumSq": 40318.83953227027,
+            "sha256": "6c8de1d4ec19f057bf2f9799c05f2f1f270f948c5cf09f709bff115fdc797664"
+          },
+          "index": null
+        }
+      },
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": false,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 21924,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.510035514831543,
+            "max": 4.234813690185547,
+            "sum": 3541.2088654430117,
+            "sumSq": 33700.43539309865,
+            "sha256": "ca40ee877811736e846a84cfb552ff54fca0325add4dbd576f87a5cf2e4eb7ea"
+          },
+          "index": null
+        }
+      }
+    ],
+    "afterSurfaceMeshVisible": [
+      {
+        "type": "LineSegments",
+        "visible": false
+      },
+      {
+        "type": "LineSegments",
+        "visible": true
+      }
+    ]
+  }
+}

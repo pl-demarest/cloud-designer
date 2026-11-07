@@ -1,0 +1,410 @@
+{
+  "bands": {
+    "keys": [
+      "positions",
+      "indices"
+    ],
+    "positions": {
+      "type": "Float32Array",
+      "length": 15192,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.525149345397949,
+      "max": 4.231587886810303,
+      "sum": 1878.7063300912268,
+      "sumSq": 22543.100221431316,
+      "sha256": "556dadb610b2aebc13e5b9e988ca20c22b22201bba85565db1ff6ea5c09857f6"
+    },
+    "indices": {
+      "type": "Uint32Array",
+      "length": 7608,
+      "nan": 0,
+      "inf": 0,
+      "min": 0,
+      "max": 5063,
+      "sum": 19249318,
+      "sumSq": 64827895824,
+      "sha256": "276ab83f1649e36d88d291b7fb697d2d956a0753a3146c179f078392fe52438d"
+    },
+    "transfer": [
+      "positions",
+      "indices"
+    ],
+    "spiralDebugLogs": 1,
+    "otherConsoleCalls": 0
+  },
+  "default": {
+    "keys": [
+      "positions",
+      "indices"
+    ],
+    "positions": {
+      "type": "Float32Array",
+      "length": 62736,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.6648693084716797,
+      "max": 4.290078163146973,
+      "sum": 8094.037700491026,
+      "sumSq": 93922.04009210256,
+      "sha256": "1d9be20396084134b2ab4facae3f3d2b57bb6216fa891f440e43966d77815c37"
+    },
+    "indices": {
+      "type": "Uint32Array",
+      "length": 31380,
+      "nan": 0,
+      "inf": 0,
+      "min": 0,
+      "max": 20911,
+      "sum": 328037529,
+      "sumSq": 4569708404179,
+      "sha256": "ceb5b7c5f575765a7e24de8e2d4d7ca26a735540d2ad35bff754f8961cb4f331"
+    },
+    "transfer": [
+      "positions",
+      "indices"
+    ],
+    "spiralDebugLogs": 1,
+    "otherConsoleCalls": 0
+  },
+  "degenerateBase": {
+    "keys": [
+      "positions",
+      "indices"
+    ],
+    "positions": {
+      "type": "Float32Array",
+      "length": 3144,
+      "nan": 828,
+      "inf": 0,
+      "min": -2.4379794597625732,
+      "max": 4.231587886810303,
+      "sum": 2172.679739438463,
+      "sumSq": 8675.566963716145,
+      "sha256": "f1730a7823469a7310c1ec74c2977ec6f7d877bc3a4ebfe508ec92935c9744bb"
+    },
+    "indices": {
+      "type": "Uint32Array",
+      "length": 1548,
+      "nan": 0,
+      "inf": 0,
+      "min": 0,
+      "max": 1047,
+      "sum": 813317,
+      "sumSq": 567262583,
+      "sha256": "c98f73157a06cdfc3668f1fe8a523460197adb617196ee848a9d7b0b0c67a18e"
+    },
+    "transfer": [
+      "positions",
+      "indices"
+    ],
+    "spiralDebugLogs": 1,
+    "otherConsoleCalls": 0
+  },
+  "degenerateEllipsoid": {
+    "keys": [
+      "positions",
+      "indices"
+    ],
+    "positions": {
+      "type": "Float32Array",
+      "length": 13296,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.525149345397949,
+      "max": 4.231587886810303,
+      "sum": 1767.565805558581,
+      "sumSq": 21344.304341780866,
+      "sha256": "10a68f584c159bfcc734010f42767e6bf026c276b3d940b7ae6d405ff5e07a85"
+    },
+    "indices": {
+      "type": "Uint32Array",
+      "length": 6636,
+      "nan": 0,
+      "inf": 0,
+      "min": 0,
+      "max": 4431,
+      "sum": 14695799,
+      "sumSq": 43285201817,
+      "sha256": "313348cc6df812b5665ffbae0d11cdab3e95d93062c7b15765e9e8c19a804816"
+    },
+    "transfer": [
+      "positions",
+      "indices"
+    ],
+    "spiralDebugLogs": 1,
+    "otherConsoleCalls": 0
+  },
+  "edgesMode": {
+    "keys": [
+      "positions",
+      "indices"
+    ],
+    "positions": {
+      "type": "Float32Array",
+      "length": 15192,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.525149345397949,
+      "max": 4.231587886810303,
+      "sum": 1878.7063300912268,
+      "sumSq": 22543.100221431316,
+      "sha256": "556dadb610b2aebc13e5b9e988ca20c22b22201bba85565db1ff6ea5c09857f6"
+    },
+    "indices": {
+      "type": "Uint32Array",
+      "length": 7608,
+      "nan": 0,
+      "inf": 0,
+      "min": 0,
+      "max": 5063,
+      "sum": 19249318,
+      "sumSq": 64827895824,
+      "sha256": "276ab83f1649e36d88d291b7fb697d2d956a0753a3146c179f078392fe52438d"
+    },
+    "transfer": [
+      "positions",
+      "indices"
+    ],
+    "spiralDebugLogs": 1,
+    "otherConsoleCalls": 0
+  },
+  "flatSpiral": {
+    "keys": [
+      "positions",
+      "indices"
+    ],
+    "positions": {
+      "type": "Float32Array",
+      "length": 15192,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.525149345397949,
+      "max": 4.231587886810303,
+      "sum": 1878.7063300912268,
+      "sumSq": 22543.100221431316,
+      "sha256": "556dadb610b2aebc13e5b9e988ca20c22b22201bba85565db1ff6ea5c09857f6"
+    },
+    "indices": {
+      "type": "Uint32Array",
+      "length": 7608,
+      "nan": 0,
+      "inf": 0,
+      "min": 0,
+      "max": 5063,
+      "sum": 19249318,
+      "sumSq": 64827895824,
+      "sha256": "276ab83f1649e36d88d291b7fb697d2d956a0753a3146c179f078392fe52438d"
+    },
+    "transfer": [
+      "positions",
+      "indices"
+    ],
+    "spiralDebugLogs": 1,
+    "otherConsoleCalls": 0
+  },
+  "rectClosedBase": {
+    "keys": [
+      "positions",
+      "indices"
+    ],
+    "positions": {
+      "type": "Float32Array",
+      "length": 15672,
+      "nan": 0,
+      "inf": 0,
+      "min": -3.179018974304199,
+      "max": 4.231587886810303,
+      "sum": 1155.3279382591136,
+      "sumSq": 23951.952632644523,
+      "sha256": "61d4251075f3e0814accf59f6febcaa5ede3e446c1b9772d7d3f4560711fcb47"
+    },
+    "indices": {
+      "type": "Uint32Array",
+      "length": 7824,
+      "nan": 0,
+      "inf": 0,
+      "min": 0,
+      "max": 5223,
+      "sum": 20408143,
+      "sumSq": 70841055437,
+      "sha256": "00df04858abf4fee75c9548291897a05d5aba8c0f65f9fcae891364dda2efd37"
+    },
+    "transfer": [
+      "positions",
+      "indices"
+    ],
+    "spiralDebugLogs": 1,
+    "otherConsoleCalls": 0
+  },
+  "rotated": {
+    "keys": [
+      "positions",
+      "indices"
+    ],
+    "positions": {
+      "type": "Float32Array",
+      "length": 13872,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.4589293003082275,
+      "max": 4.198227882385254,
+      "sum": 2070.6550840269774,
+      "sumSq": 21013.01681812567,
+      "sha256": "3f71c66125dcf2e727556f68d9783f861204013b62260c74bb20d469f55c79ab"
+    },
+    "indices": {
+      "type": "Uint32Array",
+      "length": 6936,
+      "nan": 0,
+      "inf": 0,
+      "min": 0,
+      "max": 4623,
+      "sum": 16022570,
+      "sumSq": 49258803500,
+      "sha256": "a96d61a8c68ff74c45282a1d0a6fc2a500cf145b492e6d441c9604e118473f67"
+    },
+    "transfer": [
+      "positions",
+      "indices"
+    ],
+    "spiralDebugLogs": 1,
+    "otherConsoleCalls": 0
+  },
+  "tailNone": {
+    "keys": [
+      "positions",
+      "indices"
+    ],
+    "positions": {
+      "type": "Float32Array",
+      "length": 15648,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.523918867111206,
+      "max": 4.331940650939941,
+      "sum": 2280.8068383559585,
+      "sumSq": 24354.763265517922,
+      "sha256": "8a2a1b1bea6639703f761efc5288e845884b22c4a8d5d97e6a739977b154097b"
+    },
+    "indices": {
+      "type": "Uint32Array",
+      "length": 7836,
+      "nan": 0,
+      "inf": 0,
+      "min": 0,
+      "max": 5215,
+      "sum": 20425735,
+      "sumSq": 70852182881,
+      "sha256": "426a9c6d39fa0e1cbda6bd47d8b7ef66eaef21f5a3cac19a21285f81af22c552"
+    },
+    "transfer": [
+      "positions",
+      "indices"
+    ],
+    "spiralDebugLogs": 1,
+    "otherConsoleCalls": 0
+  },
+  "tailStart": {
+    "keys": [
+      "positions",
+      "indices"
+    ],
+    "positions": {
+      "type": "Float32Array",
+      "length": 15648,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.523918867111206,
+      "max": 4.331940650939941,
+      "sum": 2280.8068383559585,
+      "sumSq": 24354.763265517922,
+      "sha256": "8a2a1b1bea6639703f761efc5288e845884b22c4a8d5d97e6a739977b154097b"
+    },
+    "indices": {
+      "type": "Uint32Array",
+      "length": 7836,
+      "nan": 0,
+      "inf": 0,
+      "min": 0,
+      "max": 5215,
+      "sum": 20425735,
+      "sumSq": 70852182881,
+      "sha256": "426a9c6d39fa0e1cbda6bd47d8b7ef66eaef21f5a3cac19a21285f81af22c552"
+    },
+    "transfer": [
+      "positions",
+      "indices"
+    ],
+    "spiralDebugLogs": 1,
+    "otherConsoleCalls": 0
+  },
+  "tailStrength": {
+    "keys": [
+      "positions",
+      "indices"
+    ],
+    "positions": {
+      "type": "Float32Array",
+      "length": 15408,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.5466134548187256,
+      "max": 4.658077239990234,
+      "sum": 2760.532557701692,
+      "sumSq": 26589.862476576873,
+      "sha256": "95dfcfade67712427e4deeebfbd6d1dfa15364d51c9be98006eb4cfd520cc817"
+    },
+    "indices": {
+      "type": "Uint32Array",
+      "length": 7716,
+      "nan": 0,
+      "inf": 0,
+      "min": 0,
+      "max": 5135,
+      "sum": 19799173,
+      "sumSq": 67611104667,
+      "sha256": "7e622a734afc59197e50bc037ad25ab1d3b94bdd819ce5b54e2bbefed9370679"
+    },
+    "transfer": [
+      "positions",
+      "indices"
+    ],
+    "spiralDebugLogs": 1,
+    "otherConsoleCalls": 0
+  },
+  "thickSpiral": {
+    "keys": [
+      "positions",
+      "indices"
+    ],
+    "positions": {
+      "type": "Float32Array",
+      "length": 14808,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.510035514831543,
+      "max": 4.234813690185547,
+      "sum": 2545.882142593153,
+      "sumSq": 22955.35572683686,
+      "sha256": "2eaf0bd6ca03de60bdf412e3bd8767c6d8505acf131f2c4f1d2e2883ccdc8002"
+    },
+    "indices": {
+      "type": "Uint32Array",
+      "length": 7308,
+      "nan": 0,
+      "inf": 0,
+      "min": 0,
+      "max": 4935,
+      "sum": 18013019,
+      "sumSq": 59242477307,
+      "sha256": "f0c5c2bb6962c734086deefda11eb5b6686bd21c5a09d3d01f218b659de0b9d7"
+    },
+    "transfer": [
+      "positions",
+      "indices"
+    ],
+    "spiralDebugLogs": 49,
+    "otherConsoleCalls": 0
+  }
+}

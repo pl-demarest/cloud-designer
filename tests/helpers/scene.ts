@@ -1,0 +1,235 @@
+import * as THREE from 'three'
+import { vi } from 'vitest'
+import type { Viewport } from '../../src/three/Viewport'
+import { SphereMesh } from '../../src/three/SphereMesh'
+import { BaseMesh } from '../../src/three/BaseMesh'
+import { TailMesh } from '../../src/three/TailMesh'
+import { SpiralMesh } from '../../src/three/SpiralMesh'
+import { FlowCloud } from '../../src/three/FlowCloud'
+import { CutGlueResult } from '../../src/three/CutGlueResult'
+import { useCloudStore } from '../../src/store/cloudStore'
+import type { CloudPreset } from '../../src/types/cloud'
+import { digestArray } from './digest'
+import { runWorker, type WorkerName } from './workerHarness'
+
+/**
+ * Editor-side test scaffolding. Requires the happy-dom environment
+ * (`// @vitest-environment happy-dom` in the test file).
+ */
+
+// ── Viewport stub ────────────────────────────────────────────────────────────
+
+/**
+ * The parts of Viewport the mesh modules touch: the eight groups (with the same
+ * scene hierarchy as the real Viewport, so matrixWorld is identical), the camera,
+ * the canvas, OrbitControls' `enabled` flag and drag arbitration. No WebGL.
+ */
+export function createViewportStub(): Viewport {
+  const scene = new THREE.Scene()
+  const named = (name: string) => Object.assign(new THREE.Group(), { name })
+  const activeUnitGroup = named('activeUnitGroup')
+  const groups = {
+    sphereGroup: named('sphereGroup'),
+    baseGroup: named('baseGroup'),
+    tailGroup: named('tailGroup'),
+    spiralGroup: named('spiralGroup'),
+    flowCloudGroup: named('flowCloudGroup'),
+    gizmoGroup: named('gizmoGroup'),
+  }
+  scene.add(activeUnitGroup)
+  activeUnitGroup.add(...Object.values(groups))
+  const cutGlueGroup = named('cutGlueGroup')
+  cutGlueGroup.visible = false
+  scene.add(cutGlueGroup)
+
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.01, 1000)
+  camera.position.set(0, 4, 10)
+  camera.lookAt(0, 0, 0)
+
+  let claimed = false
+  const stub = {
+    scene,
+    camera,
+    activeUnitGroup,
+    ...groups,
+    cutGlueGroup,
+    renderer: { domElement: document.createElement('canvas') },
+    controls: { enabled: true },
+    claimDrag: () => (claimed ? false : (claimed = true)),
+    releaseDrag: () => {
+      claimed = false
+    },
+    onTick: () => {},
+  }
+  return stub as unknown as Viewport
+}
+
+// ── Fake Worker that runs the real worker module in-process ─────────────────
+
+/**
+ * Stands in for the browser Worker. `new Worker(new URL('../workers/x.worker.ts', ...))`
+ * is mapped to the worker name; postMessage runs the real module through the
+ * harness on a later task and delivers the result to `onmessage`.
+ */
+export class FakeWorker {
+  static instances: FakeWorker[] = []
+  readonly name: WorkerName
+  onmessage: ((e: MessageEvent) => void) | null = null
+  onerror: ((e: unknown) => void) | null = null
+  terminated = false
+  posted: unknown[] = []
+  private inflight: Promise<void>[] = []
+
+  constructor(url: URL | string) {
+    const match = /\/(\w+)\.worker\.ts/.exec(String(url))
+    if (!match) throw new Error(`FakeWorker: unrecognised worker URL ${String(url)}`)
+    this.name = match[1] as WorkerName
+    FakeWorker.instances.push(this)
+  }
+
+  postMessage(data: unknown): void {
+    this.posted.push(data)
+    this.inflight.push(
+      new Promise<void>((resolve) => setTimeout(resolve, 0))
+        .then(() => runWorker(this.name, data))
+        .then((run) => {
+          if (!this.terminated) this.onmessage?.({ data: run.message } as MessageEvent)
+        }),
+    )
+  }
+
+  /** Resolves when every message posted so far has been answered. */
+  async settle(): Promise<void> {
+    while (this.inflight.length > 0) await this.inflight.shift()
+  }
+
+  terminate(): void {
+    this.terminated = true
+  }
+}
+
+export function installFakeWorker(): void {
+  FakeWorker.instances = []
+  vi.stubGlobal('Worker', FakeWorker)
+}
+
+// ── Scene serialization ──────────────────────────────────────────────────────
+
+/** Handles carry one of three tags today; Stage B may unify them. */
+export function isHandle(obj: THREE.Object3D): boolean {
+  return Boolean(obj.userData.isHandle || obj.userData.isBaseHandle || obj.userData.isTailHandle)
+}
+
+/** -0 and 0 print alike in JSON; normalize so a sign flip on zero is not a golden change. */
+function normalizeZero(v: number[]): number[] {
+  return v.map((n) => (Object.is(n, -0) ? 0 : n))
+}
+
+function serializeMaterial(m: THREE.Material | THREE.Material[]) {
+  const one = (x: THREE.Material) => ({
+    type: x.type,
+    color: 'color' in x && x.color instanceof THREE.Color ? x.color.getHexString() : null,
+  })
+  return Array.isArray(m) ? m.map(one) : one(m)
+}
+
+export interface SerializedObject {
+  type: string
+  name: string
+  role: 'handle' | 'geometry' | 'container'
+  visible: boolean
+  userData: Record<string, unknown>
+  position: number[]
+  quaternion: number[]
+  scale: number[]
+  material?: unknown
+  geometry?: { attributes: string[]; position: unknown; index: unknown }
+  children: SerializedObject[]
+}
+
+/** A diff-readable description of an object subtree, with geometry digested. */
+export function serializeObject(obj: THREE.Object3D): SerializedObject {
+  const out: SerializedObject = {
+    type: obj.type,
+    name: obj.name,
+    role: isHandle(obj) ? 'handle' : obj instanceof THREE.Mesh || obj instanceof THREE.Line ? 'geometry' : 'container',
+    visible: obj.visible,
+    userData: Object.fromEntries(Object.entries(obj.userData).sort(([a], [b]) => a.localeCompare(b))),
+    position: normalizeZero(obj.position.toArray()),
+    quaternion: normalizeZero(obj.quaternion.toArray()),
+    scale: normalizeZero(obj.scale.toArray()),
+    children: obj.children.map(serializeObject),
+  }
+  if (obj instanceof THREE.Mesh || obj instanceof THREE.Line) {
+    const geo = obj.geometry as THREE.BufferGeometry
+    const pos = geo.getAttribute('position') as THREE.BufferAttribute | undefined
+    out.material = serializeMaterial(obj.material)
+    out.geometry = {
+      attributes: Object.keys(geo.attributes).sort(),
+      position: pos ? digestArray(pos.array as Float32Array) : null,
+      index: geo.index ? digestArray(geo.index.array as Uint32Array) : null,
+    }
+  }
+  return out
+}
+
+/** The children of a module's group (the group itself is the viewport's). */
+export function serializeGroup(group: THREE.Group): SerializedObject[] {
+  return group.children.map(serializeObject)
+}
+
+// ── Editor scene ─────────────────────────────────────────────────────────────
+
+export interface EditorScene {
+  vp: Viewport
+  sphere: SphereMesh
+  base: BaseMesh
+  tail: TailMesh
+  spiral: SpiralMesh
+  flowCloud: FlowCloud
+  cutGlue: CutGlueResult
+  dispose: () => void
+}
+
+/**
+ * Loads `preset` into the store, then builds every editor module in App's order
+ * (App.handleViewportReady). FlowCloud gets a FakeWorker (installFakeWorker()
+ * must have been called).
+ */
+export function buildEditorScene(preset: CloudPreset): EditorScene {
+  useCloudStore.getState().loadPreset(preset)
+  const vp = createViewportStub()
+  const sphere = new SphereMesh(vp)
+  const base = new BaseMesh(vp)
+  const tail = new TailMesh(vp, base)
+  const spiral = new SpiralMesh(vp)
+  const flowCloud = new FlowCloud(vp)
+  const cutGlue = new CutGlueResult(vp)
+  return {
+    vp,
+    sphere,
+    base,
+    tail,
+    spiral,
+    flowCloud,
+    cutGlue,
+    dispose() {
+      sphere.dispose()
+      base.dispose()
+      tail.dispose()
+      spiral.dispose()
+      flowCloud.dispose()
+      cutGlue.dispose()
+    },
+  }
+}
+
+/** Runs FlowCloud.regenerate() to completion (50 ms debounce, then the worker). */
+export async function regenerateFlowCloud(fc: FlowCloud): Promise<void> {
+  const done = new Promise<void>((resolve) => {
+    fc.onGenerateDone = () => resolve()
+  })
+  fc.regenerate()
+  await done
+  fc.onGenerateDone = undefined
+}

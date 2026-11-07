@@ -1,0 +1,156 @@
+{
+  "after-edits": {
+    "sphere": {
+      "type": "Float32Array",
+      "length": 4878,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.5,
+      "max": 2.2965028285980225,
+      "sum": 182.57712289132178,
+      "sumSq": 4320.468093855108,
+      "sha256": "ddef4cc181162c90a993cac2c73eff85e2b34bd86f2b52d00c95ae9720023a68"
+    },
+    "base": {
+      "type": "Float32Array",
+      "length": 4704,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.5913047790527344,
+      "max": 2.588252544403076,
+      "sum": -1489.566052576527,
+      "sumSq": 5095.2244699306975,
+      "sha256": "c73ed2d4076520d6535e63233a0031c494e1164e8849011a66cb8a8a97756713"
+    },
+    "tail": {
+      "type": "Float32Array",
+      "length": 4680,
+      "nan": 0,
+      "inf": 0,
+      "min": -1.5532505512237549,
+      "max": 4.4063005447387695,
+      "sum": 5516.325000817073,
+      "sumSq": 19928.309123837764,
+      "sha256": "be053c2eb9babe1b2adbb311d59e56dd791f3c9cd3e3d19a6e5dc11a03e81415"
+    },
+    "spiral": {
+      "type": "Float32Array",
+      "length": 5112,
+      "nan": 0,
+      "inf": 0,
+      "min": -0.8534227609634399,
+      "max": 3.6294727325439453,
+      "sum": 5098.950316674542,
+      "sumSq": 15054.214841006291,
+      "sha256": "4a3552063b9945c3af9a240964f3b23814dabf05f57b9e32db7f0ba1ac0af873"
+    },
+    "spiralChildren": 2
+  },
+  "handles": {
+    "initial": {
+      "spiral": [
+        [
+          "LineSegments",
+          true
+        ],
+        [
+          "Mesh",
+          true
+        ]
+      ],
+      "flowCloud": [
+        [
+          "Mesh",
+          false
+        ]
+      ]
+    },
+    "hiddenBeforeGenerate": {
+      "spiral": [
+        [
+          "LineSegments",
+          true
+        ],
+        [
+          "Mesh",
+          false
+        ]
+      ],
+      "flowCloud": [
+        [
+          "Mesh",
+          false
+        ]
+      ]
+    },
+    "shownBeforeGenerate": {
+      "spiral": [
+        [
+          "LineSegments",
+          true
+        ],
+        [
+          "Mesh",
+          false
+        ]
+      ],
+      "flowCloud": [
+        [
+          "Mesh",
+          false
+        ]
+      ]
+    },
+    "shownAfterGenerate": {
+      "spiral": [
+        [
+          "LineSegments",
+          true
+        ],
+        [
+          "Mesh",
+          false
+        ]
+      ],
+      "flowCloud": [
+        [
+          "Mesh",
+          true
+        ],
+        [
+          "Group",
+          true
+        ]
+      ]
+    },
+    "afterClear": {
+      "spiral": [
+        [
+          "LineSegments",
+          true
+        ],
+        [
+          "Mesh",
+          false
+        ]
+      ],
+      "flowCloud": [
+        [
+          "Mesh",
+          false
+        ]
+      ],
+      "edges": {
+        "type": "Float32Array",
+        "length": 0,
+        "nan": 0,
+        "inf": 0,
+        "min": null,
+        "max": null,
+        "sum": 0,
+        "sumSq": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  }
+}
