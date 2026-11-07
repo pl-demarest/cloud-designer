@@ -16,7 +16,7 @@
 
 import { insideSphere } from '../../geometry/primitives/sphere';
 import { insideTailCapsule, sampleTailSpline } from '../../geometry/primitives/tail';
-import { insideBaseExtrusion, sampleBaseSpline } from '../../geometry/primitives/base';
+import { buildBaseVolume, insideBase } from '../../geometry/primitives/base';
 import { clipEdgeSet } from '../../geometry/clip';
 import type { CutGlueRequest, CutGlueResult } from '../protocol';
 
@@ -27,7 +27,7 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
   } = request;
 
   const tailSamples = sampleTailSpline(tail, 64);
-  const baseSet     = sampleBaseSpline(base, 64);
+  const baseVolume  = buildBaseVolume(base);
 
   // ── Per-primitive clip functions ──────────────────────────────────────────
   //
@@ -50,7 +50,7 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
         if (insideSphere(x, y, z, sw, 1.0)) return true;
       }
       if (insideTailCapsule(x, y, z, tailSamples, 1.0)) return true;
-      if (insideBaseExtrusion(x, y, z, baseSet, 1.0)) return true;
+      if (insideBase(x, y, z, baseVolume)) return true;
       return false;
     };
     allVerts.push(...clipEdgeSet(edges, insideFn));
@@ -61,7 +61,7 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
     for (const sw of spheres) {
       if (insideSphere(x, y, z, sw, 1.0)) return true;
     }
-    if (insideBaseExtrusion(x, y, z, baseSet, 1.0)) return true;
+    if (insideBase(x, y, z, baseVolume)) return true;
     return false;
   };
   allVerts.push(...clipEdgeSet(tailEdges, insideForTail));
@@ -82,7 +82,7 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
       if (insideSphere(x, y, z, sw, 1.0)) return true;
     }
     if (insideTailCapsule(x, y, z, tailSamples, 1.0)) return true;
-    if (insideBaseExtrusion(x, y, z, baseSet, 1.0)) return true;
+    if (insideBase(x, y, z, baseVolume)) return true;
     return false;
   };
   allVerts.push(...clipEdgeSet(spiralEdges, insideForSpirals));
@@ -93,7 +93,7 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
       if (insideSphere(x, y, z, sw, 1.0)) return true;
     }
     if (insideTailCapsule(x, y, z, tailSamples, 1.0)) return true;
-    if (insideBaseExtrusion(x, y, z, baseSet, 1.0)) return true;
+    if (insideBase(x, y, z, baseVolume)) return true;
     return false;
   };
   allVerts.push(...clipEdgeSet(flowCloudEdges, insideForFlowCloud));

@@ -16,8 +16,8 @@ import { fillField, gridFromBounds, polygonise } from '../../geometry/marchingCu
 import { sphereSDF } from '../../geometry/primitives/sphere';
 import { sampleTailSpline, tailSDF } from '../../geometry/primitives/tail';
 import type { TailSample } from '../../geometry/primitives/tail';
-import { baseSDF, sampleBaseSpline } from '../../geometry/primitives/base';
-import type { BaseSampleSet } from '../../geometry/primitives/base';
+import { baseSDF, buildBaseVolume } from '../../geometry/primitives/base';
+import type { BaseVolume } from '../../geometry/primitives/base';
 import { sampleSpiral, spiralSDF } from '../../geometry/primitives/spiral';
 import type { SpiralSample } from '../../geometry/primitives/spiral';
 import type { SurfaceMeshRequest, SurfaceMeshResult } from '../protocol';
@@ -29,7 +29,7 @@ function evalSDF(
   x: number, y: number, z: number,
   spheres: SphereDef[],
   tailSamples: TailSample[],
-  baseSet: BaseSampleSet,
+  baseVolume: BaseVolume,
   flowCloud: FlowCloudSettings,
   fcTailSamples: TailSample[],
   allSpiralSamples: SpiralSample[][],
@@ -47,8 +47,8 @@ function evalSDF(
   }
 
   // Base SDF
-  if (baseSet.samples.length > 0) {
-    d = Math.min(d, baseSDF(x, y, z, baseSet));
+  if (baseVolume.count > 0) {
+    d = Math.min(d, baseSDF(x, y, z, baseVolume));
   }
 
   // Flow cloud SDF: threshold - metaball field
@@ -79,7 +79,7 @@ export function generateSurfaceMesh(input: SurfaceMeshRequest): SurfaceMeshResul
 
   // Sample splines
   const tailSamples = sampleTailSpline(tail, 64);
-  const baseSet = sampleBaseSpline(base, 64);
+  const baseVolume = buildBaseVolume(base);
 
   // Tail samples for the metaball field (flow cloud SDF component)
   const tailStrength = flowCloud.tailStrength;
@@ -148,7 +148,7 @@ export function generateSurfaceMesh(input: SurfaceMeshRequest): SurfaceMeshResul
 
   // Build SDF field — store negated SDF so MC's "field >= 0" = "inside"
   const field = fillField(grid, (x, y, z) =>
-    -evalSDF(x, y, z, spheres, tailSamples, baseSet, flowCloud, fcTailSamples, allSpiralSamples));
+    -evalSDF(x, y, z, spheres, tailSamples, baseVolume, flowCloud, fcTailSamples, allSpiralSamples));
 
   // March cubes at threshold = 0
   return polygonise(field, grid, { kind: 'negatedSdf' });

@@ -99,8 +99,12 @@ describe('surfaceMesh worker: thick spiral variants outside the fixture set', ()
   })
 })
 
-describe('cutAndGlue worker: vertical base (world-up normal fallback)', () => {
-  /** A straight vertical base: the tangent is parallel to world up, so the worker falls back to N = +x. */
+describe('cutAndGlue worker: vertical base', () => {
+  /**
+   * A straight vertical base. The clip volume uses BaseMesh's Frenet frame (until Stage B the
+   * worker used a world-up frame, which fell back to N = +x here): for the tangent +y three picks
+   * the normal (0, 0, -1) and the binormal (-1, 0, 0).
+   */
   function verticalBase(): CloudPreset {
     const p = fixture('default')
     p.spheres = []
@@ -140,17 +144,17 @@ describe('cutAndGlue worker: vertical base (world-up normal fallback)', () => {
     return pieces
   }
 
-  test('the cross-section height runs along x and the width along z', async () => {
+  test('the cross-section height runs along z and the width along x, as BaseMesh draws them', async () => {
     const alongX = await clipAcross(0)
     const alongZ = await clipAcross(2)
     expect(alongX).toHaveLength(2)
     expect(alongZ).toHaveLength(2)
     // Bisection tolerance is 0.001 of a 0.25-long sample interval.
     expect(alongX[0][0]).toBeCloseTo(-1, 6)
-    expect(alongX[0][1]).toBeCloseTo(-0.2, 2)
-    expect(alongX[1][0]).toBeCloseTo(0.2, 2)
-    expect(alongZ[0][1]).toBeCloseTo(-0.6, 2)
-    expect(alongZ[1][0]).toBeCloseTo(0.6, 2)
+    expect(alongX[0][1]).toBeCloseTo(-0.6, 2)
+    expect(alongX[1][0]).toBeCloseTo(0.6, 2)
+    expect(alongZ[0][1]).toBeCloseTo(-0.2, 2)
+    expect(alongZ[1][0]).toBeCloseTo(0.2, 2)
     expect(alongZ[1][1]).toBeCloseTo(1, 6)
   })
 })

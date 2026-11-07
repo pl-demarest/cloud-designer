@@ -1,7 +1,6 @@
 /**
- * The base primitive. Its path as the editor draws it (baseCurve, sampleBasePath), and the
- * workers' extruded volume: a Catmull-Rom spline of their own, sampled with a world-up frame at
- * each sample, and elliptical slabs across the path at the samples.
+ * The base primitive: its path as BaseMesh draws it (baseCurve, sampleBasePath) and the solid
+ * the workers clip and mesh (BaseVolume), built from the same samples and frames.
  */
 
 import { CatmullRomCurve3, Vector3 } from 'three';
@@ -25,145 +24,148 @@ export function sampleBasePath(base: BaseDef, segments: number): PathSamples {
   return samplePath(baseCurve(base), segments, base.closed);
 }
 
-export interface BaseSample {
-  px: number; py: number; pz: number;   // position on spline
-  tx: number; ty: number; tz: number;   // tangent (normalized)
-  nx: number; ny: number; nz: number;   // world-up stabilized normal
-  bx: number; by: number; bz: number;   // binormal = cross(T, N)
-  halfH: number;                        // crossSectionHeight / 2
-  halfW: number;                        // crossSectionWidth / 2
+/**
+ * The base's solid, packed for per-voxel evaluation: BaseMesh's rings (sampleBasePath with the
+ * base's lengthSegments, so the same centres and Frenet frames) joined by straight pieces.
+ * Between two rings the cross-section is that of the drawn wire, whose longitudinal lines run
+ * straight from ring to ring. An open base ends in flat caps in the planes of its first and last
+ * ring; a closed base, whose last sample is its first, has no caps. The cross-section is the
+ * oval or the rectangle BaseMesh draws.
+ */
+export interface BaseVolume {
+  /** Number of samples: lengthSegments + 1, or 0 for a base with fewer than two control points. */
+  count: number;
+  closed: boolean;
+  rect: boolean;
+  /** Half the cross-section height, along the normal, and half its width, along the binormal. */
+  halfH: number;
+  halfW: number;
+  /** x, y, z per sample: ring centre, unit tangent, normal and binormal. */
+  p: Float64Array;
+  t: Float64Array;
+  n: Float64Array;
+  b: Float64Array;
 }
 
-export interface BaseSampleSet {
-  samples: BaseSample[];
-  /** Half the average inter-sample arc length. Used to bound the cross-section
-   *  test along the tangent so points well past the extrusion don't falsely match. */
-  halfSpacing: number;
+function packVectors(vs: Vector3[]): Float64Array {
+  const out = new Float64Array(vs.length * 3);
+  vs.forEach((v, i) => {
+    out[i * 3] = v.x;
+    out[i * 3 + 1] = v.y;
+    out[i * 3 + 2] = v.z;
+  });
+  return out;
 }
 
-export function sampleBaseSpline(base: BaseDef, nSamples: number): BaseSampleSet {
-  const pts = base.controlPoints;
-  if (pts.length < 2) return { samples: [], halfSpacing: 0 };
-  const samples: BaseSample[] = [];
-  const segs = pts.length - 1;
-  const halfH = base.crossSectionHeight / 2;
-  const halfW = base.crossSectionWidth / 2;
-
-  // Small delta for finite-difference tangent
-  const DELTA = 0.001;
-
-  for (let i = 0; i < nSamples; i++) {
-    const g = i / (nSamples - 1);
-
-    // Helper: Catmull-Rom at parameter gParam
-    const catmullRom = (gParam: number): [number, number, number] => {
-      const clampedG = Math.max(0, Math.min(1, gParam));
-      const seg = Math.min(Math.floor(clampedG * segs), segs - 1);
-      const t = clampedG * segs - seg;
-      const t2 = t * t;
-      const t3 = t2 * t;
-
-      const p0 = pts[Math.max(0, seg - 1)];
-      const p1 = pts[seg];
-      const p2 = pts[Math.min(pts.length - 1, seg + 1)];
-      const p3 = pts[Math.min(pts.length - 1, seg + 2)];
-
-      const x = 0.5 * (2*p1[0] + (-p0[0]+p2[0])*t + (2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*t2 + (-p0[0]+3*p1[0]-3*p2[0]+p3[0])*t3);
-      const y = 0.5 * (2*p1[1] + (-p0[1]+p2[1])*t + (2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*t2 + (-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t3);
-      const z = 0.5 * (2*p1[2] + (-p0[2]+p2[2])*t + (2*p0[2]-5*p1[2]+4*p2[2]-p3[2])*t2 + (-p0[2]+3*p1[2]-3*p2[2]+p3[2])*t3);
-      return [x, y, z];
-    };
-
-    const [px, py, pz] = catmullRom(g);
-
-    // Finite-difference tangent
-    const gA = Math.max(0, g - DELTA);
-    const gB = Math.min(1, g + DELTA);
-    const pA = catmullRom(gA);
-    const pB = catmullRom(gB);
-    let tx = pB[0] - pA[0];
-    let ty = pB[1] - pA[1];
-    let tz = pB[2] - pA[2];
-    const tLen = Math.sqrt(tx*tx + ty*ty + tz*tz);
-    if (tLen > 0.0001) { tx /= tLen; ty /= tLen; tz /= tLen; }
-    else { tx = 1; ty = 0; tz = 0; }
-
-    // World-up stabilized normal
-    // worldUp = [0, 1, 0]
-    // N = normalize(worldUp - dot(worldUp, T)*T)
-    const dotUp = ty; // dot([0,1,0], [tx,ty,tz]) = ty
-    let nx = 0 - dotUp * tx;
-    let ny = 1 - dotUp * ty;
-    let nz = 0 - dotUp * tz;
-    const nLen = Math.sqrt(nx*nx + ny*ny + nz*nz);
-    if (nLen < 0.001) {
-      // Tangent nearly parallel to worldUp — use [1,0,0] fallback
-      nx = 1; ny = 0; nz = 0;
-    } else {
-      nx /= nLen; ny /= nLen; nz /= nLen;
-    }
-
-    // Binormal B = cross(T, N)
-    let bx = ty * nz - tz * ny;
-    let by = tz * nx - tx * nz;
-    let bz = tx * ny - ty * nx;
-    const bLen = Math.sqrt(bx*bx + by*by + bz*bz);
-    if (bLen > 0.0001) { bx /= bLen; by /= bLen; bz /= bLen; }
-
-    samples.push({ px, py, pz, tx, ty, tz, nx, ny, nz, bx, by, bz, halfH, halfW });
+export function buildBaseVolume(base: BaseDef): BaseVolume {
+  const volume = {
+    closed: base.closed,
+    rect: base.crossSectionShape === 'rect',
+    halfH: base.crossSectionHeight / 2,
+    halfW: base.crossSectionWidth / 2,
+  };
+  if (base.controlPoints.length < 2) {
+    const empty = new Float64Array(0);
+    return { count: 0, ...volume, p: empty, t: empty, n: empty, b: empty };
   }
-
-  // Compute half the average inter-sample arc length, used to bound cross-section tests.
-  let totalLen = 0;
-  for (let i = 0; i < samples.length - 1; i++) {
-    const a = samples[i];
-    const b = samples[i + 1];
-    totalLen += Math.sqrt((b.px - a.px) ** 2 + (b.py - a.py) ** 2 + (b.pz - a.pz) ** 2);
-  }
-  const halfSpacing = samples.length > 1 ? totalLen / (samples.length - 1) / 2 : 0;
-
-  return { samples, halfSpacing };
+  const path = sampleBasePath(base, base.lengthSegments);
+  return {
+    count: path.points.length,
+    ...volume,
+    p: packVectors(path.points),
+    t: packVectors(path.tangents),
+    n: packVectors(path.normals),
+    b: packVectors(path.binormals),
+  };
 }
 
-/** Signed distance to the base extrusion (approximate elliptical cross-section SDF). */
-export function baseSDF(x: number, y: number, z: number, baseSet: BaseSampleSet): number {
-  let minD = Infinity;
-  const tangentLimit = baseSet.halfSpacing * 1.5;
-
-  for (const s of baseSet.samples) {
-    const toPx = x - s.px;
-    const toPy = y - s.py;
-    const toPz = z - s.pz;
-
-    const along = toPx * s.tx + toPy * s.ty + toPz * s.tz;
-    if (Math.abs(along) > tangentLimit) continue;
-
-    const localN = toPx * s.nx + toPy * s.ny + toPz * s.nz;
-    const localB = toPx * s.bx + toPy * s.by + toPz * s.bz;
-
-    // Approximate ellipse SDF: normalized distance - 1, scaled back
-    const ellipDist = Math.sqrt(
-      (localN / s.halfH) * (localN / s.halfH) +
-      (localB / s.halfW) * (localB / s.halfW)
-    );
-    const d = (ellipDist - 1.0) * Math.min(s.halfH, s.halfW);
-    minD = Math.min(minD, d);
+/** Signed distance to the cross-section at (qn, qb) in its own frame: the oval's is approximate
+ *  (the scaled radial distance), the rectangle's exact. */
+function sectionSDF(qn: number, qb: number, v: BaseVolume): number {
+  if (v.rect) {
+    const dn = Math.abs(qn) - v.halfH;
+    const db = Math.abs(qb) - v.halfW;
+    const on = Math.max(dn, 0);
+    const ob = Math.max(db, 0);
+    return Math.sqrt(on * on + ob * ob) + Math.min(Math.max(dn, db), 0);
   }
-  return minD;
+  const en = qn / v.halfH;
+  const eb = qb / v.halfW;
+  return (Math.sqrt(en * en + eb * eb) - 1) * Math.min(v.halfH, v.halfW);
 }
 
-export function insideBaseExtrusion(x: number, y: number, z: number, baseSet: BaseSampleSet, inset: number): boolean {
-  const tangentLimit = baseSet.halfSpacing * 1.5;
-  for (const s of baseSet.samples) {
-    const toPx = x - s.px;
-    const toPy = y - s.py;
-    const toPz = z - s.pz;
-    const along = toPx * s.tx + toPy * s.ty + toPz * s.tz;
-    if (Math.abs(along) > tangentLimit) continue;
-    const localN = toPx * s.nx + toPy * s.ny + toPz * s.nz;
-    const localB = toPx * s.bx + toPy * s.by + toPz * s.bz;
-    const ellipDist = Math.sqrt((localN / s.halfH) * (localN / s.halfH) + (localB / s.halfW) * (localB / s.halfW));
-    if (ellipDist < inset) return true;
+/**
+ * Signed distance to the piece between rings k and k + 1. Between the rings, centre, tangent and
+ * frame are blended linearly with a parameter s in [0, 1], as the drawn wire blends its ring
+ * vertices. The point's s is the one whose blended ring plane holds it (s = 0 on ring k's
+ * plane, so a point drawn on a ring is measured in that ring's own frame), clamped to [0, 1].
+ *
+ * At an open end the piece stops in the end ring's plane (the exact distance to a flat cap).
+ * Past a ring shared with the next piece it continues with its depth reduced by the distance
+ * past that ring's plane, so neighbouring pieces overlap: inside, the union keeps the full
+ * cross-section depth across the joint instead of dropping to 0 on the shared plane, and the
+ * outside of a bend is filled.
+ */
+function pieceSDF(x: number, y: number, z: number, v: BaseVolume, k: number): number {
+  const { p, t, n, b } = v;
+  const i = k * 3;
+  const j = i + 3;
+  const apx = x - p[i], apy = y - p[i + 1], apz = z - p[i + 2];
+  const abx = p[j] - p[i], aby = p[j + 1] - p[i + 1], abz = p[j + 2] - p[i + 2];
+  const dtx = t[j] - t[i], dty = t[j + 1] - t[i + 1], dtz = t[j + 2] - t[i + 2];
+
+  // (P - centre(s)) . tangent(s) = 0 is the quadratic a s^2 + bq s + c = 0. For a straight
+  // piece a = 0 and s is the projection onto the chord; the root taken is the one that
+  // continues it (bq < 0 while the path does not double back on itself).
+  const c = apx * t[i] + apy * t[i + 1] + apz * t[i + 2];
+  const bq = apx * dtx + apy * dty + apz * dtz - (abx * t[i] + aby * t[i + 1] + abz * t[i + 2]);
+  const a = -(abx * dtx + aby * dty + abz * dtz);
+  const disc = bq * bq - 4 * a * c;
+  let s = bq < 0 && disc >= 0 ? (2 * c) / (Math.sqrt(disc) - bq) : bq !== 0 ? -c / bq : 0;
+  s = s < 0 ? 0 : s > 1 ? 1 : s;
+  const qx = apx - s * abx, qy = apy - s * aby, qz = apz - s * abz;
+
+  // The blended frame is not quite unit length, so a coordinate is the projection over its
+  // squared length.
+  const nx = n[i] + s * (n[j] - n[i]), ny = n[i + 1] + s * (n[j + 1] - n[i + 1]), nz = n[i + 2] + s * (n[j + 2] - n[i + 2]);
+  const bx = b[i] + s * (b[j] - b[i]), by = b[i + 1] + s * (b[j + 1] - b[i + 1]), bz = b[i + 2] + s * (b[j + 2] - b[i + 2]);
+  const nn = nx * nx + ny * ny + nz * nz;
+  const bb = bx * bx + by * by + bz * bz;
+  if (nn < 1e-12 || bb < 1e-12) return Infinity; // a path without frames (all control points equal)
+  const d2 = sectionSDF((qx * nx + qy * ny + qz * nz) / nn, (qx * bx + qy * by + qz * bz) / bb, v);
+
+  // Signed distances behind ring k's plane and beyond ring k + 1's plane.
+  const behind = -c;
+  const beyond = (x - p[j]) * t[j] + (y - p[j + 1]) * t[j + 1] + (z - p[j + 2]) * t[j + 2];
+  const startCap = !v.closed && k === 0;
+  const endCap = !v.closed && k === v.count - 2;
+
+  // Past a shared ring: depth reduced by the distance past its plane.
+  const past = Math.max(startCap ? 0 : behind, endCap ? 0 : beyond, 0);
+  let d = past > 0 ? Math.sqrt(Math.max(d2, 0) ** 2 + past * past) + Math.min(d2, 0) : d2;
+
+  // A cap: intersection with the half-space before the end ring's plane.
+  if (startCap || endCap) {
+    const h = Math.max(startCap ? behind : -Infinity, endCap ? beyond : -Infinity);
+    const od = Math.max(d, 0);
+    const oh = Math.max(h, 0);
+    d = Math.min(Math.max(d, h), 0) + Math.sqrt(od * od + oh * oh);
+  }
+  return d;
+}
+
+/** Signed distance to the base solid: negative inside, Infinity only without a base. Continuous
+ *  everywhere, the end caps included. */
+export function baseSDF(x: number, y: number, z: number, v: BaseVolume): number {
+  let d = Infinity;
+  for (let k = 0; k < v.count - 1; k++) d = Math.min(d, pieceSDF(x, y, z, v, k));
+  return d;
+}
+
+/** True strictly inside the base solid (baseSDF < 0). */
+export function insideBase(x: number, y: number, z: number, v: BaseVolume): boolean {
+  for (let k = 0; k < v.count - 1; k++) {
+    if (pieceSDF(x, y, z, v, k) < 0) return true;
   }
   return false;
 }
