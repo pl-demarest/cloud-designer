@@ -1,9 +1,10 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { triTable as THREE_TRI_TABLE } from 'three/examples/jsm/objects/MarchingCubes.js'
 import { runWorker } from '../helpers/workerHarness'
 import { fixture, marchingCubesMessage, surfaceMeshMessage } from '../fixtures/presets'
+import { TRI_TABLE } from '../../src/geometry/marchingCubes/tables'
 import type { CloudPreset } from '../../src/types/cloud'
 
 /**
@@ -14,19 +15,13 @@ import type { CloudPreset } from '../../src/types/cloud'
  * the fix commit flips it.fails to it.
  */
 
-const ROOT = resolve(import.meta.dirname, '../..')
+const WORKERS_DIR = resolve(import.meta.dirname, '../../src/workers')
 
-/** Extracts the TRI_TABLE literal from a worker's source (it is not exported). */
-function workerTriTable(file: string): number[][] {
-  const src = readFileSync(resolve(ROOT, file), 'utf8')
-  const start = src.indexOf('const TRI_TABLE = [')
-  const end = src.indexOf('\n];', start)
-  if (start < 0 || end < 0) throw new Error(`TRI_TABLE not found in ${file}`)
-  const body = src
-    .slice(src.indexOf('[', start), end + 2)
-    .replace(/\/\/[^\n]*/g, '')
-    .replace(/,(\s*\])/g, '$1')
-  return JSON.parse(body) as number[][]
+/** Every TypeScript source under src/workers, the shells and anything they keep beside them. */
+function workerSources(): string[] {
+  return readdirSync(WORKERS_DIR, { recursive: true, encoding: 'utf8' })
+    .filter((f) => f.endsWith('.ts'))
+    .map((f) => resolve(WORKERS_DIR, f))
 }
 
 /**
@@ -40,7 +35,10 @@ function threeRow(i: number): number[] {
   return row.slice(0, row.indexOf(-1) + 1)
 }
 
-/** Classic (Bourke) edge numbering, as in both workers' EDGE_PAIRS. */
+/**
+ * Classic (Bourke) edge numbering, as in EDGE_PAIRS in src/geometry/marchingCubes/tables.ts.
+ * Kept as an independent copy so the crossed-edges check does not trust the code it tests.
+ */
 const EDGE_PAIRS = [
   [0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7],
 ]
@@ -105,30 +103,24 @@ function standingEllipsoid(): CloudPreset {
 }
 
 describe('known worker defects (expected to fail until Stage B)', () => {
-  it('sanity: the table extractor reads 256 rows from each worker', () => {
-    expect(workerTriTable('src/workers/marchingCubes.worker.ts')).toHaveLength(256)
-    expect(workerTriTable('src/workers/surfaceMesh.worker.ts')).toHaveLength(256)
+  // Both workers import the one table in src/geometry/marchingCubes/tables.ts, so the former
+  // per-worker table checks are one check each; this guard keeps a worker from growing its own copy.
+  it('sanity: the shared TRI_TABLE has 256 rows and no worker source declares its own', () => {
+    expect(TRI_TABLE).toHaveLength(256)
+    const sources = workerSources()
+    expect(sources.length).toBeGreaterThanOrEqual(3)
+    for (const file of sources) expect(readFileSync(file, 'utf8'), file).not.toMatch(/TRI_TABLE\s*(:[^=]*)?=/)
   })
 
   // Lead spot check, plan decision D6: row 203 crosses edge 3 (both corners inside) and drops edge 1.
-  it.fails('tri-table-row-203 (D6): marchingCubes.worker TRI_TABLE equals three.js triTable', () => {
-    const table = workerTriTable('src/workers/marchingCubes.worker.ts')
-    table.forEach((row, i) => expect(row, `row ${i}`).toEqual(threeRow(i)))
-  })
-
-  it.fails('tri-table-row-203 (D6): surfaceMesh.worker TRI_TABLE equals three.js triTable', () => {
-    const table = workerTriTable('src/workers/surfaceMesh.worker.ts')
-    table.forEach((row, i) => expect(row, `row ${i}`).toEqual(threeRow(i)))
+  it.fails('tri-table-row-203 (D6): the shared TRI_TABLE equals three.js triTable', () => {
+    TRI_TABLE.forEach((row, i) => expect(row, `row ${i}`).toEqual(threeRow(i)))
   })
 
   // The same defect stated as a table property: each row may use only the edges its case crosses.
   // Today exactly one case breaks it (203); a passing test proves the fix without depending on three.js.
-  it.fails('tri-table-row-203 (D6): every marchingCubes.worker row uses exactly its crossed edges', () => {
-    expect(rowsWithWrongEdges(workerTriTable('src/workers/marchingCubes.worker.ts'))).toEqual([])
-  })
-
-  it.fails('tri-table-row-203 (D6): every surfaceMesh.worker row uses exactly its crossed edges', () => {
-    expect(rowsWithWrongEdges(workerTriTable('src/workers/surfaceMesh.worker.ts'))).toEqual([])
+  it.fails('tri-table-row-203 (D6): every shared TRI_TABLE row uses exactly its crossed edges', () => {
+    expect(rowsWithWrongEdges(TRI_TABLE)).toEqual([])
   })
 
   it('sanity: three.js triTable itself passes the crossed-edges property', () => {
