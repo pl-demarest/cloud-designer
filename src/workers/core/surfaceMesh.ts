@@ -154,5 +154,5 @@ export function generateSurfaceMesh(input: SurfaceMeshRequest): SurfaceMeshResul
     -evalSDF(x, y, z, frames, tailSamples, baseVolume, flowCloud, fcTailSamples, allSpiralSamples));
 
   // March cubes at threshold = 0
-  return polygonise(field, grid, { kind: 'negatedSdf' });
+  return polygonise(field, grid, 0);
 }

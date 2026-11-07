@@ -58,7 +58,7 @@ function marchingCubes(
   const field = fillField(grid, (x, y, z) => evalMetaballField(x, y, z, frames, tailSamples, tailStrength));
 
   // March cubes
-  const { positions, indices } = polygonise(field, grid, { kind: 'density', iso });
+  const { positions, indices } = polygonise(field, grid, iso);
   return { vertices: positions, indices };
 }
 

@@ -3,6 +3,7 @@
  * surface-mesh workers.
  */
 
+import { Float32Builder, Uint32Builder } from '../arrayBuilder';
 import { EDGE_PAIRS, TRI_TABLE } from './tables';
 
 /**
@@ -55,132 +56,96 @@ export function fillField(grid: Grid, sample: (x: number, y: number, z: number) 
   return field;
 }
 
-/**
- * What the field holds. It sets the iso level and the formula that places a vertex on an edge,
- * which is all the two workers' copies of the march differed in.
- * - 'density' (flow cloud): a metaball sum. Corners with value >= iso are inside, and the
- *   crossing is at t = (iso - a) / (b - a).
- * - 'negatedSdf' (surface mesh): minus a signed distance. Corners with value >= 0 are inside,
- *   and the crossing is at t = -a / (b - a).
- * With iso 0 the two agree for every finite corner value. For a NaN corner value they give NaN
- * vertices with different sign bits (-a flips the sign, iso - a keeps it), and the surface
- * mesh's degenerateBase golden pins those bytes, so both formulas are kept.
- */
-export type FieldKind =
-  | { kind: 'density'; iso: number }
-  | { kind: 'negatedSdf' };
+/** Corner v of a cube sits at node (ix + CORNER_X[v], iy + CORNER_Y[v], iz + CORNER_Z[v]). */
+const CORNER_X = Int8Array.of(0, 1, 1, 0, 0, 1, 1, 0);
+const CORNER_Y = Int8Array.of(0, 0, 1, 1, 0, 0, 1, 1);
+const CORNER_Z = Int8Array.of(0, 0, 0, 0, 1, 1, 1, 1);
 
-// Linear interpolation along edge
-function interp(
-  isolevel: number,
-  ax: number, ay: number, az: number, aval: number,
-  bx: number, by: number, bz: number, bval: number
-): [number, number, number] {
-  if (Math.abs(isolevel - aval) < 0.00001) return [ax, ay, az];
-  if (Math.abs(isolevel - bval) < 0.00001) return [bx, by, bz];
-  if (Math.abs(aval - bval) < 0.00001) return [ax, ay, az];
-  const t = (isolevel - aval) / (bval - aval);
-  return [ax + t * (bx - ax), ay + t * (by - ay), az + t * (bz - az)];
-}
-
-function interpZero(
-  ax: number, ay: number, az: number, aval: number,
-  bx: number, by: number, bz: number, bval: number
-): [number, number, number] {
-  // Threshold is 0 for SDF
-  if (Math.abs(aval) < 0.00001) return [ax, ay, az];
-  if (Math.abs(bval) < 0.00001) return [bx, by, bz];
-  if (Math.abs(aval - bval) < 0.00001) return [ax, ay, az];
-  const t = -aval / (bval - aval);  // solve for aval + t*(bval - aval) = 0
-  return [ax + t * (bx - ax), ay + t * (by - ay), az + t * (bz - az)];
-}
+/** The two corners of each cube edge (EDGE_PAIRS as flat tables). */
+const EDGE_A = Int8Array.from(EDGE_PAIRS, (pair) => pair[0]);
+const EDGE_B = Int8Array.from(EDGE_PAIRS, (pair) => pair[1]);
 
 /**
- * Triangulates the iso-surface of `field` on `grid`. Triangles keep TRI_TABLE's vertex order,
- * and each edge vertex is interpolated from corner EDGE_PAIRS[e][0] towards EDGE_PAIRS[e][1].
- * Vertices are cached per cube, so neighbouring cubes never share one.
+ * Triangulates the iso-surface of `field` on `grid`: a node whose value is >= iso is inside.
+ * Triangles keep TRI_TABLE's vertex order, and each edge vertex is interpolated from corner
+ * EDGE_PAIRS[e][0] towards EDGE_PAIRS[e][1]. Vertices are cached per cube, so neighbouring cubes
+ * never share one. Nothing is allocated per cube: the corner values and the cube's edge vertices
+ * live in scratch arrays, and the output grows in typed-array builders.
  */
 export function polygonise(
   field: Float32Array,
   grid: Grid,
-  fieldKind: FieldKind,
+  iso: number,
 ): { positions: Float32Array; indices: Uint32Array } {
   const { res, minX, minY, minZ, sx, sy, sz } = grid;
-  const iso = fieldKind.kind === 'density' ? fieldKind.iso : 0;
-  const negatedSdf = fieldKind.kind === 'negatedSdf';
-  function idx(ix: number, iy: number, iz: number): number {
-    return iz * (res + 1) * (res + 1) + iy * (res + 1) + ix;
-  }
+  const n = res + 1;
+  const nn = n * n;
 
-  // March cubes
-  const verts: number[] = [];
-  const tris: number[] = [];
-  const edgeVerts = new Map<string, number>();
+  // Field index of each corner relative to the cube's first node (ix, iy, iz).
+  const cornerOffset = new Int32Array(8);
+  for (let v = 0; v < 8; v++) cornerOffset[v] = CORNER_Z[v] * nn + CORNER_Y[v] * n + CORNER_X[v];
 
-  function getEdgeVert(
-    x0: number, y0: number, z0: number, v0: number,
-    x1: number, y1: number, z1: number, v1: number,
-    eKey: string
-  ): number {
-    if (edgeVerts.has(eKey)) return edgeVerts.get(eKey)!;
-    const [px, py, pz] = negatedSdf
-      ? interpZero(x0, y0, z0, v0, x1, y1, z1, v1)
-      : interp(iso, x0, y0, z0, v0, x1, y1, z1, v1);
-    const vi = verts.length / 3;
-    verts.push(px, py, pz);
-    edgeVerts.set(eKey, vi);
+  const positions = new Float32Builder();
+  const indices = new Uint32Builder();
+  const vals = new Float64Array(8);
+  // The vertex of each of the current cube's 12 edges, -1 until a triangle uses it.
+  const cubeVertex = new Int32Array(12);
+  let vertexCount = 0;
+
+  // The cube being marched; edgeVertex reads it.
+  let ix = 0, iy = 0, iz = 0;
+
+  // The vertex on edge e of the current cube, interpolated on first use.
+  const edgeVertex = (e: number): number => {
+    let vi = cubeVertex[e];
+    if (vi >= 0) return vi;
+    const a = EDGE_A[e];
+    const b = EDGE_B[e];
+    const ax = minX + (ix + CORNER_X[a]) * sx;
+    const ay = minY + (iy + CORNER_Y[a]) * sy;
+    const az = minZ + (iz + CORNER_Z[a]) * sz;
+    const bx = minX + (ix + CORNER_X[b]) * sx;
+    const by = minY + (iy + CORNER_Y[b]) * sy;
+    const bz = minZ + (iz + CORNER_Z[b]) * sz;
+    const aval = vals[a];
+    const bval = vals[b];
+    if (Math.abs(iso - aval) < 0.00001) positions.push3(ax, ay, az);
+    else if (Math.abs(iso - bval) < 0.00001) positions.push3(bx, by, bz);
+    else if (Math.abs(aval - bval) < 0.00001) positions.push3(ax, ay, az);
+    else {
+      const t = (iso - aval) / (bval - aval);
+      positions.push3(ax + t * (bx - ax), ay + t * (by - ay), az + t * (bz - az));
+    }
+    vi = vertexCount++;
+    cubeVertex[e] = vi;
     return vi;
-  }
+  };
 
-  for (let iz = 0; iz < res; iz++) {
-    for (let iy = 0; iy < res; iy++) {
-      for (let ix = 0; ix < res; ix++) {
-        // World coords of cube corners
-        const cx = [ix, ix+1, ix+1, ix, ix, ix+1, ix+1, ix];
-        const cy = [iy, iy, iy+1, iy+1, iy, iy, iy+1, iy+1];
-        const cz = [iz, iz, iz, iz, iz+1, iz+1, iz+1, iz+1];
-
-        const wx = cx.map(i => minX + i * sx);
-        const wy = cy.map(i => minY + i * sy);
-        const wz = cz.map(i => minZ + i * sz);
-        const vals = cx.map((_xi, vi) => field[idx(cx[vi], cy[vi], cz[vi])]);
-
-        // Compute cube index
+  for (iz = 0; iz < res; iz++) {
+    for (iy = 0; iy < res; iy++) {
+      for (ix = 0; ix < res; ix++) {
+        const node = iz * nn + iy * n + ix;
         let cubeIdx = 0;
         for (let v = 0; v < 8; v++) {
-          if (vals[v] >= iso) cubeIdx |= (1 << v);
+          const val = field[node + cornerOffset[v]];
+          vals[v] = val;
+          if (val >= iso) cubeIdx |= 1 << v;
         }
-
         if (cubeIdx === 0 || cubeIdx === 255) continue;
 
-        // Get triangles for this config
         const triList = TRI_TABLE[cubeIdx];
-        if (!triList || triList[0] === -1) continue;
-
-        // Edge vertex positions
-        const edgeV: (number | null)[] = new Array(12).fill(null);
-
-        function ensureEdge(e: number): number {
-          if (edgeV[e] !== null) return edgeV[e]!;
-          const [a, b] = EDGE_PAIRS[e];
-          const key = `${ix}_${iy}_${iz}_${e}`;
-          const vi = getEdgeVert(wx[a], wy[a], wz[a], vals[a], wx[b], wy[b], wz[b], vals[b], key);
-          edgeV[e] = vi;
-          return vi;
-        }
+        if (triList[0] === -1) continue;
+        cubeVertex.fill(-1);
 
         for (let t = 0; t < triList.length && triList[t] !== -1; t += 3) {
-          const v0 = ensureEdge(triList[t]);
-          const v1 = ensureEdge(triList[t + 1]);
-          const v2 = ensureEdge(triList[t + 2]);
-          tris.push(v0, v1, v2);
+          const v0 = edgeVertex(triList[t]);
+          const v1 = edgeVertex(triList[t + 1]);
+          const v2 = edgeVertex(triList[t + 2]);
+          indices.push3(v0, v1, v2);
         }
       }
     }
   }
 
-  return {
-    positions: new Float32Array(verts),
-    indices: new Uint32Array(tris),
-  };
+  return { positions: positions.toArray(), indices: indices.toArray() };
 }
