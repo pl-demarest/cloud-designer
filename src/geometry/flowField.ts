@@ -9,7 +9,7 @@ import type { TailSample } from './primitives/tail';
 
 /** Metaball field at (x, y, z). Each sphere adds falloff * r^2 / d^2 (falloff * 100 within
  *  0.01 of its centre); the tail adds tailStrength times the same term for the nearest point
- *  on its sampled spine. A sphere without `scale` or `falloff` counts as scale 1, falloff 0.5. */
+ *  on its sampled spine. */
 export function evalMetaballField(
   x: number, y: number, z: number,
   spheres: SphereDef[],
@@ -25,17 +25,17 @@ export function evalMetaballField(
     let dz = z - sw.position[2];
 
     if (sw.shape === 'ellipsoid') {
-      dx /= (sw.scale?.[0] ?? 1);
-      dy /= (sw.scale?.[1] ?? 1);
-      dz /= (sw.scale?.[2] ?? 1);
+      dx /= sw.scale[0];
+      dy /= sw.scale[1];
+      dz /= sw.scale[2];
     }
 
     const dist2 = dx * dx + dy * dy + dz * dz;
     const r2 = sw.radius * sw.radius;
     if (dist2 < 0.0001) {
-      val += (sw.falloff ?? 0.5) * 100;
+      val += sw.falloff * 100;
     } else {
-      val += (sw.falloff ?? 0.5) * r2 / dist2;
+      val += sw.falloff * r2 / dist2;
     }
   }
 

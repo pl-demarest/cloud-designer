@@ -45,14 +45,14 @@ export function TailPanel() {
       />
       <SliderRow
         label="Radial Density"
-        value={tail.radialSegments ?? 12}
+        value={tail.radialSegments}
         min={4} max={24} step={1}
         onChange={(v) => setTail({ radialSegments: v })}
         onCommit={commit}
       />
       <SliderRow
         label="Length Density"
-        value={tail.lengthSegments ?? 32}
+        value={tail.lengthSegments}
         min={8} max={64} step={1}
         onChange={(v) => setTail({ lengthSegments: v })}
         onCommit={commit}

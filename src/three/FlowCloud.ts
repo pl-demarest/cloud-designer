@@ -64,7 +64,7 @@ export class FlowCloud {
     };
 
     // Apply initial flow cloud position from store
-    const initPos = useCloudStore.getState().preset.flowCloud.position ?? [0, 0, 0];
+    const initPos = useCloudStore.getState().preset.flowCloud.position;
     this.group.position.set(initPos[0], initPos[1], initPos[2]);
 
     // Live-update wireframe visibility without re-running the worker
@@ -79,8 +79,7 @@ export class FlowCloud {
     // Move the group when flowCloud.position changes in the store
     this.unsubscribePosition = useCloudStore.subscribe(
       (s) => s.preset.flowCloud.position,
-      (pos) => {
-        const p = pos ?? [0, 0, 0];
+      (p) => {
         this.group.position.set(p[0], p[1], p[2]);
       }
     );

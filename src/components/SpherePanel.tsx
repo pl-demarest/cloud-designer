@@ -115,31 +115,31 @@ export function SpherePanel() {
                   <label>Half</label>
                   <input
                     type="checkbox"
-                    checked={sw.half ?? false}
+                    checked={sw.half}
                     onChange={(e) => { handleUpdate(sw.id, { half: e.target.checked }); commit(); }}
                   />
                 </div>
                 <SliderRow
                   label="Rotate X"
-                  value={(sw.rotation ?? [0, 0, 0])[0]}
+                  value={sw.rotation[0]}
                   min={-Math.PI} max={Math.PI} step={0.01}
-                  onChange={(v) => handleUpdate(sw.id, { rotation: [v, (sw.rotation ?? [0,0,0])[1], (sw.rotation ?? [0,0,0])[2]] })}
+                  onChange={(v) => handleUpdate(sw.id, { rotation: [v, sw.rotation[1], sw.rotation[2]] })}
                   onCommit={commit}
                   format={(v) => `${(v / Math.PI * 180).toFixed(0)}°`}
                 />
                 <SliderRow
                   label="Rotate Y"
-                  value={(sw.rotation ?? [0, 0, 0])[1]}
+                  value={sw.rotation[1]}
                   min={-Math.PI} max={Math.PI} step={0.01}
-                  onChange={(v) => handleUpdate(sw.id, { rotation: [(sw.rotation ?? [0,0,0])[0], v, (sw.rotation ?? [0,0,0])[2]] })}
+                  onChange={(v) => handleUpdate(sw.id, { rotation: [sw.rotation[0], v, sw.rotation[2]] })}
                   onCommit={commit}
                   format={(v) => `${(v / Math.PI * 180).toFixed(0)}°`}
                 />
                 <SliderRow
                   label="Rotate Z"
-                  value={(sw.rotation ?? [0, 0, 0])[2]}
+                  value={sw.rotation[2]}
                   min={-Math.PI} max={Math.PI} step={0.01}
-                  onChange={(v) => handleUpdate(sw.id, { rotation: [(sw.rotation ?? [0,0,0])[0], (sw.rotation ?? [0,0,0])[1], v] })}
+                  onChange={(v) => handleUpdate(sw.id, { rotation: [sw.rotation[0], sw.rotation[1], v] })}
                   onCommit={commit}
                   format={(v) => `${(v / Math.PI * 180).toFixed(0)}°`}
                 />

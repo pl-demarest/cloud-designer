@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { digestArray, digestArrayList } from '../../helpers/digest'
 import { runWorker } from '../../helpers/workerHarness'
 import { THICK_SPIRAL, fixture, marchingCubesMessage, surfaceMeshMessage } from '../../fixtures/presets'
+import { normalizePreset } from '../../../src/model/normalize'
 import type { CloudPreset } from '../../../src/model/types'
 
 /**
@@ -33,7 +34,7 @@ async function surfaceMeshDigest(p: CloudPreset) {
   return { positions: digestArray(m.positions), indices: digestArray(m.indices) }
 }
 
-/** A preset saved before flowCloud.tailStrength existed; loadPreset does not fill it in. */
+/** A preset saved before flowCloud.tailStrength existed. */
 function withoutTailStrength(): CloudPreset {
   const p = fixture('tailStart')
   delete (p.flowCloud as Partial<CloudPreset['flowCloud']>).tailStrength
@@ -41,11 +42,17 @@ function withoutTailStrength(): CloudPreset {
 }
 
 describe('marchingCubes worker: branches outside the fixture set', () => {
-  test('a preset without flowCloud.tailStrength meshes the tail at the worker default (1.0)', async () => {
+  // Until normalizePreset the worker read a missing tailStrength as 1.0 and the surface-mesh
+  // worker as 0. normalizePreset fills 0, DEFAULT_PRESET's value, and both workers get that.
+  test('a preset without flowCloud.tailStrength is normalized to 0 and meshes no tail', async () => {
+    expect(normalizePreset(withoutTailStrength()).flowCloud.tailStrength).toBe(0)
     const missing = await marchingCubesDigest(withoutTailStrength())
-    const explicit = fixture('tailStart')
-    explicit.flowCloud.tailStrength = 1
-    expect(missing).toEqual(await marchingCubesDigest(explicit))
+    const noTail = fixture('tailStart')
+    noTail.flowCloud.tailStrength = 0
+    expect(missing).toEqual(await marchingCubesDigest(noTail))
+    const withTail = fixture('tailStart')
+    withTail.flowCloud.tailStrength = 1
+    expect(missing).not.toEqual(await marchingCubesDigest(withTail))
     expect(missing).toMatchSnapshot()
   })
 
@@ -84,7 +91,7 @@ describe('surfaceMesh worker: thick spiral variants outside the fixture set', ()
     expect(await surfaceMeshDigest(withSpiral({ taperPower: 0 }))).toMatchSnapshot()
   })
 
-  test('a preset without flowCloud.tailStrength meshes no tail field (worker default 0, unlike marchingCubes)', async () => {
+  test('a preset without flowCloud.tailStrength meshes no tail field (normalized to 0)', async () => {
     const missing = await surfaceMeshDigest(withoutTailStrength())
     const explicit = fixture('tailStart')
     explicit.flowCloud.tailStrength = 0

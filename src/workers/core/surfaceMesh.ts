@@ -53,11 +53,11 @@ function evalSDF(
 
   // Flow cloud SDF: threshold - metaball field
   // Transform point to flow cloud local space (subtract position offset)
-  const fcPos = flowCloud.position ?? [0, 0, 0];
+  const fcPos = flowCloud.position;
   const localX = x - fcPos[0];
   const localY = y - fcPos[1];
   const localZ = z - fcPos[2];
-  const tailStrength = flowCloud.tailStrength ?? 0;
+  const tailStrength = flowCloud.tailStrength;
   const field = evalMetaballField(localX, localY, localZ, spheres, fcTailSamples, tailStrength);
   const flowCloudD = (flowCloud.threshold - field);
   // flowCloudD is negative inside the isosurface (field > threshold)
@@ -82,11 +82,11 @@ export function generateSurfaceMesh(input: SurfaceMeshRequest): SurfaceMeshResul
   const baseSet = sampleBaseSpline(base, 64);
 
   // Tail samples for the metaball field (flow cloud SDF component)
-  const tailStrength = flowCloud.tailStrength ?? 0;
+  const tailStrength = flowCloud.tailStrength;
   const fcTailSamples = tailStrength > 0 ? sampleTailSpline(tail, 32) : [];
 
   // Sample spirals (only thick ones produce samples)
-  const allSpiralSamples: SpiralSample[][] = (spirals ?? []).map(
+  const allSpiralSamples: SpiralSample[][] = spirals.map(
     (sp) => sampleSpiral(sp, 64)
   );
 
@@ -105,7 +105,7 @@ export function generateSurfaceMesh(input: SurfaceMeshRequest): SurfaceMeshResul
 
   // Spheres
   for (const sw of spheres) {
-    const maxScale = Math.max(sw.scale?.[0] ?? 1, sw.scale?.[1] ?? 1, sw.scale?.[2] ?? 1);
+    const maxScale = Math.max(sw.scale[0], sw.scale[1], sw.scale[2]);
     expandBounds(sw.position[0], sw.position[1], sw.position[2], sw.radius * maxScale + 0.5);
   }
 
@@ -121,9 +121,9 @@ export function generateSurfaceMesh(input: SurfaceMeshRequest): SurfaceMeshResul
   }
 
   // Flow cloud: sphere positions shifted by flowCloud.position
-  const fcPos = flowCloud.position ?? [0, 0, 0];
+  const fcPos = flowCloud.position;
   for (const sw of spheres) {
-    const maxScale = Math.max(sw.scale?.[0] ?? 1, sw.scale?.[1] ?? 1, sw.scale?.[2] ?? 1);
+    const maxScale = Math.max(sw.scale[0], sw.scale[1], sw.scale[2]);
     expandBounds(
       sw.position[0] + fcPos[0],
       sw.position[1] + fcPos[1],

@@ -13,9 +13,9 @@ export function sphereSDF(x: number, y: number, z: number, sw: SphereDef): numbe
   let dz = z - sw.position[2];
 
   if (sw.shape === 'ellipsoid') {
-    const sx = sw.scale?.[0] ?? 1;
-    const sy = sw.scale?.[1] ?? 1;
-    const sz = sw.scale?.[2] ?? 1;
+    const sx = sw.scale[0];
+    const sy = sw.scale[1];
+    const sz = sw.scale[2];
     dx /= sx;
     dy /= sy;
     dz /= sz;

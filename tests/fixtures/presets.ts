@@ -1,4 +1,5 @@
 import { DEFAULT_PRESET } from '../../src/model/defaults'
+import { normalizePreset } from '../../src/model/normalize'
 import type { CloudPreset, SpiralDef } from '../../src/model/types'
 
 /**
@@ -142,21 +143,28 @@ export function fixture(name: FixtureName): CloudPreset {
 }
 
 // ── Worker payloads, exactly as the app builds them ──────────────────────────
+//
+// The app posts parts of the store's preset, which loadPreset has passed through
+// normalizePreset, so each builder normalizes its preset first. A fixture can stay
+// raw (the degenerate ones keep their zero dimensions) and still reach the worker
+// the way the app would send it.
 
 /** FlowCloud.dispatch (src/three/FlowCloud.ts). */
-export function marchingCubesMessage(p: CloudPreset) {
+export function marchingCubesMessage(raw: CloudPreset) {
+  const p = normalizePreset(raw)
   return { spheres: p.spheres, base: p.base, tail: p.tail, flowCloud: p.flowCloud }
 }
 
 /** App.handleCutAndGlue, surface-mesh half (src/components/App.tsx). */
-export function surfaceMeshMessage(p: CloudPreset) {
+export function surfaceMeshMessage(raw: CloudPreset) {
+  const p = normalizePreset(raw)
   return {
     spheres: p.spheres,
     base: p.base,
     tail: p.tail,
     flowCloud: p.flowCloud,
     spirals: p.spirals,
-    resolution: p.surfaceMeshResolution ?? 64,
+    resolution: p.surfaceMeshResolution,
   }
 }
 
@@ -169,6 +177,7 @@ export interface PrimitiveEdges {
 }
 
 /** App.handleCutAndGlue, cut-and-glue half (src/components/App.tsx). */
-export function cutAndGlueMessage(p: CloudPreset, edges: PrimitiveEdges) {
+export function cutAndGlueMessage(raw: CloudPreset, edges: PrimitiveEdges) {
+  const p = normalizePreset(raw)
   return { spheres: p.spheres, base: p.base, tail: p.tail, ...edges }
 }

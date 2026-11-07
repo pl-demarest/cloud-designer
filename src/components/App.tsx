@@ -180,7 +180,7 @@ export function App() {
         tail:       preset.tail,
         flowCloud:  preset.flowCloud,
         spirals:    preset.spirals,
-        resolution: preset.surfaceMeshResolution ?? 64,
+        resolution: preset.surfaceMeshResolution,
       } satisfies SurfaceMeshRequest);
     }
   }
@@ -191,7 +191,7 @@ export function App() {
     // Thick spirals are now included in the SDF surface mesh.
     // Flat spirals (thickness=0) still need the spiralGroup workaround.
     if (vpRef.current && mode === 'preview') {
-      const hasFlatSpirals = (preset.spirals ?? []).some(s => (s.thickness ?? 0) === 0);
+      const hasFlatSpirals = preset.spirals.some(s => s.thickness === 0);
       vpRef.current.spiralGroup.visible = v && hasFlatSpirals;
       spiralMeshRef.current?.setHandlesVisible(false);
     }
@@ -225,7 +225,7 @@ export function App() {
       vpRef.current.tailGroup.visible      = m === 'edit';
       // Spirals: visible in edit mode. In preview with surface mesh, only show
       // spiralGroup if there are flat spirals (thick ones are in the SDF mesh).
-      const hasFlatSpirals = (preset.spirals ?? []).some(s => (s.thickness ?? 0) === 0);
+      const hasFlatSpirals = preset.spirals.some(s => s.thickness === 0);
       vpRef.current.spiralGroup.visible    = m === 'edit' || (m === 'preview' && surfaceMeshVisible && hasFlatSpirals);
       vpRef.current.gizmoGroup.visible     = m === 'edit';
       vpRef.current.flowCloudGroup.visible = m === 'edit';
@@ -245,7 +245,7 @@ export function App() {
     { id: 'spheres', label: `Spheres (${preset.spheres.length})`,         component: <SpherePanel /> },
     { id: 'base',    label: 'Base',                                        component: <BasePanel /> },
     { id: 'tail',    label: 'Tail',                                        component: <TailPanel /> },
-    { id: 'spirals', label: `Spirals (${(preset.spirals ?? []).length})`,  component: <SpiralPanel /> },
+    { id: 'spirals', label: `Spirals (${preset.spirals.length})`,  component: <SpiralPanel /> },
     {
       id: 'flowCloud',
       label: 'Flow Cloud',

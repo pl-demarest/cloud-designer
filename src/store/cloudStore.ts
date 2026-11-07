@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import type { CloudPreset, SphereDef, BaseDef, TailDef, SpiralDef, FlowCloudSettings } from '../model/types';
 import { DEFAULT_PRESET } from '../model/defaults';
+import { normalizePreset } from '../model/normalize';
 
 function nanoid(): string {
   return Math.random().toString(36).slice(2, 10);
@@ -40,7 +41,8 @@ interface CloudStore {
   setSurfaceMeshResolution: (resolution: number) => void;
 
   // Preset actions
-  loadPreset: (preset: CloudPreset) => void;
+  /** Replaces the preset with normalizePreset(preset): current version, every field set. */
+  loadPreset: (preset: unknown) => void;
   resetToDefault: () => void;
   setPresetName: (name: string) => void;
 }
@@ -169,7 +171,7 @@ export const useCloudStore = create<CloudStore>()(
 
     addSpiral: () =>
       set((s) => {
-        const existingCount = (s.preset.spirals ?? []).length;
+        const existingCount = s.preset.spirals.length;
         const newSpiral: SpiralDef = {
           id: `spiral-${nanoid()}`,
           position: [existingCount * 0.5, 3, 0],
@@ -184,20 +186,20 @@ export const useCloudStore = create<CloudStore>()(
           thickness: 0.15,
           cornerRadius: 0.04,
         };
-        return { preset: { ...s.preset, spirals: [...(s.preset.spirals ?? []), newSpiral] } };
+        return { preset: { ...s.preset, spirals: [...s.preset.spirals, newSpiral] } };
       }),
 
     updateSpiral: (id, patch) =>
       set((s) => ({
         preset: {
           ...s.preset,
-          spirals: (s.preset.spirals ?? []).map((sp) => (sp.id === id ? { ...sp, ...patch } : sp)),
+          spirals: s.preset.spirals.map((sp) => (sp.id === id ? { ...sp, ...patch } : sp)),
         },
       })),
 
     removeSpiral: (id) =>
       set((s) => ({
-        preset: { ...s.preset, spirals: (s.preset.spirals ?? []).filter((sp) => sp.id !== id) },
+        preset: { ...s.preset, spirals: s.preset.spirals.filter((sp) => sp.id !== id) },
       })),
 
     setFlowCloud: (patch) =>
@@ -210,25 +212,7 @@ export const useCloudStore = create<CloudStore>()(
         preset: { ...s.preset, surfaceMeshResolution: resolution },
       })),
 
-    // Normalize fields so old presets without them don't crash
-    loadPreset: (preset) => {
-      const cloned = structuredClone(preset);
-      if (!cloned.spirals) cloned.spirals = [];
-      if (!cloned.flowCloud.position) cloned.flowCloud.position = [0, 0, 0];
-      if (cloned.flowCloud.wireframe.generateBands === undefined) {
-        cloned.flowCloud.wireframe.generateBands = false;
-      }
-      cloned.base.ringSegments ??= 16;
-      cloned.base.lengthSegments ??= 24;
-      cloned.tail.radialSegments ??= 12;
-      cloned.tail.lengthSegments ??= 32;
-      cloned.surfaceMeshResolution ??= 64;
-      for (const sp of cloned.spirals) {
-        sp.thickness ??= 0;
-        sp.cornerRadius ??= 0;
-      }
-      set({ preset: cloned });
-    },
+    loadPreset: (preset) => set({ preset: normalizePreset(preset) }),
 
     resetToDefault: () => set({ preset: structuredClone(DEFAULT_PRESET) }),
 

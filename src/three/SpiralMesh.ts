@@ -27,10 +27,10 @@ export class SpiralMesh {
     this.group = viewport.spiralGroup;
 
     this.unsubscribe = useCloudStore.subscribe(
-      (s) => s.preset.spirals ?? [],
+      (s) => s.preset.spirals,
       (spirals) => this.sync(spirals)
     );
-    this.sync(useCloudStore.getState().preset.spirals ?? []);
+    this.sync(useCloudStore.getState().preset.spirals);
 
     const canvas = viewport.renderer.domElement;
     canvas.addEventListener('pointerdown', this.onPointerDown);
@@ -91,7 +91,7 @@ export class SpiralMesh {
   }
 
   private buildGeo(def: SpiralDef): THREE.BufferGeometry {
-    const thickness = def.thickness ?? 0;
+    const thickness = def.thickness;
     if (thickness > 0) return this.buildThickGeo(def);
     return this.buildFlatGeo(def);
   }
@@ -163,7 +163,7 @@ export class SpiralMesh {
     const N = Math.max(2, Math.round(def.turns * SAMPLES_PER_TURN));
     const startR = Math.max(def.startRadius, 0.001);
     const endR = Math.max(def.endRadius, startR + 0.001);
-    const thickness = def.thickness ?? 0;
+    const thickness = def.thickness;
     const halfThick = thickness / 2;
 
     const getRadius = (theta: number): number => {
@@ -220,7 +220,7 @@ export class SpiralMesh {
 
     // ── Cross-section rings at rung intervals ──
     const totalRings = Math.max(1, Math.round(def.turns * def.rungDensity));
-    const cornerR = def.cornerRadius ?? 0;
+    const cornerR = def.cornerRadius;
     const ARC_SEGS = 4; // segments per quarter-circle corner arc
 
     for (let j = 0; j <= totalRings; j++) {

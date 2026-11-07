@@ -1,6 +1,7 @@
 /**
- * The preset data model: everything a saved cloud design holds. Default values and the
- * per-primitive factories live in ./defaults.ts.
+ * The preset data model: everything a saved cloud design holds. Every field is required; a
+ * preset from a file or an older version becomes one through normalizePreset (./normalize.ts).
+ * Default values and the per-primitive factories live in ./defaults.ts.
  */
 
 export interface SphereDef {
@@ -20,8 +21,8 @@ export interface BaseDef {
   crossSectionHeight: number;
   crossSectionShape: 'oval' | 'rect';
   closed: boolean;
-  ringSegments?: number;    // vertices per cross-section ring (default 16)
-  lengthSegments?: number;  // number of cross-section rings along path (default 24)
+  ringSegments: number;     // vertices per cross-section ring
+  lengthSegments: number;   // number of cross-section rings along path
 }
 
 export interface TailSetpoint {
@@ -35,8 +36,8 @@ export interface TailDef {
   curlAmount: number;
   attachToBase: 'start' | 'end' | 'none';
   attachOffset: number;
-  radialSegments?: number;  // vertices per cross-section ring (default 12)
-  lengthSegments?: number;  // number of cross-section rings along path (default 32)
+  radialSegments: number;   // vertices per cross-section ring
+  lengthSegments: number;   // number of cross-section rings along path
 }
 
 export interface SpiralDef {
@@ -50,9 +51,9 @@ export interface SpiralDef {
   taperPower: number;                   // 0=uniform ribbon, 1=linear, 2=snail shell (quadratic)
   rungDensity: number;                  // connecting lines per full turn
   spiralType: 'archimedean' | 'golden'; // archimedean=equal spacing; golden=logarithmic (self-similar)
-  thickness?: number;                   // depth of rectangular cross-section in radial direction
-                                        // 0 or undefined = flat ribbon (legacy); >0 = thickened coil
-  cornerRadius?: number;                // rounding at rectangle corners (0 = sharp)
+  thickness: number;                    // depth of rectangular cross-section in radial direction
+                                        // 0 = flat ribbon; >0 = thickened coil
+  cornerRadius: number;                 // rounding at rectangle corners (0 = sharp)
                                         // clamped to min(thickness, separation*taper)/2 at each sample
 }
 
@@ -88,5 +89,5 @@ export interface CloudPreset {
   tail: TailDef;
   spirals: SpiralDef[];
   flowCloud: FlowCloudSettings;
-  surfaceMeshResolution?: number; // MC grid resolution for unified surface mesh (32–256, default 64)
+  surfaceMeshResolution: number; // MC grid resolution for unified surface mesh (32–256)
 }

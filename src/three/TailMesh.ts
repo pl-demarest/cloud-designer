@@ -68,8 +68,8 @@ export class TailMesh {
     const setpoints = this.resolveSetpoints(tail);
     if (setpoints.length < 2) return new THREE.BufferGeometry();
 
-    const radSegs = tail.radialSegments ?? 12;
-    const lenSegs = tail.lengthSegments ?? 32;
+    const radSegs = tail.radialSegments;
+    const lenSegs = tail.lengthSegments;
 
     const curve = new THREE.CatmullRomCurve3(
       setpoints.map((sp) => new THREE.Vector3(...sp.position)),

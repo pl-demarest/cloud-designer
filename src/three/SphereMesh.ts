@@ -89,7 +89,7 @@ export class SphereMesh {
   }
 
   private buildGeo(def: SphereDef): THREE.BufferGeometry {
-    const thetaLength = (def.half ?? false) ? Math.PI / 2 : Math.PI;
+    const thetaLength = def.half ? Math.PI / 2 : Math.PI;
     const geo = new THREE.SphereGeometry(def.radius, 12, 8, 0, Math.PI * 2, 0, thetaLength);
     if (def.shape === 'ellipsoid') {
       geo.scale(def.scale[0], def.scale[1], def.scale[2]);
@@ -99,7 +99,7 @@ export class SphereMesh {
 
   private applyTransform(wire: THREE.LineSegments, handle: THREE.Mesh, def: SphereDef): void {
     const pos = new THREE.Vector3(...def.position);
-    const rot = def.rotation ?? [0, 0, 0];
+    const rot = def.rotation;
     wire.position.copy(pos);
     wire.rotation.set(rot[0], rot[1], rot[2]);
     handle.position.copy(pos);

@@ -5,7 +5,7 @@ import { SliderRow } from './ui/SliderRow';
 import type { SpiralDef } from '../model/types';
 
 export function SpiralPanel() {
-  const spirals = useCloudStore((s) => s.preset.spirals ?? []);
+  const spirals = useCloudStore((s) => s.preset.spirals);
   const preset = useCloudStore((s) => s.preset);
   const addSpiral = useCloudStore((s) => s.addSpiral);
   const updateSpiral = useCloudStore((s) => s.updateSpiral);
@@ -132,16 +132,16 @@ export function SpiralPanel() {
                 {/* Thickness (3D coil) */}
                 <SliderRow
                   label="Thickness"
-                  value={sp.thickness ?? 0}
+                  value={sp.thickness}
                   min={0} max={2.0} step={0.01}
                   onChange={(v) => handleUpdate(sp.id, { thickness: v })}
                   onCommit={commit}
                   format={(v) => v === 0 ? 'flat' : v.toFixed(2)}
                 />
-                {(sp.thickness ?? 0) > 0 && (
+                {sp.thickness > 0 && (
                   <SliderRow
                     label="Corner Rnd"
-                    value={sp.cornerRadius ?? 0}
+                    value={sp.cornerRadius}
                     min={0} max={1.0} step={0.01}
                     onChange={(v) => handleUpdate(sp.id, { cornerRadius: v })}
                     onCommit={commit}

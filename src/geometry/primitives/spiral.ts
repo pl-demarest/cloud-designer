@@ -16,7 +16,7 @@ export interface SpiralSample {
 /** Pre-sample a spiral into world-space cross-section frames.
  *  Only produces samples for thick spirals (thickness > 0). */
 export function sampleSpiral(def: SpiralDef, samplesPerTurn: number): SpiralSample[] {
-  const thickness = def.thickness ?? 0;
+  const thickness = def.thickness;
   if (thickness <= 0) return [];
 
   const maxTheta = def.turns * Math.PI * 2;
@@ -26,7 +26,7 @@ export function sampleSpiral(def: SpiralDef, samplesPerTurn: number): SpiralSamp
   const startR = Math.max(def.startRadius, 0.001);
   const endR = Math.max(def.endRadius, startR + 0.001);
   const halfThick = thickness / 2;
-  const cornerR = def.cornerRadius ?? 0;
+  const cornerR = def.cornerRadius;
 
   const getRadius = (theta: number): number => {
     if (def.spiralType === 'golden') {

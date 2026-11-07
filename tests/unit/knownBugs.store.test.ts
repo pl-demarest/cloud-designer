@@ -22,7 +22,7 @@ describe('known store defects (expected to fail until fixed)', () => {
     expect(() => store().addTailSetpoint(10)).not.toThrow()
   })
 
-  it.fails('tailstrength-default-mismatch: loadPreset of a preset without tailStrength yields tailStrength 0', () => {
+  it('tailstrength-default-mismatch: loadPreset of a preset without tailStrength yields tailStrength 0', () => {
     const p = structuredClone(DEFAULT_PRESET) as CloudPreset
     delete (p.flowCloud as Partial<CloudPreset['flowCloud']>).tailStrength
     store().loadPreset(p)

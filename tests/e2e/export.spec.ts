@@ -64,14 +64,14 @@ function exportButton(page: Page, name: string): Locator {
   return page.locator('.accordion-body .export-buttons').getByRole('button', { name, exact: true })
 }
 
-test('Export JSON Preset downloads the current preset as version 1 JSON', async ({ page }) => {
+test('Export JSON Preset downloads the current preset as version 2 JSON', async ({ page }) => {
   await openPanel(page, 'Export')
   const { name, bytes } = await download(page, exportButton(page, 'Export JSON Preset'))
   expect(name).toBe('default-cloud-preset.json')
 
   const preset = JSON.parse(bytes.toString('utf8')) as Record<string, unknown>
   for (const key of ['spheres', 'base', 'tail', 'spirals', 'flowCloud']) expect(preset, key).toHaveProperty(key)
-  expect(preset.version).toBe(1)
+  expect(preset.version).toBe(2)
   expect(preset.name).toBe('Default Cloud')
   expect(preset.spheres).toHaveLength(3)
   expect(preset.spirals).toEqual([])

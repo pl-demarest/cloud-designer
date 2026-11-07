@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from 'vitest'
 import { useCloudStore } from '../../src/store/cloudStore'
 import { DEFAULT_PRESET } from '../../src/model/defaults'
-import type { CloudPreset } from '../../src/model/types'
+import type { BaseDef, CloudPreset, TailDef } from '../../src/model/types'
 
 /**
  * Pins every cloudStore action as it behaves today. Defects are pinned separately,
@@ -55,16 +55,16 @@ describe('initial state and preset actions', () => {
     expect(preset().spheres[0].radius).toBe(1.2)
   })
 
-  test('loadPreset normalizes a preset missing its optional fields', () => {
-    const p = structuredClone(DEFAULT_PRESET) as unknown as Record<string, unknown> & CloudPreset
+  test('loadPreset normalizes a preset missing the fields version 1 made optional', () => {
+    const p = structuredClone(DEFAULT_PRESET)
     delete (p as Partial<CloudPreset>).spirals
     delete (p.flowCloud as Partial<CloudPreset['flowCloud']>).position
     delete (p.flowCloud.wireframe as Partial<CloudPreset['flowCloud']['wireframe']>).generateBands
-    delete p.base.ringSegments
-    delete p.base.lengthSegments
-    delete p.tail.radialSegments
-    delete p.tail.lengthSegments
-    delete p.surfaceMeshResolution
+    delete (p.base as Partial<BaseDef>).ringSegments
+    delete (p.base as Partial<BaseDef>).lengthSegments
+    delete (p.tail as Partial<TailDef>).radialSegments
+    delete (p.tail as Partial<TailDef>).lengthSegments
+    delete (p as Partial<CloudPreset>).surfaceMeshResolution
     store().loadPreset(p)
     const got = preset()
     expect(got.spirals).toEqual([])
@@ -78,21 +78,23 @@ describe('initial state and preset actions', () => {
   })
 
   test('loadPreset fills spiral thickness and cornerRadius with 0 when absent', () => {
-    const p = structuredClone(DEFAULT_PRESET)
-    p.spirals = [
-      {
-        id: 'legacy',
-        position: [0, 3, 0],
-        rotation: [0, 0, 0],
-        startRadius: 0.1,
-        endRadius: 1.5,
-        turns: 2,
-        separation: 0.3,
-        taperPower: 1,
-        rungDensity: 8,
-        spiralType: 'golden',
-      },
-    ]
+    const p = {
+      ...structuredClone(DEFAULT_PRESET),
+      spirals: [
+        {
+          id: 'legacy',
+          position: [0, 3, 0],
+          rotation: [0, 0, 0],
+          startRadius: 0.1,
+          endRadius: 1.5,
+          turns: 2,
+          separation: 0.3,
+          taperPower: 1,
+          rungDensity: 8,
+          spiralType: 'golden',
+        },
+      ],
+    }
     store().loadPreset(p)
     expect(preset().spirals[0].thickness).toBe(0)
     expect(preset().spirals[0].cornerRadius).toBe(0)
@@ -113,11 +115,11 @@ describe('initial state and preset actions', () => {
     expect(preset().flowCloud.tailStrength).toBe(0.4)
   })
 
-  test('loadPreset does not touch version or the unknown-field set', () => {
-    const p = { ...structuredClone(DEFAULT_PRESET), version: 7, extra: 'kept' } as CloudPreset
-    store().loadPreset(p)
-    expect(preset().version).toBe(7)
-    expect((preset() as unknown as { extra: string }).extra).toBe('kept')
+  test('loadPreset writes the current version (2) and drops unknown fields', () => {
+    store().loadPreset({ ...structuredClone(DEFAULT_PRESET), version: 1, extra: 'dropped' })
+    expect(preset().version).toBe(2)
+    expect(preset()).not.toHaveProperty('extra')
+    expect(preset()).toEqual(DEFAULT_PRESET)
   })
 })
 

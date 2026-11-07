@@ -84,7 +84,7 @@ export function FlowCloudPanel({ onRegenerate, generating, showFlowCloud = true,
         <div className="field-row">
           <label>Mesh Density</label>
           <select
-            value={preset.surfaceMeshResolution ?? 64}
+            value={preset.surfaceMeshResolution}
             onChange={(e) => { setSurfaceMeshResolution(parseInt(e.target.value)); commit(); }}
           >
             <option value={32}>32 (fast)</option>
@@ -100,23 +100,23 @@ export function FlowCloudPanel({ onRegenerate, generating, showFlowCloud = true,
         <div className="panel-subsection-header">Position</div>
         <SliderRow
           label="X"
-          value={(flowCloud.position ?? [0, 0, 0])[0]}
+          value={flowCloud.position[0]}
           min={-20} max={20} step={0.1}
-          onChange={(v) => setFlowCloud({ position: [v, (flowCloud.position ?? [0,0,0])[1], (flowCloud.position ?? [0,0,0])[2]] })}
+          onChange={(v) => setFlowCloud({ position: [v, flowCloud.position[1], flowCloud.position[2]] })}
           onCommit={commit}
         />
         <SliderRow
           label="Y"
-          value={(flowCloud.position ?? [0, 0, 0])[1]}
+          value={flowCloud.position[1]}
           min={-20} max={20} step={0.1}
-          onChange={(v) => setFlowCloud({ position: [(flowCloud.position ?? [0,0,0])[0], v, (flowCloud.position ?? [0,0,0])[2]] })}
+          onChange={(v) => setFlowCloud({ position: [flowCloud.position[0], v, flowCloud.position[2]] })}
           onCommit={commit}
         />
         <SliderRow
           label="Z"
-          value={(flowCloud.position ?? [0, 0, 0])[2]}
+          value={flowCloud.position[2]}
           min={-20} max={20} step={0.1}
-          onChange={(v) => setFlowCloud({ position: [(flowCloud.position ?? [0,0,0])[0], (flowCloud.position ?? [0,0,0])[1], v] })}
+          onChange={(v) => setFlowCloud({ position: [flowCloud.position[0], flowCloud.position[1], v] })}
           onCommit={commit}
         />
       </div>

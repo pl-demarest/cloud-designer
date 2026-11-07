@@ -74,25 +74,25 @@
     ],
     "positions": {
       "type": "Float32Array",
-      "length": 3144,
-      "nan": 828,
+      "length": 13536,
+      "nan": 0,
       "inf": 0,
-      "min": -2.4379794597625732,
+      "min": -2.498385190963745,
       "max": 4.231587886810303,
-      "sum": 2172.679739438463,
-      "sumSq": 8675.566963716145,
-      "sha256": "f1730a7823469a7310c1ec74c2977ec6f7d877bc3a4ebfe508ec92935c9744bb"
+      "sum": 2840.980521239806,
+      "sumSq": 20307.381891774847,
+      "sha256": "094e8f981cde3965326b76090c1e5094c5b1998c479086cbff3324ab2f7e46ce"
     },
     "indices": {
       "type": "Uint32Array",
-      "length": 1548,
+      "length": 6744,
       "nan": 0,
       "inf": 0,
       "min": 0,
-      "max": 1047,
-      "sum": 813317,
-      "sumSq": 567262583,
-      "sha256": "c98f73157a06cdfc3668f1fe8a523460197adb617196ee848a9d7b0b0c67a18e"
+      "max": 4511,
+      "sum": 15196019,
+      "sumSq": 45623428763,
+      "sha256": "27ef8f8d9f9093efb97a0d96793eff90233cb477dc0a9f672bf520887341ac8e"
     },
     "transfer": [
       "positions",

@@ -143,7 +143,7 @@ describe('known worker defects (expected to fail until Stage B)', () => {
     expect(uniquePositionCount(message.vertices)).toBe(message.vertices.length / 3)
   })
 
-  it.fails('nan-on-degenerate-dims: a zero-height base yields no NaN surface-mesh positions', async () => {
+  it('nan-on-degenerate-dims: a zero-height base yields no NaN surface-mesh positions', async () => {
     const { message } = await runWorker<{ positions: Float32Array }>(
       'surfaceMesh',
       surfaceMeshMessage(fixture('degenerateBase')),

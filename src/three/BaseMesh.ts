@@ -52,8 +52,8 @@ export class BaseMesh {
   private buildWireframe(def: BaseDef): THREE.BufferGeometry {
     if (def.controlPoints.length < 2) return new THREE.BufferGeometry();
 
-    const ringSegs = def.ringSegments ?? 16;
-    const lenSegs = def.lengthSegments ?? 24;
+    const ringSegs = def.ringSegments;
+    const lenSegs = def.lengthSegments;
 
     const curve = new THREE.CatmullRomCurve3(
       def.controlPoints.map((p) => new THREE.Vector3(...p)),

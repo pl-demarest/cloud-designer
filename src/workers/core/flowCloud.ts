@@ -17,7 +17,7 @@ function marchingCubes(
 ): { vertices: Float32Array; indices: Uint32Array } {
   const res = flowCloud.resolution;
   const iso = flowCloud.threshold;
-  const tailStrength = flowCloud.tailStrength ?? 1.0;
+  const tailStrength = flowCloud.tailStrength;
 
   // Sample tail spline (32 segments gives smooth capsule approximation)
   const tailSamples = tailStrength > 0 ? sampleTailSpline(tail, 32) : [];
