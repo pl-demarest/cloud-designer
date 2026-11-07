@@ -3,7 +3,7 @@
  * above its centre.
  */
 
-import type { SphereDef } from '../../types/cloud';
+import type { SphereDef } from '../../model/types';
 
 /** Signed distance to a sphere/ellipsoid surface (approximate for ellipsoids).
  *  Matches the containment test insideSphere() below. */

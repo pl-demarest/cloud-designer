@@ -4,7 +4,7 @@
  * band and flow-line wireframe traced over the resulting mesh.
  */
 
-import type { SphereDef, TailDef, FlowCloudSettings } from '../../types/cloud';
+import type { SphereDef, TailDef, FlowCloudSettings } from '../../model/types';
 import { evalMetaballField, extractSpiral } from '../../geometry/flowField';
 import { fillField, gridFromBounds, polygonise } from '../../geometry/marchingCubes/polygonise';
 import { sampleTailSpline } from '../../geometry/primitives/tail';

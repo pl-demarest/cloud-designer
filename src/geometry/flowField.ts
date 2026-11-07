@@ -4,7 +4,7 @@
  * and the spiral wireframe (bands and flow lines) the flow-cloud worker traces over its mesh.
  */
 
-import type { SphereDef, TailDef, FlowCloudSettings } from '../types/cloud';
+import type { SphereDef, TailDef, FlowCloudSettings } from '../model/types';
 import type { TailSample } from './primitives/tail';
 
 /** Metaball field at (x, y, z). Each sphere adds falloff * r^2 / d^2 (falloff * 100 within

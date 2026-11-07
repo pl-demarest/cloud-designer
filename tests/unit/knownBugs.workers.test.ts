@@ -5,7 +5,7 @@ import { triTable as THREE_TRI_TABLE } from 'three/examples/jsm/objects/Marching
 import { runWorker } from '../helpers/workerHarness'
 import { fixture, marchingCubesMessage, surfaceMeshMessage } from '../fixtures/presets'
 import { TRI_TABLE } from '../../src/geometry/marchingCubes/tables'
-import type { CloudPreset } from '../../src/types/cloud'
+import type { CloudPreset } from '../../src/model/types'
 
 /**
  * Known worker defects, written as expected-to-fail tests that assert the CORRECT

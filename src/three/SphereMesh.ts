@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { SphereDef } from '../types/cloud';
+import type { SphereDef } from '../model/types';
 import { Viewport } from './Viewport';
 import { useCloudStore } from '../store/cloudStore';
 

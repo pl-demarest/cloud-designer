@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { CloudPreset } from '../types/cloud';
+import type { CloudPreset } from '../model/types';
 
 const MAX_HISTORY = 50;
 

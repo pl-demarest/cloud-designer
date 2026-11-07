@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { SpiralDef } from '../types/cloud';
+import type { SpiralDef } from '../model/types';
 import { Viewport } from './Viewport';
 import { useCloudStore } from '../store/cloudStore';
 

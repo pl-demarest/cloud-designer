@@ -3,7 +3,7 @@
  * spiral path.
  */
 
-import type { SpiralDef } from '../../types/cloud';
+import type { SpiralDef } from '../../model/types';
 
 export interface SpiralSample {
   cx: number; cy: number; cz: number;   // center (world space)

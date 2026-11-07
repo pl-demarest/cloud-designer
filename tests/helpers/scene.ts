@@ -8,7 +8,7 @@ import { SpiralMesh } from '../../src/three/SpiralMesh'
 import { FlowCloud } from '../../src/three/FlowCloud'
 import { CutGlueResult } from '../../src/three/CutGlueResult'
 import { useCloudStore } from '../../src/store/cloudStore'
-import type { CloudPreset } from '../../src/types/cloud'
+import type { CloudPreset } from '../../src/model/types'
 import { digestArray } from './digest'
 import { runWorker, type WorkerName } from './workerHarness'
 

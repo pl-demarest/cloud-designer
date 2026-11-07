@@ -10,7 +10,7 @@ import { useCloudStore } from '../../src/store/cloudStore'
 import { useHistoryStore } from '../../src/store/historyStore'
 import { createViewportStub, isHandle } from '../helpers/scene'
 import { fixture } from '../fixtures/presets'
-import type { CloudPreset } from '../../src/types/cloud'
+import type { CloudPreset } from '../../src/model/types'
 
 /**
  * Known editor defects as expected-to-fail tests asserting the correct behaviour,

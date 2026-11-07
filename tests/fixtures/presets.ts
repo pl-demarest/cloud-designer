@@ -1,5 +1,5 @@
-import { DEFAULT_PRESET } from '../../src/types/cloud'
-import type { CloudPreset, SpiralDef } from '../../src/types/cloud'
+import { DEFAULT_PRESET } from '../../src/model/defaults'
+import type { CloudPreset, SpiralDef } from '../../src/model/types'
 
 /**
  * Fixed preset set for the characterization goldens.

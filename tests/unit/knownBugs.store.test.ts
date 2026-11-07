@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { useCloudStore } from '../../src/store/cloudStore'
-import { DEFAULT_PRESET } from '../../src/types/cloud'
-import type { CloudPreset } from '../../src/types/cloud'
+import { DEFAULT_PRESET } from '../../src/model/defaults'
+import type { CloudPreset } from '../../src/model/types'
 
 /** Known store defects as expected-to-fail tests asserting the correct behaviour (see knownBugs.workers.test.ts). */
 

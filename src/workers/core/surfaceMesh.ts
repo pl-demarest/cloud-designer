@@ -10,7 +10,7 @@
  * as the flow cloud's marching cubes output, but covering everything.
  */
 
-import type { SphereDef, FlowCloudSettings } from '../../types/cloud';
+import type { SphereDef, FlowCloudSettings } from '../../model/types';
 import { evalMetaballField } from '../../geometry/flowField';
 import { fillField, gridFromBounds, polygonise } from '../../geometry/marchingCubes/polygonise';
 import { sphereSDF } from '../../geometry/primitives/sphere';

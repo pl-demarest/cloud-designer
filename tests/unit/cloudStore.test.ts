@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from 'vitest'
 import { useCloudStore } from '../../src/store/cloudStore'
-import { DEFAULT_PRESET } from '../../src/types/cloud'
-import type { CloudPreset } from '../../src/types/cloud'
+import { DEFAULT_PRESET } from '../../src/model/defaults'
+import type { CloudPreset } from '../../src/model/types'
 
 /**
  * Pins every cloudStore action as it behaves today. Defects are pinned separately,

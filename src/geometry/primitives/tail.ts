@@ -3,7 +3,7 @@
  * volume around it, a chain of capsules whose radius follows the setpoint widths.
  */
 
-import type { TailDef } from '../../types/cloud';
+import type { TailDef } from '../../model/types';
 
 // Sampled tail spine point: position + interpolated width (radius)
 export interface TailSample {

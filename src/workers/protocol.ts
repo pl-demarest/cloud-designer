@@ -6,7 +6,7 @@
  * list. When the computation throws, the worker replies with WorkerError instead.
  */
 
-import type { SphereDef, BaseDef, TailDef, FlowCloudSettings, SpiralDef } from '../types/cloud';
+import type { SphereDef, BaseDef, TailDef, FlowCloudSettings, SpiralDef } from '../model/types';
 
 /** The reply of a worker whose computation threw: `String(err)`. */
 export interface WorkerError {

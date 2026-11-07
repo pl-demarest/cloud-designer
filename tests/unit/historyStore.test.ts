@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from 'vitest'
 import { useHistoryStore } from '../../src/store/historyStore'
-import { DEFAULT_PRESET } from '../../src/types/cloud'
-import type { CloudPreset } from '../../src/types/cloud'
+import { DEFAULT_PRESET } from '../../src/model/defaults'
+import type { CloudPreset } from '../../src/model/types'
 
 /** Pins historyStore as it behaves today: past[-1] is the current state; undo needs two entries. */
 

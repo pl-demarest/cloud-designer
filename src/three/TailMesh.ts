@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { TailDef, TailSetpoint } from '../types/cloud';
+import type { TailDef, TailSetpoint } from '../model/types';
 import { Viewport } from './Viewport';
 import { useCloudStore } from '../store/cloudStore';
 import { BaseMesh } from './BaseMesh';

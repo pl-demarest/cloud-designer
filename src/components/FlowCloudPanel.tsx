@@ -1,7 +1,7 @@
 import { useCloudStore } from '../store/cloudStore';
 import { useHistoryStore } from '../store/historyStore';
 import { SliderRow } from './ui/SliderRow';
-import type { FlowCloudSettings } from '../types/cloud';
+import type { FlowCloudSettings } from '../model/types';
 
 interface Props {
   onRegenerate?: () => void;

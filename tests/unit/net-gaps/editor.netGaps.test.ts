@@ -12,7 +12,7 @@ import { useCloudStore } from '../../../src/store/cloudStore'
 import { createViewportStub, installFakeWorker, isHandle, regenerateFlowCloud, serializeGroup } from '../../helpers/scene'
 import { THICK_SPIRAL, fixture } from '../../fixtures/presets'
 import { digestArray } from '../../helpers/digest'
-import type { CloudPreset } from '../../../src/types/cloud'
+import type { CloudPreset } from '../../../src/model/types'
 
 /**
  * Editor behaviour the goldens do not exercise, found by mutation testing (Stage A

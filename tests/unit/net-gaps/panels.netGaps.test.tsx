@@ -10,7 +10,7 @@ import { FlowCloudPanel } from '../../../src/components/FlowCloudPanel'
 import { useCloudStore } from '../../../src/store/cloudStore'
 import { useHistoryStore } from '../../../src/store/historyStore'
 import { THICK_SPIRAL, fixture } from '../../fixtures/presets'
-import type { CloudPreset } from '../../../src/types/cloud'
+import type { CloudPreset } from '../../../src/model/types'
 
 /**
  * Every panel control's store mapping, found missing by mutation testing (Stage A net

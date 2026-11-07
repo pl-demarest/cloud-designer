@@ -1,5 +1,5 @@
 import { useCloudStore } from '../store/cloudStore';
-import type { SphereDef } from '../types/cloud';
+import type { SphereDef } from '../model/types';
 import { useHistoryStore } from '../store/historyStore';
 import { SliderRow } from './ui/SliderRow';
 import { useState } from 'react';

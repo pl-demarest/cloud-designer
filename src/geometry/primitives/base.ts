@@ -3,7 +3,7 @@
  * sample, and the extruded volume, elliptical slabs across the path at the samples.
  */
 
-import type { BaseDef } from '../../types/cloud';
+import type { BaseDef } from '../../model/types';
 
 export interface BaseSample {
   px: number; py: number; pz: number;   // position on spline

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import type { CloudPreset, SphereDef, BaseDef, TailDef, SpiralDef, FlowCloudSettings } from '../types/cloud';
-import { DEFAULT_PRESET } from '../types/cloud';
+import type { CloudPreset, SphereDef, BaseDef, TailDef, SpiralDef, FlowCloudSettings } from '../model/types';
+import { DEFAULT_PRESET } from '../model/defaults';
 
 function nanoid(): string {
   return Math.random().toString(36).slice(2, 10);

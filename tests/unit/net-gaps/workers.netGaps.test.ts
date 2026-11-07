@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { digestArray, digestArrayList } from '../../helpers/digest'
 import { runWorker } from '../../helpers/workerHarness'
 import { THICK_SPIRAL, fixture, marchingCubesMessage, surfaceMeshMessage } from '../../fixtures/presets'
-import type { CloudPreset } from '../../../src/types/cloud'
+import type { CloudPreset } from '../../../src/model/types'
 
 /**
  * Worker branches the golden fixture set does not reach, found by mutation testing

@@ -1,3 +1,8 @@
+/**
+ * The preset data model: everything a saved cloud design holds. Default values and the
+ * per-primitive factories live in ./defaults.ts.
+ */
+
 export interface SphereDef {
   id: string;
   position: [number, number, number];
@@ -85,85 +90,3 @@ export interface CloudPreset {
   flowCloud: FlowCloudSettings;
   surfaceMeshResolution?: number; // MC grid resolution for unified surface mesh (32–256, default 64)
 }
-
-export const DEFAULT_PRESET: CloudPreset = {
-  name: 'Default Cloud',
-  version: 1,
-  spheres: [
-    {
-      id: 'sphere-0',
-      position: [0, 0, 0],
-      radius: 1.2,
-      falloff: 0.5,
-      shape: 'sphere',
-      scale: [1, 1, 1],
-      rotation: [0, 0, 0],
-      half: false,
-    },
-    {
-      id: 'sphere-1',
-      position: [1.6, 0.3, 0],
-      radius: 1.0,
-      falloff: 0.5,
-      shape: 'sphere',
-      scale: [1, 1, 1],
-      rotation: [0, 0, 0],
-      half: false,
-    },
-    {
-      id: 'sphere-2',
-      position: [-1.6, 0.2, 0],
-      radius: 0.9,
-      falloff: 0.5,
-      shape: 'sphere',
-      scale: [1, 1, 1],
-      rotation: [0, 0, 0],
-      half: false,
-    },
-  ],
-  base: {
-    controlPoints: [
-      [-2.5, -0.8, 0],
-      [-1.0, -1.0, 0.3],
-      [1.0, -1.0, -0.3],
-      [2.5, -0.8, 0],
-    ],
-    crossSectionWidth: 1.2,
-    crossSectionHeight: 0.4,
-    crossSectionShape: 'oval',
-    closed: false,
-    ringSegments: 16,
-    lengthSegments: 24,
-  },
-  tail: {
-    setpoints: [
-      { id: 'tail-0', position: [2.5, -0.8, 0], width: 0.8 },
-      { id: 'tail-1', position: [3.5, -0.4, 0.5], width: 0.4 },
-      { id: 'tail-2', position: [4.2, 0.2, 0.8], width: 0.1 },
-    ],
-    curlAmount: Math.PI * 0.5,
-    attachToBase: 'end',
-    attachOffset: 1.0,
-    radialSegments: 12,
-    lengthSegments: 32,
-  },
-  spirals: [],
-  flowCloud: {
-    resolution: 64,
-    threshold: 1.0,
-    smooth: true,
-    tailStrength: 0,
-    position: [0, 0, 0] as [number, number, number],
-    wireframe: {
-      mode: 'spiral',
-      frontPoint: [-2, 0, 0],
-      backPoint: [2.5, 0, 0],
-      numBands: 8,
-      numFlowLines: 16,
-      spiralTwist: Math.PI,
-      generateBands: false,
-      showBands: true,
-      showFlowLines: true,
-    },
-  },
-};
