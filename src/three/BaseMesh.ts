@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { BaseDef } from '../model/types';
 import { Viewport } from './Viewport';
 import { useCloudStore } from '../store/cloudStore';
+import { sampleBasePath } from '../geometry/primitives/base';
 
 const WIRE_MAT = new THREE.LineBasicMaterial({ color: 0x000000 });
 const HANDLE_MAT = new THREE.MeshBasicMaterial({ color: 0x16a34a });
@@ -55,14 +56,7 @@ export class BaseMesh {
     const ringSegs = def.ringSegments;
     const lenSegs = def.lengthSegments;
 
-    const curve = new THREE.CatmullRomCurve3(
-      def.controlPoints.map((p) => new THREE.Vector3(...p)),
-      def.closed,
-      'catmullrom',
-      0.5
-    );
-
-    const frames = curve.computeFrenetFrames(lenSegs, def.closed);
+    const path = sampleBasePath(def, lenSegs);
     // hx/hy swap per buildCrossSection: local X gets height, local Y gets width
     const hx = def.crossSectionHeight / 2;
     const hy = def.crossSectionWidth / 2;
@@ -71,10 +65,9 @@ export class BaseMesh {
     // Build all ring vertices
     const rings: THREE.Vector3[][] = [];
     for (let i = 0; i <= lenSegs; i++) {
-      const t = i / lenSegs;
-      const center = curve.getPointAt(t);
-      const N = frames.normals[i];
-      const B = frames.binormals[i];
+      const center = path.points[i];
+      const N = path.normals[i];
+      const B = path.binormals[i];
       const ring: THREE.Vector3[] = [];
 
       for (let j = 0; j < ringSegs; j++) {

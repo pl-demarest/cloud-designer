@@ -1,9 +1,29 @@
 /**
- * The base primitive: its path, sampled as a Catmull-Rom spline with a world-up frame at each
- * sample, and the extruded volume, elliptical slabs across the path at the samples.
+ * The base primitive. Its path as the editor draws it (baseCurve, sampleBasePath), and the
+ * workers' extruded volume: a Catmull-Rom spline of their own, sampled with a world-up frame at
+ * each sample, and elliptical slabs across the path at the samples.
  */
 
+import { CatmullRomCurve3, Vector3 } from 'three';
 import type { BaseDef } from '../../model/types';
+import { samplePath, type PathSamples } from '../path';
+
+/** The base's centre line: uniform Catmull-Rom (tension 0.5) through the control points,
+ *  closed when the base is. */
+export function baseCurve(base: BaseDef): CatmullRomCurve3 {
+  return new CatmullRomCurve3(
+    base.controlPoints.map((p) => new Vector3(...p)),
+    base.closed,
+    'catmullrom',
+    0.5
+  );
+}
+
+/** The centre line at `segments` equal arc-length steps with its Frenet frames: where
+ *  BaseMesh puts its cross-section rings. Needs at least two control points. */
+export function sampleBasePath(base: BaseDef, segments: number): PathSamples {
+  return samplePath(baseCurve(base), segments, base.closed);
+}
 
 export interface BaseSample {
   px: number; py: number; pz: number;   // position on spline

@@ -3,6 +3,7 @@ import type { TailDef, TailSetpoint } from '../model/types';
 import { Viewport } from './Viewport';
 import { useCloudStore } from '../store/cloudStore';
 import { BaseMesh } from './BaseMesh';
+import { tailCurve } from '../geometry/primitives/tail';
 
 const WIRE_MAT = new THREE.LineBasicMaterial({ color: 0x000000 });
 const HANDLE_MAT = new THREE.MeshBasicMaterial({ color: 0xdc2626 });
@@ -71,12 +72,7 @@ export class TailMesh {
     const radSegs = tail.radialSegments;
     const lenSegs = tail.lengthSegments;
 
-    const curve = new THREE.CatmullRomCurve3(
-      setpoints.map((sp) => new THREE.Vector3(...sp.position)),
-      false,
-      'catmullrom',
-      0.5
-    );
+    const curve = tailCurve(setpoints);
 
     const arcLengths = curve.getLengths(lenSegs);
     const totalLength = arcLengths[arcLengths.length - 1];

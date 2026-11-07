@@ -1,9 +1,21 @@
 /**
- * The tail primitive: its spine, sampled as a Catmull-Rom spline through the setpoints, and the
- * volume around it, a chain of capsules whose radius follows the setpoint widths.
+ * The tail primitive. Its spine as the editor draws it (tailCurve), and the workers' volume: the
+ * spine sampled as a Catmull-Rom spline of their own through the setpoints, with a chain of
+ * capsules around it whose radius follows the setpoint widths.
  */
 
-import type { TailDef } from '../../model/types';
+import { CatmullRomCurve3, Vector3 } from 'three';
+import type { TailDef, TailSetpoint } from '../../model/types';
+
+/** The tail's spine: open uniform Catmull-Rom (tension 0.5) through the setpoint positions. */
+export function tailCurve(setpoints: TailSetpoint[]): CatmullRomCurve3 {
+  return new CatmullRomCurve3(
+    setpoints.map((sp) => new Vector3(...sp.position)),
+    false,
+    'catmullrom',
+    0.5
+  );
+}
 
 // Sampled tail spine point: position + interpolated width (radius)
 export interface TailSample {
