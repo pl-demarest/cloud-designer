@@ -5360,14 +5360,14 @@
     "generating": false,
     "edges": {
       "type": "Float32Array",
-      "length": 12108,
+      "length": 12078,
       "nan": 0,
       "inf": 0,
-      "min": -2.3285884857177734,
-      "max": 2.682352066040039,
-      "sum": 672.9521871637721,
-      "sumSq": 11714.056739990378,
-      "sha256": "3efd44d968d46e5574237cfdf3f4adf53700e30ebd83219296dd879580a7705a"
+      "min": -2.3249478340148926,
+      "max": 2.592376947402954,
+      "sum": 663.2389743627184,
+      "sumSq": 11525.58428611442,
+      "sha256": "278ee774845764948a81644a667b8f8f3fb6657110bda41768d9220490ff01e9"
     },
     "group": [
       {
@@ -5532,59 +5532,14 @@
                   ],
                   "position": {
                     "type": "Float32Array",
-                    "length": 354,
+                    "length": 384,
                     "nan": 0,
                     "inf": 0,
-                    "min": -2.284776210784912,
-                    "max": 2.413703680038452,
-                    "sum": -63.58466241253967,
-                    "sumSq": 266.7826876489493,
-                    "sha256": "23e63618d49703c97d939386fd4432a91efb8df7d49671ef04bccc48a4a2a4bd"
-                  },
-                  "index": null
-                }
-              },
-              {
-                "type": "Line",
-                "name": "",
-                "role": "geometry",
-                "visible": true,
-                "userData": {},
-                "position": [
-                  0,
-                  0,
-                  0
-                ],
-                "quaternion": [
-                  0,
-                  0,
-                  0,
-                  1
-                ],
-                "scale": [
-                  1,
-                  1,
-                  1
-                ],
-                "children": [],
-                "material": {
-                  "type": "LineBasicMaterial",
-                  "color": "000000"
-                },
-                "geometry": {
-                  "attributes": [
-                    "position"
-                  ],
-                  "position": {
-                    "type": "Float32Array",
-                    "length": 354,
-                    "nan": 0,
-                    "inf": 0,
-                    "min": -2.296243190765381,
+                    "min": -2.2804598808288574,
                     "max": 2.237499952316284,
-                    "sum": -86.42961410805583,
-                    "sumSq": 281.6677267032209,
-                    "sha256": "182c16457cb078d211a7f0fab19532ed4a9e99f3526cc8aa9088297d94b92a11"
+                    "sum": -50.35168540269564,
+                    "sumSq": 307.4102894833894,
+                    "sha256": "f9d8bd2ce1041d8119ca2a3d1aae7f04da0cb86541cf432d34763bde298bb708"
                   },
                   "index": null
                 }
@@ -5622,509 +5577,14 @@
                   ],
                   "position": {
                     "type": "Float32Array",
-                    "length": 330,
+                    "length": 348,
                     "nan": 0,
                     "inf": 0,
-                    "min": -2.304654598236084,
+                    "min": -2.2918102741241455,
                     "max": 2.237499952316284,
-                    "sum": -99.63989402167499,
-                    "sumSq": 273.63972054117704,
-                    "sha256": "3b3040f2224fd7b80c12a8fa8d428bffc65270294bfd956b265c17909e97e33b"
-                  },
-                  "index": null
-                }
-              },
-              {
-                "type": "Line",
-                "name": "",
-                "role": "geometry",
-                "visible": true,
-                "userData": {},
-                "position": [
-                  0,
-                  0,
-                  0
-                ],
-                "quaternion": [
-                  0,
-                  0,
-                  0,
-                  1
-                ],
-                "scale": [
-                  1,
-                  1,
-                  1
-                ],
-                "children": [],
-                "material": {
-                  "type": "LineBasicMaterial",
-                  "color": "000000"
-                },
-                "geometry": {
-                  "attributes": [
-                    "position"
-                  ],
-                  "position": {
-                    "type": "Float32Array",
-                    "length": 366,
-                    "nan": 0,
-                    "inf": 0,
-                    "min": -2.315399169921875,
-                    "max": 2.237499952316284,
-                    "sum": -91.82913919049315,
-                    "sumSq": 306.64596818391266,
-                    "sha256": "2e638b8b00cc00be2a90018c2f6cc51fb9c41bd5216eab545a22645aa1dc2ed8"
-                  },
-                  "index": null
-                }
-              },
-              {
-                "type": "Line",
-                "name": "",
-                "role": "geometry",
-                "visible": true,
-                "userData": {},
-                "position": [
-                  0,
-                  0,
-                  0
-                ],
-                "quaternion": [
-                  0,
-                  0,
-                  0,
-                  1
-                ],
-                "scale": [
-                  1,
-                  1,
-                  1
-                ],
-                "children": [],
-                "material": {
-                  "type": "LineBasicMaterial",
-                  "color": "000000"
-                },
-                "geometry": {
-                  "attributes": [
-                    "position"
-                  ],
-                  "position": {
-                    "type": "Float32Array",
-                    "length": 354,
-                    "nan": 0,
-                    "inf": 0,
-                    "min": -2.3285884857177734,
-                    "max": 2.2596380710601807,
-                    "sum": -64.42891853582114,
-                    "sumSq": 313.99767350187784,
-                    "sha256": "bf35199ab00c5dcbc1d1e83f5889992f7b058624cebe52b134ab33c4e89937fb"
-                  },
-                  "index": null
-                }
-              },
-              {
-                "type": "Line",
-                "name": "",
-                "role": "geometry",
-                "visible": true,
-                "userData": {},
-                "position": [
-                  0,
-                  0,
-                  0
-                ],
-                "quaternion": [
-                  0,
-                  0,
-                  0,
-                  1
-                ],
-                "scale": [
-                  1,
-                  1,
-                  1
-                ],
-                "children": [],
-                "material": {
-                  "type": "LineBasicMaterial",
-                  "color": "000000"
-                },
-                "geometry": {
-                  "attributes": [
-                    "position"
-                  ],
-                  "position": {
-                    "type": "Float32Array",
-                    "length": 402,
-                    "nan": 0,
-                    "inf": 0,
-                    "min": -2.324503183364868,
-                    "max": 2.312347888946533,
-                    "sum": -35.376736251302646,
-                    "sumSq": 369.79110891516206,
-                    "sha256": "faba771fe5f4897e5e1dc32702db619e2dc452e495e2561402a7e4d5c903f391"
-                  },
-                  "index": null
-                }
-              },
-              {
-                "type": "Line",
-                "name": "",
-                "role": "geometry",
-                "visible": true,
-                "userData": {},
-                "position": [
-                  0,
-                  0,
-                  0
-                ],
-                "quaternion": [
-                  0,
-                  0,
-                  0,
-                  1
-                ],
-                "scale": [
-                  1,
-                  1,
-                  1
-                ],
-                "children": [],
-                "material": {
-                  "type": "LineBasicMaterial",
-                  "color": "000000"
-                },
-                "geometry": {
-                  "attributes": [
-                    "position"
-                  ],
-                  "position": {
-                    "type": "Float32Array",
-                    "length": 402,
-                    "nan": 0,
-                    "inf": 0,
-                    "min": -2.3140742778778076,
-                    "max": 2.365057945251465,
-                    "sum": -15.336804700549692,
-                    "sumSq": 391.98657938233333,
-                    "sha256": "fd57b91950e7c9d7b94e1cea943dac6cd2a2415590e04ea74c5eb586dae758ef"
-                  },
-                  "index": null
-                }
-              },
-              {
-                "type": "Line",
-                "name": "",
-                "role": "geometry",
-                "visible": true,
-                "userData": {},
-                "position": [
-                  0,
-                  0,
-                  0
-                ],
-                "quaternion": [
-                  0,
-                  0,
-                  0,
-                  1
-                ],
-                "scale": [
-                  1,
-                  1,
-                  1
-                ],
-                "children": [],
-                "material": {
-                  "type": "LineBasicMaterial",
-                  "color": "000000"
-                },
-                "geometry": {
-                  "attributes": [
-                    "position"
-                  ],
-                  "position": {
-                    "type": "Float32Array",
-                    "length": 378,
-                    "nan": 0,
-                    "inf": 0,
-                    "min": -2.303645372390747,
-                    "max": 2.4177677631378174,
-                    "sum": 25.489363468252122,
-                    "sumSq": 377.24216476977034,
-                    "sha256": "474ca265dcbeeea5dfea167f8539664f61ea89159b6230eec54f8d140fb0a8a7"
-                  },
-                  "index": null
-                }
-              },
-              {
-                "type": "Line",
-                "name": "",
-                "role": "geometry",
-                "visible": true,
-                "userData": {},
-                "position": [
-                  0,
-                  0,
-                  0
-                ],
-                "quaternion": [
-                  0,
-                  0,
-                  0,
-                  1
-                ],
-                "scale": [
-                  1,
-                  1,
-                  1
-                ],
-                "children": [],
-                "material": {
-                  "type": "LineBasicMaterial",
-                  "color": "000000"
-                },
-                "geometry": {
-                  "attributes": [
-                    "position"
-                  ],
-                  "position": {
-                    "type": "Float32Array",
-                    "length": 420,
-                    "nan": 0,
-                    "inf": 0,
-                    "min": -2.2908594608306885,
-                    "max": 2.47047758102417,
-                    "sum": 86.75458532044117,
-                    "sumSq": 411.8146375308555,
-                    "sha256": "43f0c1086dfc6fae098f1f2136ea2f20718a1241b9e0106f4f8eb5bb4c907871"
-                  },
-                  "index": null
-                }
-              },
-              {
-                "type": "Line",
-                "name": "",
-                "role": "geometry",
-                "visible": true,
-                "userData": {},
-                "position": [
-                  0,
-                  0,
-                  0
-                ],
-                "quaternion": [
-                  0,
-                  0,
-                  0,
-                  1
-                ],
-                "scale": [
-                  1,
-                  1,
-                  1
-                ],
-                "children": [],
-                "material": {
-                  "type": "LineBasicMaterial",
-                  "color": "000000"
-                },
-                "geometry": {
-                  "attributes": [
-                    "position"
-                  ],
-                  "position": {
-                    "type": "Float32Array",
-                    "length": 426,
-                    "nan": 0,
-                    "inf": 0,
-                    "min": -2.2505407333374023,
-                    "max": 2.5244905948638916,
-                    "sum": 134.89231014391407,
-                    "sumSq": 438.56912013008093,
-                    "sha256": "f791965ba06990613664f450322e0070df6c76d9245b7b7164506933273d29c5"
-                  },
-                  "index": null
-                }
-              },
-              {
-                "type": "Line",
-                "name": "",
-                "role": "geometry",
-                "visible": true,
-                "userData": {},
-                "position": [
-                  0,
-                  0,
-                  0
-                ],
-                "quaternion": [
-                  0,
-                  0,
-                  0,
-                  1
-                ],
-                "scale": [
-                  1,
-                  1,
-                  1
-                ],
-                "children": [],
-                "material": {
-                  "type": "LineBasicMaterial",
-                  "color": "000000"
-                },
-                "geometry": {
-                  "attributes": [
-                    "position"
-                  ],
-                  "position": {
-                    "type": "Float32Array",
-                    "length": 402,
-                    "nan": 0,
-                    "inf": 0,
-                    "min": -2.2102222442626953,
-                    "max": 2.611279249191284,
-                    "sum": 129.64941862993874,
-                    "sumSq": 471.8681134748519,
-                    "sha256": "181992f77b121dfe1a51a20ac8cd2557c7f5c027da75442515b2951e607f69e6"
-                  },
-                  "index": null
-                }
-              },
-              {
-                "type": "Line",
-                "name": "",
-                "role": "geometry",
-                "visible": true,
-                "userData": {},
-                "position": [
-                  0,
-                  0,
-                  0
-                ],
-                "quaternion": [
-                  0,
-                  0,
-                  0,
-                  1
-                ],
-                "scale": [
-                  1,
-                  1,
-                  1
-                ],
-                "children": [],
-                "material": {
-                  "type": "LineBasicMaterial",
-                  "color": "000000"
-                },
-                "geometry": {
-                  "attributes": [
-                    "position"
-                  ],
-                  "position": {
-                    "type": "Float32Array",
-                    "length": 390,
-                    "nan": 0,
-                    "inf": 0,
-                    "min": -2.212702751159668,
-                    "max": 2.6546850204467773,
-                    "sum": 146.97063291212544,
-                    "sumSq": 426.28947261743576,
-                    "sha256": "3b24d98da21778090b492f6d28b033ab3b4eb76ec45d5e12c7ba9810e25bb6f5"
-                  },
-                  "index": null
-                }
-              },
-              {
-                "type": "Line",
-                "name": "",
-                "role": "geometry",
-                "visible": true,
-                "userData": {},
-                "position": [
-                  0,
-                  0,
-                  0
-                ],
-                "quaternion": [
-                  0,
-                  0,
-                  0,
-                  1
-                ],
-                "scale": [
-                  1,
-                  1,
-                  1
-                ],
-                "children": [],
-                "material": {
-                  "type": "LineBasicMaterial",
-                  "color": "000000"
-                },
-                "geometry": {
-                  "attributes": [
-                    "position"
-                  ],
-                  "position": {
-                    "type": "Float32Array",
-                    "length": 372,
-                    "nan": 0,
-                    "inf": 0,
-                    "min": -2.231829881668091,
-                    "max": 2.682352066040039,
-                    "sum": 120.31096335335563,
-                    "sumSq": 404.3350887321714,
-                    "sha256": "3f050e8e55623f599fb59ca433f5e9d4ce1823525c21e24ade973e8792a90e80"
-                  },
-                  "index": null
-                }
-              },
-              {
-                "type": "Line",
-                "name": "",
-                "role": "geometry",
-                "visible": true,
-                "userData": {},
-                "position": [
-                  0,
-                  0,
-                  0
-                ],
-                "quaternion": [
-                  0,
-                  0,
-                  0,
-                  1
-                ],
-                "scale": [
-                  1,
-                  1,
-                  1
-                ],
-                "children": [],
-                "material": {
-                  "type": "LineBasicMaterial",
-                  "color": "000000"
-                },
-                "geometry": {
-                  "attributes": [
-                    "position"
-                  ],
-                  "position": {
-                    "type": "Float32Array",
-                    "length": 408,
-                    "nan": 0,
-                    "inf": 0,
-                    "min": -2.247119426727295,
-                    "max": 2.6546850204467773,
-                    "sum": 111.51801293238532,
-                    "sumSq": 465.6382579432698,
-                    "sha256": "fe93fbbc47f7d11542bc83840d0fcc6da0008d4909d684a330f41d52b2e971f7"
+                    "sum": -91.38785744766938,
+                    "sumSq": 273.9395221756569,
+                    "sha256": "ccfda0af05cb220598af6738194879ef30afa4c7c9e62cbde05f545a4a26ed9b"
                   },
                   "index": null
                 }
@@ -6165,11 +5625,551 @@
                     "length": 336,
                     "nan": 0,
                     "inf": 0,
-                    "min": -2.259671688079834,
-                    "max": 2.611279249191284,
-                    "sum": 47.28237153403461,
-                    "sumSq": 371.98708002425684,
-                    "sha256": "c77d8dacc77b774d106dc4bc6a1a12014351be3ec6043805c314d021ed11cd79"
+                    "min": -2.3000433444976807,
+                    "max": 2.237499952316284,
+                    "sum": -96.76077270321548,
+                    "sumSq": 277.7280187558624,
+                    "sha256": "f86f4f2726f597d940c0986c56fd68825945b83d56a4bc748c43a5fbe5ac5a05"
+                  },
+                  "index": null
+                }
+              },
+              {
+                "type": "Line",
+                "name": "",
+                "role": "geometry",
+                "visible": true,
+                "userData": {},
+                "position": [
+                  0,
+                  0,
+                  0
+                ],
+                "quaternion": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "children": [],
+                "material": {
+                  "type": "LineBasicMaterial",
+                  "color": "000000"
+                },
+                "geometry": {
+                  "attributes": [
+                    "position"
+                  ],
+                  "position": {
+                    "type": "Float32Array",
+                    "length": 354,
+                    "nan": 0,
+                    "inf": 0,
+                    "min": -2.31101655960083,
+                    "max": 2.237499952316284,
+                    "sum": -95.46673532947898,
+                    "sumSq": 304.4481415263397,
+                    "sha256": "5dae363c16f4ceba60f4db4bdcf0690e04bcefff6ef1704a5deda068f53737ad"
+                  },
+                  "index": null
+                }
+              },
+              {
+                "type": "Line",
+                "name": "",
+                "role": "geometry",
+                "visible": true,
+                "userData": {},
+                "position": [
+                  0,
+                  0,
+                  0
+                ],
+                "quaternion": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "children": [],
+                "material": {
+                  "type": "LineBasicMaterial",
+                  "color": "000000"
+                },
+                "geometry": {
+                  "attributes": [
+                    "position"
+                  ],
+                  "position": {
+                    "type": "Float32Array",
+                    "length": 348,
+                    "nan": 0,
+                    "inf": 0,
+                    "min": -2.3249478340148926,
+                    "max": 2.243197202682495,
+                    "sum": -65.24332888703793,
+                    "sumSq": 309.0303981848498,
+                    "sha256": "40351fc575f7b73d2ac4e2ab372ee4880acf84876aed4a6afe37e83290ee7c5b"
+                  },
+                  "index": null
+                }
+              },
+              {
+                "type": "Line",
+                "name": "",
+                "role": "geometry",
+                "visible": true,
+                "userData": {},
+                "position": [
+                  0,
+                  0,
+                  0
+                ],
+                "quaternion": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "children": [],
+                "material": {
+                  "type": "LineBasicMaterial",
+                  "color": "000000"
+                },
+                "geometry": {
+                  "attributes": [
+                    "position"
+                  ],
+                  "position": {
+                    "type": "Float32Array",
+                    "length": 378,
+                    "nan": 0,
+                    "inf": 0,
+                    "min": -2.321152925491333,
+                    "max": 2.2567622661590576,
+                    "sum": -40.7297169630765,
+                    "sumSq": 337.58595680362646,
+                    "sha256": "c90791897c788d68c13046718c3efdabb2e4fceabad36ab4109a7af7203967bb"
+                  },
+                  "index": null
+                }
+              },
+              {
+                "type": "Line",
+                "name": "",
+                "role": "geometry",
+                "visible": true,
+                "userData": {},
+                "position": [
+                  0,
+                  0,
+                  0
+                ],
+                "quaternion": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "children": [],
+                "material": {
+                  "type": "LineBasicMaterial",
+                  "color": "000000"
+                },
+                "geometry": {
+                  "attributes": [
+                    "position"
+                  ],
+                  "position": {
+                    "type": "Float32Array",
+                    "length": 384,
+                    "nan": 0,
+                    "inf": 0,
+                    "min": -2.310668706893921,
+                    "max": 2.27032732963562,
+                    "sum": -17.12642782938201,
+                    "sumSq": 363.4294212902318,
+                    "sha256": "64fd8586122f041264eeead3b4883caf537b9de28387cd771517c0169026d3f8"
+                  },
+                  "index": null
+                }
+              },
+              {
+                "type": "Line",
+                "name": "",
+                "role": "geometry",
+                "visible": true,
+                "userData": {},
+                "position": [
+                  0,
+                  0,
+                  0
+                ],
+                "quaternion": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "children": [],
+                "material": {
+                  "type": "LineBasicMaterial",
+                  "color": "000000"
+                },
+                "geometry": {
+                  "attributes": [
+                    "position"
+                  ],
+                  "position": {
+                    "type": "Float32Array",
+                    "length": 384,
+                    "nan": 0,
+                    "inf": 0,
+                    "min": -2.300184488296509,
+                    "max": 2.2838921546936035,
+                    "sum": 24.367252281168476,
+                    "sumSq": 360.97614188682905,
+                    "sha256": "02275c14fdc410198b82c49047e91f8e637321c3f2bf3f314492fba3cb050cd2"
+                  },
+                  "index": null
+                }
+              },
+              {
+                "type": "Line",
+                "name": "",
+                "role": "geometry",
+                "visible": true,
+                "userData": {},
+                "position": [
+                  0,
+                  0,
+                  0
+                ],
+                "quaternion": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "children": [],
+                "material": {
+                  "type": "LineBasicMaterial",
+                  "color": "000000"
+                },
+                "geometry": {
+                  "attributes": [
+                    "position"
+                  ],
+                  "position": {
+                    "type": "Float32Array",
+                    "length": 432,
+                    "nan": 0,
+                    "inf": 0,
+                    "min": -2.2875173091888428,
+                    "max": 2.297457218170166,
+                    "sum": 86.86533205568243,
+                    "sumSq": 408.6129160435613,
+                    "sha256": "8b77cc79d28967761b6bcd0feb15bbd57da5afddfd9fab633b50ffc3e69c4a7d"
+                  },
+                  "index": null
+                }
+              },
+              {
+                "type": "Line",
+                "name": "",
+                "role": "geometry",
+                "visible": true,
+                "userData": {},
+                "position": [
+                  0,
+                  0,
+                  0
+                ],
+                "quaternion": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "children": [],
+                "material": {
+                  "type": "LineBasicMaterial",
+                  "color": "000000"
+                },
+                "geometry": {
+                  "attributes": [
+                    "position"
+                  ],
+                  "position": {
+                    "type": "Float32Array",
+                    "length": 378,
+                    "nan": 0,
+                    "inf": 0,
+                    "min": -2.2471883296966553,
+                    "max": 2.38167142868042,
+                    "sum": 107.90278054587543,
+                    "sumSq": 394.07456839848027,
+                    "sha256": "0aefdbc0837f7daaa9cd2e54978b0322c18a4a150ac9aaaf1bce80f24047adcc"
+                  },
+                  "index": null
+                }
+              },
+              {
+                "type": "Line",
+                "name": "",
+                "role": "geometry",
+                "visible": true,
+                "userData": {},
+                "position": [
+                  0,
+                  0,
+                  0
+                ],
+                "quaternion": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "children": [],
+                "material": {
+                  "type": "LineBasicMaterial",
+                  "color": "000000"
+                },
+                "geometry": {
+                  "attributes": [
+                    "position"
+                  ],
+                  "position": {
+                    "type": "Float32Array",
+                    "length": 396,
+                    "nan": 0,
+                    "inf": 0,
+                    "min": -2.2068593502044678,
+                    "max": 2.505880117416382,
+                    "sum": 117.65633114799857,
+                    "sumSq": 430.2098238459523,
+                    "sha256": "53686966b1779c5dcda5f776d86736e8c9f159a96a1fb1f55c9b07a6f4882185"
+                  },
+                  "index": null
+                }
+              },
+              {
+                "type": "Line",
+                "name": "",
+                "role": "geometry",
+                "visible": true,
+                "userData": {},
+                "position": [
+                  0,
+                  0,
+                  0
+                ],
+                "quaternion": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "children": [],
+                "material": {
+                  "type": "LineBasicMaterial",
+                  "color": "000000"
+                },
+                "geometry": {
+                  "attributes": [
+                    "position"
+                  ],
+                  "position": {
+                    "type": "Float32Array",
+                    "length": 450,
+                    "nan": 0,
+                    "inf": 0,
+                    "min": -2.2089383602142334,
+                    "max": 2.592376947402954,
+                    "sum": 192.47788429260254,
+                    "sumSq": 510.48563769560167,
+                    "sha256": "4ecc12a07c51c046c3dd7fc6d8dd2ad76428d9da80cb3319f5ce6c8fc4873c22"
+                  },
+                  "index": null
+                }
+              },
+              {
+                "type": "Line",
+                "name": "",
+                "role": "geometry",
+                "visible": true,
+                "userData": {},
+                "position": [
+                  0,
+                  0,
+                  0
+                ],
+                "quaternion": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "children": [],
+                "material": {
+                  "type": "LineBasicMaterial",
+                  "color": "000000"
+                },
+                "geometry": {
+                  "attributes": [
+                    "position"
+                  ],
+                  "position": {
+                    "type": "Float32Array",
+                    "length": 381,
+                    "nan": 0,
+                    "inf": 0,
+                    "min": -2.2279868125915527,
+                    "max": 2.5723001956939697,
+                    "sum": 131.76051522983565,
+                    "sumSq": 428.87473321036543,
+                    "sha256": "91d3710cfda043352b3deb6ec8182cb1685f864998aa889a49fc631c9a89084a"
+                  },
+                  "index": null
+                }
+              },
+              {
+                "type": "Line",
+                "name": "",
+                "role": "geometry",
+                "visible": true,
+                "userData": {},
+                "position": [
+                  0,
+                  0,
+                  0
+                ],
+                "quaternion": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "children": [],
+                "material": {
+                  "type": "LineBasicMaterial",
+                  "color": "000000"
+                },
+                "geometry": {
+                  "attributes": [
+                    "position"
+                  ],
+                  "position": {
+                    "type": "Float32Array",
+                    "length": 378,
+                    "nan": 0,
+                    "inf": 0,
+                    "min": -2.2432053089141846,
+                    "max": 2.4944071769714355,
+                    "sum": 99.27748667448759,
+                    "sumSq": 415.28793003785506,
+                    "sha256": "ca43fe0c095130c96180492ffadb634419a01007402283f0aad7e2d03b0b9bf3"
+                  },
+                  "index": null
+                }
+              },
+              {
+                "type": "Line",
+                "name": "",
+                "role": "geometry",
+                "visible": true,
+                "userData": {},
+                "position": [
+                  0,
+                  0,
+                  0
+                ],
+                "quaternion": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "children": [],
+                "material": {
+                  "type": "LineBasicMaterial",
+                  "color": "000000"
+                },
+                "geometry": {
+                  "attributes": [
+                    "position"
+                  ],
+                  "position": {
+                    "type": "Float32Array",
+                    "length": 348,
+                    "nan": 0,
+                    "inf": 0,
+                    "min": -2.2556235790252686,
+                    "max": 2.4501330852508545,
+                    "sum": 37.35553637694102,
+                    "sumSq": 346.6195087522636,
+                    "sha256": "fc35f933f839437863820a6230e536f036cf1f61bcbca78642aa9e78dce4c3dd"
                   },
                   "index": null
                 }
@@ -6210,11 +6210,11 @@
                     "length": 408,
                     "nan": 0,
                     "inf": 0,
-                    "min": -2.272223949432373,
-                    "max": 2.5239109992980957,
-                    "sum": -7.63386557623744,
-                    "sumSq": 374.535137496275,
-                    "sha256": "b5103e3981e6a2608bd3fd32234ec132c0639d37e6b4684416f7f99330faab2e"
+                    "min": -2.2680416107177734,
+                    "max": 2.3492116928100586,
+                    "sum": -7.032974645728245,
+                    "sumSq": 380.9644285486434,
+                    "sha256": "393fb2eacb807288bdc36955e36e35f9b5606f20990490b9a375b3ddfce284a1"
                   },
                   "index": null
                 }

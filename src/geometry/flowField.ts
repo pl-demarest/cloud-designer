@@ -5,39 +5,22 @@
  */
 
 import type { SphereDef, TailDef, FlowCloudSettings } from '../model/types';
+import { sphereFieldTerm, type SphereFrame } from './primitives/sphere';
 import type { TailSample } from './primitives/tail';
 
-/** Metaball field at (x, y, z). Each sphere adds falloff * r^2 / d^2 (falloff * 100 within
- *  0.01 of its centre); the tail adds tailStrength times the same term for the nearest point
+/** Metaball field at (x, y, z). Each sphere adds its sphereFieldTerm (falloff * r^2 / d^2 in its
+ *  rotated, scaled frame); the tail adds tailStrength times the same term for the nearest point
  *  on its sampled spine. */
 export function evalMetaballField(
   x: number, y: number, z: number,
-  spheres: SphereDef[],
+  spheres: SphereFrame[],
   tailSamples: TailSample[],
   tailStrength: number
 ): number {
   let val = 0;
 
   // Sphere metaballs
-  for (const sw of spheres) {
-    let dx = x - sw.position[0];
-    let dy = y - sw.position[1];
-    let dz = z - sw.position[2];
-
-    if (sw.shape === 'ellipsoid') {
-      dx /= sw.scale[0];
-      dy /= sw.scale[1];
-      dz /= sw.scale[2];
-    }
-
-    const dist2 = dx * dx + dy * dy + dz * dz;
-    const r2 = sw.radius * sw.radius;
-    if (dist2 < 0.0001) {
-      val += sw.falloff * 100;
-    } else {
-      val += sw.falloff * r2 / dist2;
-    }
-  }
+  for (const f of spheres) val += sphereFieldTerm(x, y, z, f);
 
   // Tail metaball — find closest point on sampled spine and treat as a
   // variable-radius capsule. Using nearest-segment to avoid double-counting.

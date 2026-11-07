@@ -244,25 +244,25 @@
     ],
     "positions": {
       "type": "Float32Array",
-      "length": 13896,
+      "length": 14112,
       "nan": 0,
       "inf": 0,
       "min": -2.526949882507324,
       "max": 4.171858310699463,
-      "sum": 2102.6485850960016,
-      "sumSq": 21099.69980589705,
-      "sha256": "83b13190a88c2906df2ede3181584ef79d8297f690c9a1dd24e9f4cabcd1b17f"
+      "sum": 2256.596530865878,
+      "sumSq": 21545.443878164082,
+      "sha256": "bd106970734d0599d112a80bc677d980d9175436281d276453f73f3ed4a3b888"
     },
     "indices": {
       "type": "Uint32Array",
-      "length": 6948,
+      "length": 7056,
       "nan": 0,
       "inf": 0,
       "min": 0,
-      "max": 4631,
-      "sum": 16075495,
-      "sumSq": 49494235049,
-      "sha256": "363bfe5a6df93774d586affe7fbb8cfab92e81ecdd54fa635619cec10cf39698"
+      "max": 4703,
+      "sum": 16579385,
+      "sumSq": 51841926995,
+      "sha256": "c00ea97b1941f632efb778f621a2a7bb150393b9582a0e380faf8d7e19a6b44d"
     },
     "transfer": [
       "positions",

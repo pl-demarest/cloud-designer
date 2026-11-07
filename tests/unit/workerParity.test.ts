@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { afterEach, describe, expect, test } from 'vitest'
 import { BaseMesh } from '../../src/three/BaseMesh'
 import { TailMesh } from '../../src/three/TailMesh'
+import { SphereMesh } from '../../src/three/SphereMesh'
 import { useCloudStore } from '../../src/store/cloudStore'
 import { createViewportStub, isHandle } from '../helpers/scene'
 import { runWorker } from '../helpers/workerHarness'
@@ -367,4 +368,78 @@ describe('tail: the workers share TailMesh’s spine and width profile', () => {
       expect(await pointsOutsideTail(preset, outside), `of ${outside.length} points outside them`).toBe(outside.length)
     })
   }
+})
+
+// ── Sphere local frame ──────────────────────────────────────────────────────
+
+describe('sphere: the clip volume is the sphere SphereMesh draws, rotated', () => {
+  /** One sphere far from a base moved out of the way, and no tail. */
+  function sphereOnly(sphere: CloudPreset['spheres'][number]): CloudPreset {
+    const p = fixture('default')
+    p.spheres = [sphere]
+    p.tail.setpoints = []
+    p.base.controlPoints = [
+      [0, -50, 0],
+      [1, -50, 0],
+    ]
+    return p
+  }
+
+  /** SphereMesh's wire vertices (world space) for `preset`'s only sphere. */
+  function drawnSphereVertices(preset: CloudPreset): V3[] {
+    store().loadPreset(preset)
+    const mesh = new SphereMesh(createViewportStub())
+    disposers.push(() => mesh.dispose())
+    const edges = mesh.getEdgesGrouped()[0].edges
+    const out: V3[] = []
+    for (let i = 0; i < edges.length; i += 3) out.push([edges[i], edges[i + 1], edges[i + 2]])
+    return out
+  }
+
+  /** Tail edges are clipped by every sphere (and the base, here far away). */
+  async function pointsOutsideSpheres(preset: CloudPreset, points: V3[]): Promise<number> {
+    const empty = new Float32Array(0)
+    const { message } = await runWorker<{ clippedEdges: Float32Array }>('cutAndGlue', {
+      spheres: preset.spheres,
+      base: preset.base,
+      tail: preset.tail,
+      sphereEdgeGroups: [],
+      baseEdges: empty,
+      tailEdges: new Float32Array(points.flatMap((q) => [...q, ...q])),
+      spiralEdges: empty,
+      flowCloudEdges: empty,
+    })
+    return message.clippedEdges.length / 6
+  }
+
+  const towards = (c: V3, v: V3, f: number) => [0, 1, 2].map((k) => c[k] + f * (v[k] - c[k])) as V3
+
+  test('a rotated ellipsoid: points 5% inside its drawn wire are inside, 5% outside are outside', async () => {
+    const p = sphereOnly({
+      id: 'e', position: [0.5, 0.2, -0.3], radius: 1, falloff: 0.5, shape: 'ellipsoid',
+      scale: [1.6, 0.6, 1], rotation: [0.4, -0.7, 1.1], half: false,
+    })
+    const c = p.spheres[0].position
+    const wire = drawnSphereVertices(p)
+    const inside = wire.map((v) => towards(c, v, 0.95))
+    const outside = wire.map((v) => towards(c, v, 1.05))
+    expect(await pointsOutsideSpheres(p, inside), `of ${inside.length} inner points`).toBe(0)
+    expect(await pointsOutsideSpheres(p, outside), `of ${outside.length} outer points`).toBe(outside.length)
+  })
+
+  test('a rotated half sphere: its drawn dome is inside, the dome mirrored through its base is outside', async () => {
+    const rotation: V3 = [0.9, 0.3, -0.5]
+    const p = sphereOnly({
+      id: 'h', position: [0, 0, 0], radius: 1, falloff: 0.5, shape: 'sphere', scale: [1, 1, 1], rotation, half: true,
+    })
+    const up = new THREE.Vector3(0, 1, 0).applyEuler(new THREE.Euler(...rotation, 'XYZ'))
+    // Dome vertices clear of the rim, moved halfway to the centre, and their mirror images.
+    const dome = drawnSphereVertices(p)
+      .map((v) => new THREE.Vector3(...v))
+      .filter((v) => v.dot(up) > 0.2)
+      .map((v) => v.multiplyScalar(0.5))
+    const mirrored = dome.map((v) => v.clone().addScaledVector(up, -2 * v.dot(up)))
+    expect(await pointsOutsideSpheres(p, dome.map((v) => v.toArray() as V3)), `of ${dome.length} dome points`).toBe(0)
+    expect(await pointsOutsideSpheres(p, mirrored.map((v) => v.toArray() as V3)), `of ${mirrored.length} mirrored points`).toBe(mirrored.length)
+  })
 })

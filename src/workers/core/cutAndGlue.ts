@@ -14,7 +14,7 @@
  * segment pairs (x,y,z,x,y,z,...).
  */
 
-import { insideSphere } from '../../geometry/primitives/sphere';
+import { insideSphere, sphereFrame } from '../../geometry/primitives/sphere';
 import { attachedTail, insideTailCapsule, sampleTailSpine } from '../../geometry/primitives/tail';
 import { buildBaseVolume, insideBase } from '../../geometry/primitives/base';
 import { clipEdgeSet } from '../../geometry/clip';
@@ -28,6 +28,7 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
 
   const tailSamples = sampleTailSpine(attachedTail(request.tail, base));
   const baseVolume  = buildBaseVolume(base);
+  const frames      = spheres.map(sphereFrame);
 
   // ── Per-primitive clip functions ──────────────────────────────────────────
   //
@@ -44,10 +45,10 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
 
   // ── Sphere edges: per-sphere self-exclusion ──────────────────────────────
   for (const { sphereId, edges } of sphereEdgeGroups) {
-    const otherSpheres = spheres.filter(sw => sw.id !== sphereId);
+    const otherSpheres = frames.filter(f => f.def.id !== sphereId);
     const insideFn = (x: number, y: number, z: number): boolean => {
-      for (const sw of otherSpheres) {
-        if (insideSphere(x, y, z, sw, 1.0)) return true;
+      for (const f of otherSpheres) {
+        if (insideSphere(x, y, z, f, 1.0)) return true;
       }
       if (insideTailCapsule(x, y, z, tailSamples, 1.0)) return true;
       if (insideBase(x, y, z, baseVolume)) return true;
@@ -58,8 +59,8 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
 
   // ── Tail edges: clipped by spheres + base (not self) ─────────────────────
   const insideForTail = (x: number, y: number, z: number): boolean => {
-    for (const sw of spheres) {
-      if (insideSphere(x, y, z, sw, 1.0)) return true;
+    for (const f of frames) {
+      if (insideSphere(x, y, z, f, 1.0)) return true;
     }
     if (insideBase(x, y, z, baseVolume)) return true;
     return false;
@@ -68,8 +69,8 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
 
   // ── Base edges: clipped by spheres + tail (not self) ─────────────────────
   const insideForBase = (x: number, y: number, z: number): boolean => {
-    for (const sw of spheres) {
-      if (insideSphere(x, y, z, sw, 1.0)) return true;
+    for (const f of frames) {
+      if (insideSphere(x, y, z, f, 1.0)) return true;
     }
     if (insideTailCapsule(x, y, z, tailSamples, 1.0)) return true;
     return false;
@@ -78,8 +79,8 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
 
   // ── Spiral edges: clipped by everything (no self-volume) ────────────────
   const insideForSpirals = (x: number, y: number, z: number): boolean => {
-    for (const sw of spheres) {
-      if (insideSphere(x, y, z, sw, 1.0)) return true;
+    for (const f of frames) {
+      if (insideSphere(x, y, z, f, 1.0)) return true;
     }
     if (insideTailCapsule(x, y, z, tailSamples, 1.0)) return true;
     if (insideBase(x, y, z, baseVolume)) return true;
@@ -89,8 +90,8 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
 
   // ── Flow cloud edges: clipped by everything ──────────────────────────────
   const insideForFlowCloud = (x: number, y: number, z: number): boolean => {
-    for (const sw of spheres) {
-      if (insideSphere(x, y, z, sw, 1.0)) return true;
+    for (const f of frames) {
+      if (insideSphere(x, y, z, f, 1.0)) return true;
     }
     if (insideTailCapsule(x, y, z, tailSamples, 1.0)) return true;
     if (insideBase(x, y, z, baseVolume)) return true;

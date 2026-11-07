@@ -151,7 +151,7 @@ describe('known worker defects (expected to fail until Stage B)', () => {
     expect(message.positions.some(Number.isNaN)).toBe(false)
   })
 
-  it.fails('sphere-rotation-ignored (surfaceMesh.worker): a rotated ellipsoid is meshed rotated', async () => {
+  it('sphere-rotation-ignored (surfaceMesh.worker): a rotated ellipsoid is meshed rotated', async () => {
     const { message } = await runWorker<{ positions: Float32Array }>(
       'surfaceMesh',
       surfaceMeshMessage(standingEllipsoid()),
@@ -160,7 +160,7 @@ describe('known worker defects (expected to fail until Stage B)', () => {
     expect(maxY(message.positions)).toBeGreaterThan(2)
   })
 
-  it.fails('mc-rotation-ignored: the metaball field honours sphere rotation', async () => {
+  it('mc-rotation-ignored: the metaball field honours sphere rotation', async () => {
     const { message } = await runWorker<{ vertices: Float32Array }>(
       'marchingCubes',
       marchingCubesMessage(standingEllipsoid()),
@@ -169,7 +169,7 @@ describe('known worker defects (expected to fail until Stage B)', () => {
     expect(maxY(message.vertices)).toBeGreaterThan(1.5)
   })
 
-  it.fails('sphere-rotation-ignored (cutAndGlue.worker): edges inside a rotated ellipsoid are clipped', async () => {
+  it('sphere-rotation-ignored (cutAndGlue.worker): edges inside a rotated ellipsoid are clipped', async () => {
     const p = standingEllipsoid()
     const inside = [0, 1.8, 0, 0, 2.2, 0] // inside the standing ellipsoid only when rotation is honoured
     const control = [20, 20, 20, 20, 21, 20] // far from everything: always survives

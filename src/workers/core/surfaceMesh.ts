@@ -10,10 +10,11 @@
  * as the flow cloud's marching cubes output, but covering everything.
  */
 
-import type { SphereDef, FlowCloudSettings } from '../../model/types';
+import type { FlowCloudSettings } from '../../model/types';
 import { evalMetaballField } from '../../geometry/flowField';
 import { fillField, gridFromBounds, polygonise } from '../../geometry/marchingCubes/polygonise';
-import { sphereSDF } from '../../geometry/primitives/sphere';
+import { sphereFrame, sphereSDF } from '../../geometry/primitives/sphere';
+import type { SphereFrame } from '../../geometry/primitives/sphere';
 import { attachedTail, sampleTailSpine, tailSDF } from '../../geometry/primitives/tail';
 import type { TailSample } from '../../geometry/primitives/tail';
 import { baseSDF, buildBaseVolume } from '../../geometry/primitives/base';
@@ -27,7 +28,7 @@ import type { SurfaceMeshRequest, SurfaceMeshResult } from '../protocol';
  *  flowCloudPos offsets the metaball field to world space. */
 function evalSDF(
   x: number, y: number, z: number,
-  spheres: SphereDef[],
+  spheres: SphereFrame[],
   tailSamples: TailSample[],
   baseVolume: BaseVolume,
   flowCloud: FlowCloudSettings,
@@ -37,8 +38,8 @@ function evalSDF(
   let d = Infinity;
 
   // Sphere SDFs (geometric radius, not metaball)
-  for (const sw of spheres) {
-    d = Math.min(d, sphereSDF(x, y, z, sw));
+  for (const f of spheres) {
+    d = Math.min(d, sphereSDF(x, y, z, f));
   }
 
   // Tail SDF
@@ -148,8 +149,9 @@ export function generateSurfaceMesh(input: SurfaceMeshRequest): SurfaceMeshResul
   const grid = gridFromBounds(minX, minY, minZ, maxX, maxY, maxZ, res);
 
   // Build SDF field — store negated SDF so MC's "field >= 0" = "inside"
+  const frames = spheres.map(sphereFrame);
   const field = fillField(grid, (x, y, z) =>
-    -evalSDF(x, y, z, spheres, tailSamples, baseVolume, flowCloud, fcTailSamples, allSpiralSamples));
+    -evalSDF(x, y, z, frames, tailSamples, baseVolume, flowCloud, fcTailSamples, allSpiralSamples));
 
   // March cubes at threshold = 0
   return polygonise(field, grid, { kind: 'negatedSdf' });

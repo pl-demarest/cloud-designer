@@ -7,6 +7,7 @@
 import type { SphereDef, TailDef, FlowCloudSettings } from '../../model/types';
 import { evalMetaballField, extractSpiral } from '../../geometry/flowField';
 import { fillField, gridFromBounds, polygonise } from '../../geometry/marchingCubes/polygonise';
+import { sphereFrame } from '../../geometry/primitives/sphere';
 import { attachedTail, sampleTailSpine } from '../../geometry/primitives/tail';
 import type { FlowCloudRequest, FlowCloudResult } from '../protocol';
 
@@ -53,7 +54,8 @@ function marchingCubes(
   const grid = gridFromBounds(minX, minY, minZ, maxX, maxY, maxZ, res);
 
   // Build scalar field
-  const field = fillField(grid, (x, y, z) => evalMetaballField(x, y, z, spheres, tailSamples, tailStrength));
+  const frames = spheres.map(sphereFrame);
+  const field = fillField(grid, (x, y, z) => evalMetaballField(x, y, z, frames, tailSamples, tailStrength));
 
   // March cubes
   const { positions, indices } = polygonise(field, grid, { kind: 'density', iso });
