@@ -17,7 +17,7 @@ import { CutGlueResult } from '../three/CutGlueResult';
 import { AxisGizmo } from '../three/AxisGizmo';
 import { useCloudStore } from '../store/cloudStore';
 import { useHistoryStore } from '../store/historyStore';
-import type { CutGlueRequest, SurfaceMeshRequest } from '../workers/protocol';
+import type { CutGlueRequest, CutGlueResponse, SurfaceMeshRequest } from '../workers/protocol';
 import * as THREE from 'three';
 
 type PanelId = 'spheres' | 'base' | 'tail' | 'spirals' | 'flowCloud' | 'export';
@@ -100,11 +100,12 @@ export function App() {
       new URL('../workers/cutAndGlue.worker.ts', import.meta.url),
       { type: 'module' }
     );
-    worker.onmessage = (ev: MessageEvent) => {
-      const { clippedEdges } = ev.data as {
-        clippedEdges: Float32Array;
-      };
-      cutGlueRef.current?.update(clippedEdges);
+    worker.onmessage = (ev: MessageEvent<CutGlueResponse>) => {
+      if ('error' in ev.data) {
+        console.error('cutAndGlue worker error:', ev.data.error);
+      } else {
+        cutGlueRef.current?.update(ev.data.clippedEdges);
+      }
       setCutGlueGenerating(false);
     };
     worker.onerror = (err) => {

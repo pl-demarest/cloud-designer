@@ -3,7 +3,7 @@
  *
  * A request is what App.tsx or FlowCloud.ts posts. A result is what the worker's core
  * (./core/*.ts) returns; the worker posts it with every typed-array buffer in the transfer
- * list. A worker that catches its core's exceptions replies with WorkerError instead.
+ * list. When the computation throws, the worker replies with WorkerError instead.
  */
 
 import type { SphereDef, BaseDef, TailDef, FlowCloudSettings, SpiralDef } from '../types/cloud';
@@ -79,5 +79,4 @@ export interface CutGlueResult {
   clippedEdges: Float32Array;
 }
 
-/** The cut-and-glue worker does not catch exceptions: they reach Worker.onerror. */
-export type CutGlueResponse = CutGlueResult;
+export type CutGlueResponse = CutGlueResult | WorkerError;

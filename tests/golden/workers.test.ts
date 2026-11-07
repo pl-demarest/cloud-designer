@@ -1,4 +1,4 @@
-import { describe, test } from 'vitest'
+import { describe, expect, test } from 'vitest'
 import { digestArray, digestArrayList } from '../helpers/digest'
 import { goldenSuite } from '../helpers/golden'
 import { runWorker, type WorkerRun } from '../helpers/workerHarness'
@@ -81,5 +81,14 @@ describe('worker error path', () => {
   test('surfaceMesh posts an error message for a malformed request', async () => {
     const run = await runWorker('surfaceMesh', { spheres: null })
     golden.check('surfaceMesh-null-spheres', { keys: Object.keys(run.message), transfer: run.transfer.length })
+  })
+
+  // Until Stage B the cut-and-glue worker had no try/catch: the exception escaped onmessage, so
+  // runWorker rejected and the app saw only Worker.onerror. Plain assertions, no baseline entry.
+  test('cutAndGlue posts an error message for a malformed request', async () => {
+    const run = await runWorker<{ error: string }>('cutAndGlue', { spheres: null })
+    expect(Object.keys(run.message)).toEqual(['error'])
+    expect(run.message.error).toMatch(/^TypeError: /)
+    expect(run.transfer).toHaveLength(0)
   })
 })
