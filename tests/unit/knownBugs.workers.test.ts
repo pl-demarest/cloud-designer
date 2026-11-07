@@ -113,13 +113,13 @@ describe('known worker defects (expected to fail until Stage B)', () => {
   })
 
   // Lead spot check, plan decision D6: row 203 crosses edge 3 (both corners inside) and drops edge 1.
-  it.fails('tri-table-row-203 (D6): the shared TRI_TABLE equals three.js triTable', () => {
+  it('tri-table-row-203 (D6): the shared TRI_TABLE equals three.js triTable', () => {
     TRI_TABLE.forEach((row, i) => expect(row, `row ${i}`).toEqual(threeRow(i)))
   })
 
   // The same defect stated as a table property: each row may use only the edges its case crosses.
   // Today exactly one case breaks it (203); a passing test proves the fix without depending on three.js.
-  it.fails('tri-table-row-203 (D6): every shared TRI_TABLE row uses exactly its crossed edges', () => {
+  it('tri-table-row-203 (D6): every shared TRI_TABLE row uses exactly its crossed edges', () => {
     expect(rowsWithWrongEdges(TRI_TABLE)).toEqual([])
   })
 

@@ -6,8 +6,8 @@
  * EDGE_PAIRS[e] gives the two corners of edge e. For each case c (bit v set when corner v is
  * inside), TRI_TABLE[c] lists the edges of its triangles, three per triangle, ending with -1.
  *
- * Row 203 is corrupt: it uses edge 3, whose corners are both inside, and leaves out edge 1.
- * Plan decision D6 replaces the table with three.js's triTable.
+ * TRI_TABLE is three.js's triTable (three/examples/jsm/objects/MarchingCubes.js), row by row up
+ * to its -1, which uses the same corner and edge numbering; a unit test asserts the equality.
  */
 
 // Edge vertex pairs
@@ -17,9 +17,8 @@ export const EDGE_PAIRS: [number, number][] = [
   [0,4],[1,5],[2,6],[3,7]
 ];
 
-// Full triTable (256 x 16, -1 terminated) — standard marching cubes
-// Using Lorensen & Cline's original table, public domain
-export const TRI_TABLE = [
+// One row per case, each up to and including its -1
+export const TRI_TABLE: number[][] = [
   [-1],
   [0,8,3,-1],
   [0,1,9,-1],
@@ -222,10 +221,10 @@ export const TRI_TABLE = [
   [7,5,2,7,2,11,5,9,2,3,2,8,9,8,2,-1],
   [2,5,10,2,3,5,3,7,5,-1],
   [8,2,0,8,5,2,8,7,5,10,2,5,-1],
-  [9,0,1,2,3,5,2,5,10,5,3,7,-1],
-  [8,2,9,8,9,7,2,10,9,5,9,3,10,3,9,-1], // 203: corrupt (see the note at the top)
-  [1,7,5,1,3,7,-1],
-  [1,7,5,1,0,7,0,8,7,-1],
+  [9,0,1,5,10,3,5,3,7,3,10,2,-1],
+  [9,8,2,9,2,1,8,7,2,10,2,5,7,5,2,-1],
+  [1,3,5,3,7,5,-1],
+  [0,8,7,0,7,1,1,7,5,-1],
   [9,0,3,9,3,5,5,3,7,-1],
   [9,8,7,5,9,7,-1],
   [5,8,4,5,10,8,10,11,8,-1],

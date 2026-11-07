@@ -80,14 +80,14 @@
       },
       "flowCloudEdges": {
         "type": "Float32Array",
-        "length": 14358,
+        "length": 14130,
         "nan": 0,
         "inf": 0,
         "min": -2.32100510597229,
         "max": 2.406944751739502,
-        "sum": 1014.3326406536056,
-        "sumSq": 13109.5105350981,
-        "sha256": "73ffbf6ffa7b6612a03423b1331a5544522a23420b2979b96e2b82937ba84d9a"
+        "sum": 1060.1381662973567,
+        "sumSq": 12984.185770988719,
+        "sha256": "a73964628ddb471e5329dcccd9a634761713d13f73308cec5cfe26fdd70f32d1"
       }
     },
     "output": {
@@ -96,14 +96,14 @@
       ],
       "clippedEdges": {
         "type": "Float32Array",
-        "length": 13038,
+        "length": 13026,
         "nan": 0,
         "inf": 0,
         "min": -2.6184959411621094,
         "max": 4.2687668800354,
-        "sum": 4022.7872698295396,
-        "sumSq": 27724.778949278105,
-        "sha256": "13cb79b60e19d03db12867cbe33efe7104a133fceb52b210b530b8c5089c2d9b"
+        "sum": 4030.757639347343,
+        "sumSq": 27718.15156907834,
+        "sha256": "93e2205454d3bc4c463076563119f8abbb3e83b439fb9ec0be8aba6c2980bd1d"
       },
       "transferIsOutputBuffer": true
     }
@@ -189,14 +189,14 @@
       },
       "flowCloudEdges": {
         "type": "Float32Array",
-        "length": 25668,
+        "length": 25224,
         "nan": 0,
         "inf": 0,
         "min": -2.306339979171753,
         "max": 2.3713364601135254,
-        "sum": 1121.4662522363897,
-        "sumSq": 24252.29430894648,
-        "sha256": "5bbf1b600a9296808bef5741dc27ee6ff9a372da545bbd5759b316a80e06bd6a"
+        "sum": 1225.7151300709183,
+        "sumSq": 24005.17440924262,
+        "sha256": "a19ea08e492acbe31ce01f83b3094c3874a1684ff78125998f02239fcca41542"
       }
     },
     "output": {
@@ -205,14 +205,14 @@
       ],
       "clippedEdges": {
         "type": "Float32Array",
-        "length": 13236,
+        "length": 13200,
         "nan": 0,
         "inf": 0,
         "min": -2.6184959411621094,
         "max": 4.2687668800354,
-        "sum": 3951.34182188916,
-        "sumSq": 27822.692814267764,
-        "sha256": "cabe473944e7bb0f5080b1b145f78cc5ab89d5e7f477c11a9234c2f42f683686"
+        "sum": 3952.9650353852194,
+        "sumSq": 27804.6224586187,
+        "sha256": "b0d0647c03a95a7d7c72f4eda5f6ef26718463431af0e0c317b78b92b624e12e"
       },
       "transferIsOutputBuffer": true
     }
@@ -298,14 +298,14 @@
       },
       "flowCloudEdges": {
         "type": "Float32Array",
-        "length": 12420,
+        "length": 12192,
         "nan": 0,
         "inf": 0,
         "min": -2.32100510597229,
         "max": 2.406944751739502,
-        "sum": 860.5711153560682,
-        "sumSq": 11775.0445148529,
-        "sha256": "6a7f96795ae074f4cd85595fd4aa6de8578532ba45bf78af322866e2a23017ef"
+        "sum": 906.871879736091,
+        "sumSq": 11649.719750743508,
+        "sha256": "c36b9d6ed40ff3a80b10989521907cd21f90acc3ad781d3abf7425d885017ea1"
       }
     },
     "output": {
@@ -314,14 +314,14 @@
       ],
       "clippedEdges": {
         "type": "Float32Array",
-        "length": 13098,
+        "length": 13086,
         "nan": 0,
         "inf": 0,
         "min": -2.6177263259887695,
         "max": 4.2687668800354,
-        "sum": 3893.5845849440666,
-        "sumSq": 27696.914448345346,
-        "sha256": "88642102131255ecc2f653da613a38c5121ae6efbef937df2aa6b4e7b83330f6"
+        "sum": 3901.55495446187,
+        "sumSq": 27690.287068145582,
+        "sha256": "211afcc9348a331c278d3c6836752450a6a3f68038fdef86354cee7586ee1e88"
       },
       "transferIsOutputBuffer": true
     }
@@ -412,9 +412,9 @@
         "inf": 0,
         "min": -2.286569833755493,
         "max": 2.3468923568725586,
-        "sum": 859.818540983717,
-        "sumSq": 10061.672469681485,
-        "sha256": "a6905918f2b2531e3dbcb31f13839fbdfa4845b4e21e1d01e3a71123a275780a"
+        "sum": 859.4876016461058,
+        "sumSq": 10062.44591236189,
+        "sha256": "fe9b5f5f96e013b3c03c2175567e5caa6a5b008a569a7a01143d8eba7688f19d"
       }
     },
     "output": {
@@ -516,14 +516,14 @@
       },
       "flowCloudEdges": {
         "type": "Float32Array",
-        "length": 2166,
+        "length": 2178,
         "nan": 0,
         "inf": 0,
         "min": -2.324742555618286,
         "max": 2.4096579551696777,
-        "sum": 135.8635602518916,
-        "sumSq": 2327.7545542461035,
-        "sha256": "ff0490045984520269c1ffaec59b2626f72d7a14d3bc04fe7a3bf9c5c5e0de29"
+        "sum": 131.92436987906694,
+        "sumSq": 2335.057073601282,
+        "sha256": "0c40d40476f5a3c91984ff0d2ae1ccebce4159db6b74bd81e0c7d31147fbc86d"
       }
     },
     "output": {
@@ -532,14 +532,14 @@
       ],
       "clippedEdges": {
         "type": "Float32Array",
-        "length": 12576,
+        "length": 12594,
         "nan": 0,
         "inf": 0,
         "min": -2.6184959411621094,
         "max": 4.2687668800354,
-        "sum": 3904.927461552201,
-        "sumSq": 27488.007256568017,
-        "sha256": "ea6e290c5d9268510b1915b9f4329ecb59f1609f70d3df9894fc019a5b2eec5a"
+        "sum": 3894.1958329107147,
+        "sumSq": 27497.81212011772,
+        "sha256": "6357eaac75f8c9e6178421a115bccf1a312860849bafd9e86034f4b21f2c1b7e"
       },
       "transferIsOutputBuffer": true
     }
@@ -625,14 +625,14 @@
       },
       "flowCloudEdges": {
         "type": "Float32Array",
-        "length": 12420,
+        "length": 12192,
         "nan": 0,
         "inf": 0,
         "min": -2.32100510597229,
         "max": 2.406944751739502,
-        "sum": 860.5711153560682,
-        "sumSq": 11775.0445148529,
-        "sha256": "6a7f96795ae074f4cd85595fd4aa6de8578532ba45bf78af322866e2a23017ef"
+        "sum": 906.871879736091,
+        "sumSq": 11649.719750743508,
+        "sha256": "c36b9d6ed40ff3a80b10989521907cd21f90acc3ad781d3abf7425d885017ea1"
       }
     },
     "output": {
@@ -641,14 +641,14 @@
       ],
       "clippedEdges": {
         "type": "Float32Array",
-        "length": 14514,
+        "length": 14502,
         "nan": 0,
         "inf": 0,
         "min": -2.6184959411621094,
         "max": 4.2687668800354,
-        "sum": 5300.587322021602,
-        "sumSq": 31110.820125535236,
-        "sha256": "7f80319bdbed50f545e0d4d9f596cb22793f7b503044c59cdb31842be27dbcbb"
+        "sum": 5308.557691539405,
+        "sumSq": 31104.192745335473,
+        "sha256": "8f9a056129dbea2cef66d311cd43de02b58a53ca3b41e31276ac4a02c7c42f82"
       },
       "transferIsOutputBuffer": true
     }
@@ -843,14 +843,14 @@
       },
       "flowCloudEdges": {
         "type": "Float32Array",
-        "length": 12078,
+        "length": 11814,
         "nan": 0,
         "inf": 0,
         "min": -2.3249478340148926,
         "max": 2.592376947402954,
-        "sum": 663.2389743627184,
-        "sumSq": 11525.58428611442,
-        "sha256": "278ee774845764948a81644a667b8f8f3fb6657110bda41768d9220490ff01e9"
+        "sum": 733.7225531564229,
+        "sumSq": 11384.818439315826,
+        "sha256": "2eabc59a336bdb451590158e3041f42d99d7a6eb780b26f1f61ddca338d17f6d"
       }
     },
     "output": {
@@ -859,14 +859,14 @@
       ],
       "clippedEdges": {
         "type": "Float32Array",
-        "length": 14736,
+        "length": 14616,
         "nan": 0,
         "inf": 0,
         "min": -2.6184959411621094,
         "max": 4.2687668800354,
-        "sum": 3086.6188446637243,
-        "sumSq": 30154.214145172675,
-        "sha256": "067e925dc0067ee3e0d1052a844e82da9042110bf67a6363d8fc7c8838e2da73"
+        "sum": 3138.954262683168,
+        "sumSq": 30078.698373610703,
+        "sha256": "5cdc488140b2e2ee578df71c57e59d7be3b1a3f79d1c965f213ae76282299a1e"
       },
       "transferIsOutputBuffer": true
     }
@@ -952,14 +952,14 @@
       },
       "flowCloudEdges": {
         "type": "Float32Array",
-        "length": 12552,
+        "length": 12324,
         "nan": 0,
         "inf": 0,
         "min": -2.316988945007324,
         "max": 2.4019811153411865,
-        "sum": 958.8499563910286,
-        "sumSq": 11903.996896795668,
-        "sha256": "4efea5963254346eba52eedca64b239e856fc04e870e39dcbeaca0e45aac7822"
+        "sum": 1004.2292438350837,
+        "sumSq": 11778.387601356551,
+        "sha256": "9160eb7db933a89c2b712a31f8b1eb20e9a3ddde1b65974dfd12cf93a4297a4a"
       }
     },
     "output": {
@@ -968,14 +968,14 @@
       ],
       "clippedEdges": {
         "type": "Float32Array",
-        "length": 12786,
+        "length": 12774,
         "nan": 0,
         "inf": 0,
         "min": -2.6184959411621094,
         "max": 4.3411946296691895,
-        "sum": 4098.444645571173,
-        "sumSq": 28343.39839056563,
-        "sha256": "5c9d10d718a28ca932e1c1fd1a91044618d4662d77765e706007bac1c47c9961"
+        "sum": 4106.365058782161,
+        "sumSq": 28336.87585434694,
+        "sha256": "8f614b16a355eb63b5158e48c6d16dfb46a3ebd603720af57155a195a8eaa0b8"
       },
       "transferIsOutputBuffer": true
     }
@@ -1061,14 +1061,14 @@
       },
       "flowCloudEdges": {
         "type": "Float32Array",
-        "length": 12840,
+        "length": 12606,
         "nan": 0,
         "inf": 0,
         "min": -2.3157660961151123,
         "max": 2.4051148891448975,
-        "sum": 402.36717849990555,
-        "sumSq": 11770.145747663657,
-        "sha256": "dfbc982b20dfdf5589d13e2dc2ab36777d5af68eea1ef6bd4acae0275dfb32e5"
+        "sum": 486.14523432373693,
+        "sumSq": 11659.12634052223,
+        "sha256": "506037396939a06afa86730002bcab5bc13b02e18614856c27f515410b860b3a"
       }
     },
     "output": {
@@ -1077,14 +1077,14 @@
       ],
       "clippedEdges": {
         "type": "Float32Array",
-        "length": 11058,
+        "length": 11046,
         "nan": 0,
         "inf": 0,
         "min": -2.6184959411621094,
         "max": 4.34140682220459,
-        "sum": 2378.3205624535913,
-        "sumSq": 22320.435296559368,
-        "sha256": "cf8afa71d009ef7c8d5dab95ff185dfd263dbe1b60e79054bc132eb281fd7ed5"
+        "sum": 2384.181859137141,
+        "sumSq": 22313.98214243845,
+        "sha256": "ec4f499c4467b529ec379e4822be9bb26c05aa0a4d2687d4b91335625176a1ad"
       },
       "transferIsOutputBuffer": true
     }
@@ -1170,14 +1170,14 @@
       },
       "flowCloudEdges": {
         "type": "Float32Array",
-        "length": 16338,
+        "length": 16104,
         "nan": 0,
         "inf": 0,
         "min": -2.127520799636841,
         "max": 4.491228103637695,
-        "sum": 4896.5181326371385,
-        "sumSq": 28168.60829502545,
-        "sha256": "f32fb39a1d006cad5e5829df8b301d62a27da2ce31cfbb41c89db80aa83f4315"
+        "sum": 4928.518851731787,
+        "sumSq": 27957.715757829526,
+        "sha256": "4f2c31c3ddaa330a9c7a36092ba2a243c71a10d9bcaf3789b9c06d3235d22e92"
       }
     },
     "output": {
@@ -1186,14 +1186,14 @@
       ],
       "clippedEdges": {
         "type": "Float32Array",
-        "length": 20466,
+        "length": 20400,
         "nan": 0,
         "inf": 0,
         "min": -2.6184959411621094,
         "max": 4.491228103637695,
-        "sum": 9337.088581134798,
-        "sumSq": 47601.13573620309,
-        "sha256": "3a343ec02bb184b3bffe72a80149c8d2d6a9bb1f0a7fd30fe18dcd211c490c79"
+        "sum": 9326.96696679783,
+        "sumSq": 47486.280646819265,
+        "sha256": "a018f439f48287f5d4f2ff9a0e00d6b5a41d617bae945617f6562f2b7eb172d9"
       },
       "transferIsOutputBuffer": true
     }
@@ -1279,14 +1279,14 @@
       },
       "flowCloudEdges": {
         "type": "Float32Array",
-        "length": 12420,
+        "length": 12192,
         "nan": 0,
         "inf": 0,
         "min": -2.32100510597229,
         "max": 2.406944751739502,
-        "sum": 860.5711153560682,
-        "sumSq": 11775.0445148529,
-        "sha256": "6a7f96795ae074f4cd85595fd4aa6de8578532ba45bf78af322866e2a23017ef"
+        "sum": 906.871879736091,
+        "sumSq": 11649.719750743508,
+        "sha256": "c36b9d6ed40ff3a80b10989521907cd21f90acc3ad781d3abf7425d885017ea1"
       }
     },
     "output": {
@@ -1295,14 +1295,14 @@
       ],
       "clippedEdges": {
         "type": "Float32Array",
-        "length": 19236,
+        "length": 19224,
         "nan": 0,
         "inf": 0,
         "min": -2.6184959411621094,
         "max": 4.2687668800354,
-        "sum": 9277.60369561729,
-        "sumSq": 39816.009045686005,
-        "sha256": "d333894ba8ebb350ef5ec9d70d1c1697547d2bf72cecd6012cfe0831c5f64e66"
+        "sum": 9285.574065135093,
+        "sumSq": 39809.38166548623,
+        "sha256": "80ac386c57f9bb241b15ac758f6ba5aba73338a89b5b795ec3fec32a6f1b1cd7"
       },
       "transferIsOutputBuffer": true
     }
