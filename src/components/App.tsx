@@ -83,7 +83,7 @@ export function App() {
     sphereMeshRef.current = sm;
     const bm = new BaseMesh(vp);
     baseMeshRef.current = bm;
-    const tm = new TailMesh(vp, bm);
+    const tm = new TailMesh(vp);
     tailMeshRef.current = tm;
     spiralMeshRef.current = new SpiralMesh(vp);
     new AxisGizmo(vp);

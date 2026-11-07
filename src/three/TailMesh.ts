@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import type { TailDef, TailSetpoint } from '../model/types';
+import { shallow } from 'zustand/vanilla/shallow';
+import type { BaseDef, TailDef, TailSetpoint } from '../model/types';
 import { Viewport } from './Viewport';
 import { useCloudStore } from '../store/cloudStore';
-import { BaseMesh } from './BaseMesh';
-import { tailCurve } from '../geometry/primitives/tail';
+import { resolveTailSetpoints, tailCurve } from '../geometry/primitives/tail';
 
 const WIRE_MAT = new THREE.LineBasicMaterial({ color: 0x000000 });
 const HANDLE_MAT = new THREE.MeshBasicMaterial({ color: 0xdc2626 });
@@ -11,7 +11,6 @@ const HANDLE_MAT = new THREE.MeshBasicMaterial({ color: 0xdc2626 });
 export class TailMesh {
   private group: THREE.Group;
   private viewport: Viewport;
-  private baseMesh: BaseMesh;
   private wire: THREE.LineSegments | null = null;
   private handles: THREE.Mesh[] = [];
   private unsubscribe: () => void;
@@ -22,37 +21,25 @@ export class TailMesh {
   private pointer = new THREE.Vector2();
   private dragOffset = new THREE.Vector3();
 
-  constructor(viewport: Viewport, baseMesh: BaseMesh) {
+  constructor(viewport: Viewport) {
     this.viewport = viewport;
-    this.baseMesh = baseMesh;
     this.group = viewport.tailGroup;
 
+    // The base too: an attached tail starts on it.
     this.unsubscribe = useCloudStore.subscribe(
-      (s) => s.preset.tail,
-      (tail) => this.sync(tail),
-      { equalityFn: (a, b) => JSON.stringify(a) === JSON.stringify(b) }
+      (s) => [s.preset.tail, s.preset.base] as const,
+      ([tail, base]) => this.sync(tail, base),
+      { equalityFn: shallow }
     );
 
-    this.sync(useCloudStore.getState().preset.tail);
+    const { tail, base } = useCloudStore.getState().preset;
+    this.sync(tail, base);
 
     const canvas = viewport.renderer.domElement;
     canvas.addEventListener('pointerdown', this.onPointerDown);
     canvas.addEventListener('pointermove', this.onPointerMove);
     canvas.addEventListener('pointerup', this.onPointerUp);
     window.addEventListener('pointerup', this.onWindowPointerUp);
-  }
-
-  private resolveSetpoints(tail: TailDef): TailSetpoint[] {
-    const pts = [...tail.setpoints];
-
-    // Attachment: lock first setpoint to base curve
-    if (tail.attachToBase !== 'none' && pts.length > 0) {
-      const t = tail.attachOffset;
-      const attachPt = this.baseMesh.getPointAt(t);
-      pts[0] = { ...pts[0], position: [attachPt.x, attachPt.y, attachPt.z] };
-    }
-
-    return pts;
   }
 
   private interpolateRadius(t: number, setpoints: TailSetpoint[]): number {
@@ -65,8 +52,7 @@ export class TailMesh {
     return setpoints[i].width + (setpoints[i + 1].width - setpoints[i].width) * f;
   }
 
-  private buildWireframe(tail: TailDef): THREE.BufferGeometry {
-    const setpoints = this.resolveSetpoints(tail);
+  private buildWireframe(tail: TailDef, setpoints: TailSetpoint[]): THREE.BufferGeometry {
     if (setpoints.length < 2) return new THREE.BufferGeometry();
 
     const radSegs = tail.radialSegments;
@@ -131,13 +117,15 @@ export class TailMesh {
     return geo;
   }
 
-  private sync(tail: TailDef): void {
+  private sync(tail: TailDef, base: BaseDef): void {
+    const resolved = resolveTailSetpoints(tail, base);
+
     // Rebuild wire
     if (this.wire) {
       this.group.remove(this.wire);
       this.wire.geometry.dispose();
     }
-    const wireGeo = this.buildWireframe(tail);
+    const wireGeo = this.buildWireframe(tail, resolved);
     this.wire = new THREE.LineSegments(wireGeo, WIRE_MAT);
     this.group.add(this.wire);
 
@@ -146,7 +134,6 @@ export class TailMesh {
       this.group.remove(h);
       h.geometry.dispose();
     }
-    const resolved = this.resolveSetpoints(tail);
     this.handles = resolved.map((sp, i) => {
       const hGeo = new THREE.SphereGeometry(0.08, 8, 6);
       const mesh = new THREE.Mesh(hGeo, HANDLE_MAT);

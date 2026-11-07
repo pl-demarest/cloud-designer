@@ -24,6 +24,14 @@ export function sampleBasePath(base: BaseDef, segments: number): PathSamples {
   return samplePath(baseCurve(base), segments, base.closed);
 }
 
+/** The point on the centre line at arc-length fraction t, clamped to [0, 1]. A base with fewer
+ *  than two control points has no line; its point is the origin. */
+export function basePointAt(base: BaseDef, t: number): [number, number, number] {
+  if (base.controlPoints.length < 2) return [0, 0, 0];
+  const p = baseCurve(base).getPointAt(Math.max(0, Math.min(1, t)));
+  return [p.x, p.y, p.z];
+}
+
 /**
  * The base's solid, packed for per-voxel evaluation: BaseMesh's rings (sampleBasePath with the
  * base's lengthSegments, so the same centres and Frenet frames) joined by straight pieces.

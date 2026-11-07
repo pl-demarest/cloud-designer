@@ -114,14 +114,18 @@ function normalizeTailSetpoint(raw: unknown, index: number): TailSetpoint {
   };
 }
 
-function normalizeTail(raw: unknown): TailDef {
+function normalizeTail(raw: unknown, fromVersion1: boolean): TailDef {
   const r = fields(raw);
   const d = makeTail();
+  const attachToBase = oneOf(r.attachToBase, ['start', 'end', 'none'], d.attachToBase);
+  const attachOffset = num(r.attachOffset, d.attachOffset);
   return {
     setpoints: Array.isArray(r.setpoints) ? r.setpoints.map(normalizeTailSetpoint) : d.setpoints,
     curlAmount: num(r.curlAmount, d.curlAmount),
-    attachToBase: oneOf(r.attachToBase, ['start', 'end', 'none'], d.attachToBase),
-    attachOffset: num(r.attachOffset, d.attachOffset),
+    attachToBase,
+    // Version 1 attached 'start' like 'end', at attachOffset from the base's start. Version 2
+    // measures 'start' from the other end, so the offset flips to keep the tail where it was.
+    attachOffset: fromVersion1 && attachToBase === 'start' ? 1 - attachOffset : attachOffset,
     radialSegments: num(r.radialSegments, d.radialSegments),
     lengthSegments: num(r.lengthSegments, d.lengthSegments),
   };
@@ -177,8 +181,9 @@ function normalizeFlowCloud(raw: unknown): FlowCloudSettings {
 /**
  * A complete preset of version PRESET_VERSION built from `raw`, sharing no object with it.
  *
- * - Version 1, including the first commit's names (`swirls` for spheres, `merge` for the flow
- *   cloud), migrates; any version is read as far as its fields match, and version 2 is written.
+ * - Version 1 (also assumed without a version), including the first commit's names (`swirls`
+ *   for spheres, `merge` for the flow cloud), migrates: a tail attached at 'start' keeps its
+ *   attachment point. Any version is read as far as its fields match; version 2 is written.
  * - A missing or invalid field (wrong type, NaN, an unknown option) gets its default from the
  *   factories in ./defaults.ts: a missing base, tail or flow cloud is the default one, missing
  *   sphere and spiral lists are empty. Unknown fields are dropped.
@@ -197,7 +202,7 @@ export function normalizePreset(raw: unknown): CloudPreset {
     version: PRESET_VERSION,
     spheres: list(r.spheres ?? r.swirls).map(normalizeSphere),
     base: normalizeBase(r.base),
-    tail: normalizeTail(r.tail),
+    tail: normalizeTail(r.tail, num(r.version, 1) < 2),
     spirals: list(r.spirals).map(normalizeSpiral),
     flowCloud: normalizeFlowCloud(r.flowCloud ?? r.merge),
     surfaceMeshResolution: num(r.surfaceMeshResolution, DEFAULT_PRESET.surfaceMeshResolution),

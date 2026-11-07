@@ -201,7 +201,7 @@ export function buildEditorScene(preset: CloudPreset): EditorScene {
   const vp = createViewportStub()
   const sphere = new SphereMesh(vp)
   const base = new BaseMesh(vp)
-  const tail = new TailMesh(vp, base)
+  const tail = new TailMesh(vp)
   const spiral = new SpiralMesh(vp)
   const flowCloud = new FlowCloud(vp)
   const cutGlue = new CutGlueResult(vp)

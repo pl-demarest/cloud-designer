@@ -210,25 +210,25 @@
     ],
     "positions": {
       "type": "Float32Array",
-      "length": 16344,
+      "length": 16296,
       "nan": 0,
       "inf": 0,
-      "min": -3.3284733295440674,
-      "max": 4.231587886810303,
-      "sum": 484.39151917072013,
-      "sumSq": 26085.786969761764,
-      "sha256": "194b3d9d2efbb6c3fa41d78659d78cd8dba0f22e1c6dba64c6b59bcc9f53ad02"
+      "min": -3.3972127437591553,
+      "max": 4.4770331382751465,
+      "sum": -151.40177199151367,
+      "sumSq": 28627.99249266024,
+      "sha256": "3ececf6a91fe3c32df9e99370ab7f001303149d3131944e7e0b2ea99307a82f0"
     },
     "indices": {
       "type": "Uint32Array",
-      "length": 8160,
+      "length": 8136,
       "nan": 0,
       "inf": 0,
       "min": 0,
-      "max": 5447,
-      "sum": 22213931,
-      "sumSq": 80576143243,
-      "sha256": "2a202c79c6afa0788bb4bf82367c0a2b01c8d04399c5da6d4a15dcc5f9e4bc92"
+      "max": 5431,
+      "sum": 22083495,
+      "sumSq": 79874104863,
+      "sha256": "ffe4f9ffaf31a33fbcd455756556101ff97b6d70c3cb33a9736b49bbd483b685"
     },
     "transfer": [
       "positions",
@@ -312,25 +312,25 @@
     ],
     "positions": {
       "type": "Float32Array",
-      "length": 15624,
+      "length": 15408,
       "nan": 0,
       "inf": 0,
       "min": -2.500800371170044,
       "max": 4.331940650939941,
-      "sum": 2291.9889603741467,
-      "sumSq": 24339.060999722118,
-      "sha256": "85d977e7b4aab65aaaa3fe52f17e4d5ee39dfc5f0708ac914726402ad367fd07"
+      "sum": 1844.0759935136884,
+      "sumSq": 24026.24913611833,
+      "sha256": "7f1fa62acca8da03622e83e142d3e5faa0145ccd04a36b70fb7311b85058fa9a"
     },
     "indices": {
       "type": "Uint32Array",
-      "length": 7824,
+      "length": 7704,
       "nan": 0,
       "inf": 0,
       "min": 0,
-      "max": 5207,
-      "sum": 20362791,
-      "sumSq": 70525670319,
-      "sha256": "5ad977ff993cc1798c5813807e4e0261e8d6826092f0502f517c0e5c3b86cf17"
+      "max": 5135,
+      "sum": 19773686,
+      "sumSq": 67575141560,
+      "sha256": "a6db03dec17cae046b40a2aa4c1850d9ee906c6388bc1318375004157866e80d"
     },
     "transfer": [
       "positions",

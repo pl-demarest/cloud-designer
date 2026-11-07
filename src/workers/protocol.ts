@@ -17,7 +17,7 @@ export interface WorkerError {
 
 export interface FlowCloudRequest {
   spheres: SphereDef[];
-  /** Posted by FlowCloud.dispatch; the worker does not read it. */
+  /** An attached tail starts on it (resolveTailSetpoints). */
   base: BaseDef;
   tail: TailDef;
   flowCloud: FlowCloudSettings;

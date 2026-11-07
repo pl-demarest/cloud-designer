@@ -5,7 +5,28 @@
  */
 
 import { CatmullRomCurve3, Vector3 } from 'three';
-import type { TailDef, TailSetpoint } from '../../model/types';
+import type { BaseDef, TailDef, TailSetpoint } from '../../model/types';
+import { basePointAt } from './base';
+
+/**
+ * The setpoints the tail is drawn and modelled through. An attached tail starts on the base:
+ * attachToBase 'end' puts its first setpoint attachOffset of the way along the base (1 is the
+ * base's end), 'start' measures the same distance from the other end (1 is the base's start).
+ * The stored first position is then unused. A new array; the input is not changed.
+ */
+export function resolveTailSetpoints(tail: TailDef, base: BaseDef): TailSetpoint[] {
+  const pts = [...tail.setpoints];
+  if (tail.attachToBase !== 'none' && pts.length > 0) {
+    const t = tail.attachToBase === 'end' ? tail.attachOffset : 1 - tail.attachOffset;
+    pts[0] = { ...pts[0], position: basePointAt(base, t) };
+  }
+  return pts;
+}
+
+/** `tail` with its setpoints resolved against `base` (resolveTailSetpoints). */
+export function attachedTail(tail: TailDef, base: BaseDef): TailDef {
+  return { ...tail, setpoints: resolveTailSetpoints(tail, base) };
+}
 
 /** The tail's spine: open uniform Catmull-Rom (tension 0.5) through the setpoint positions. */
 export function tailCurve(setpoints: TailSetpoint[]): CatmullRomCurve3 {

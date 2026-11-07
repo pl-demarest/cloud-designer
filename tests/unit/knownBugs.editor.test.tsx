@@ -34,7 +34,7 @@ function baseAndTail(preset: CloudPreset) {
   store().loadPreset(preset)
   const vp = createViewportStub()
   const base = new BaseMesh(vp)
-  const tail = new TailMesh(vp, base)
+  const tail = new TailMesh(vp)
   disposers.push(() => {
     tail.dispose()
     base.dispose()
@@ -62,7 +62,7 @@ describe('known editor defects (expected to fail until fixed)', () => {
     expect(store().preset.base.controlPoints.flat().some(Number.isNaN)).toBe(false)
   })
 
-  it.fails('tail-not-resynced-on-base-change: an attached tail follows a base control-point edit', () => {
+  it('tail-not-resynced-on-base-change: an attached tail follows a base control-point edit', () => {
     const { vp } = baseAndTail(fixture('default')) // attachToBase 'end', offset 1.0
     const last = store().preset.base.controlPoints.length - 1
     store().updateBasePoint(last, [3, -0.5, 0.2])
@@ -70,7 +70,7 @@ describe('known editor defects (expected to fail until fixed)', () => {
     expect(first.distanceTo(new THREE.Vector3(3, -0.5, 0.2))).toBeLessThan(1e-9)
   })
 
-  it.fails("attach-start-end-identical: 'start' and 'end' attach the tail at different points", () => {
+  it("attach-start-end-identical: 'start' and 'end' attach the tail at different points", () => {
     const start = fixture('default')
     start.tail.attachToBase = 'start'
     const a = tailHandlePositions(baseAndTail(start).vp)[0]
@@ -80,7 +80,7 @@ describe('known editor defects (expected to fail until fixed)', () => {
     expect(a).not.toEqual(b)
   })
 
-  it.fails('base-attach-curve-type-mismatch: getPointAt lies on the drawn (uniform Catmull-Rom) base curve', () => {
+  it('base-attach-curve-type-mismatch: getPointAt lies on the drawn (uniform Catmull-Rom) base curve', () => {
     const { base } = baseAndTail(fixture('default'))
     const drawn = new THREE.CatmullRomCurve3(
       store().preset.base.controlPoints.map((p) => new THREE.Vector3(...p)),

@@ -14,7 +14,7 @@ import type { SphereDef, FlowCloudSettings } from '../../model/types';
 import { evalMetaballField } from '../../geometry/flowField';
 import { fillField, gridFromBounds, polygonise } from '../../geometry/marchingCubes/polygonise';
 import { sphereSDF } from '../../geometry/primitives/sphere';
-import { sampleTailSpline, tailSDF } from '../../geometry/primitives/tail';
+import { attachedTail, sampleTailSpline, tailSDF } from '../../geometry/primitives/tail';
 import type { TailSample } from '../../geometry/primitives/tail';
 import { baseSDF, buildBaseVolume } from '../../geometry/primitives/base';
 import type { BaseVolume } from '../../geometry/primitives/base';
@@ -74,8 +74,9 @@ function evalSDF(
 }
 
 export function generateSurfaceMesh(input: SurfaceMeshRequest): SurfaceMeshResult {
-  const { spheres, base, tail, flowCloud, spirals, resolution } = input;
+  const { spheres, base, flowCloud, spirals, resolution } = input;
   const res = resolution;
+  const tail = attachedTail(input.tail, base);
 
   // Sample splines
   const tailSamples = sampleTailSpline(tail, 64);

@@ -79,6 +79,15 @@ describe('normalizePreset', () => {
     expect(normalizePreset({ ...DEFAULT_PRESET, version: undefined }).version).toBe(2)
   })
 
+  test("keeps a version-1 'start' tail where it was attached: the offset flips, 'end' and version 2 stay", () => {
+    const tail = (attachToBase: string, version?: number) =>
+      normalizePreset({ ...DEFAULT_PRESET, version, tail: { ...DEFAULT_PRESET.tail, attachToBase, attachOffset: 0.25 } }).tail
+    expect(tail('start', 1)).toMatchObject({ attachToBase: 'start', attachOffset: 0.75 })
+    expect(tail('start', undefined)).toMatchObject({ attachToBase: 'start', attachOffset: 0.75 })
+    expect(tail('end', 1)).toMatchObject({ attachToBase: 'end', attachOffset: 0.25 })
+    expect(tail('start', 2)).toMatchObject({ attachToBase: 'start', attachOffset: 0.25 })
+  })
+
   test("migrates the first commit's names: swirls become spheres, merge becomes flowCloud", () => {
     const out = normalizePreset(FIRST_COMMIT_PRESET)
     expect(out.spheres).toEqual([

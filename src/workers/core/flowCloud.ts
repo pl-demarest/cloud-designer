@@ -7,7 +7,7 @@
 import type { SphereDef, TailDef, FlowCloudSettings } from '../../model/types';
 import { evalMetaballField, extractSpiral } from '../../geometry/flowField';
 import { fillField, gridFromBounds, polygonise } from '../../geometry/marchingCubes/polygonise';
-import { sampleTailSpline } from '../../geometry/primitives/tail';
+import { attachedTail, sampleTailSpline } from '../../geometry/primitives/tail';
 import type { FlowCloudRequest, FlowCloudResult } from '../protocol';
 
 function marchingCubes(
@@ -61,7 +61,8 @@ function marchingCubes(
 }
 
 export function generateFlowCloud(request: FlowCloudRequest): FlowCloudResult {
-  const { spheres, tail, flowCloud } = request;
+  const { spheres, flowCloud } = request;
+  const tail = attachedTail(request.tail, request.base);
 
   const { vertices, indices } = marchingCubes(spheres, tail, flowCloud);
 

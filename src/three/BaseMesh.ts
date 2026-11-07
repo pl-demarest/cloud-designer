@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { BaseDef } from '../model/types';
 import { Viewport } from './Viewport';
 import { useCloudStore } from '../store/cloudStore';
-import { sampleBasePath } from '../geometry/primitives/base';
+import { basePointAt, sampleBasePath } from '../geometry/primitives/base';
 
 const WIRE_MAT = new THREE.LineBasicMaterial({ color: 0x000000 });
 const HANDLE_MAT = new THREE.MeshBasicMaterial({ color: 0x16a34a });
@@ -39,15 +39,9 @@ export class BaseMesh {
     window.addEventListener('pointerup', this.onWindowPointerUp);
   }
 
-  /** Returns the world-space point on the base curve at parameter t ∈ [0,1] */
+  /** The point on the drawn base curve at arc-length fraction t ∈ [0,1] (basePointAt). */
   getPointAt(t: number): THREE.Vector3 {
-    const def = useCloudStore.getState().preset.base;
-    if (def.controlPoints.length < 2) return new THREE.Vector3();
-    const curve = new THREE.CatmullRomCurve3(
-      def.controlPoints.map((p) => new THREE.Vector3(...p)),
-      def.closed
-    );
-    return curve.getPointAt(Math.max(0, Math.min(1, t)));
+    return new THREE.Vector3(...basePointAt(useCloudStore.getState().preset.base, t));
   }
 
   private buildWireframe(def: BaseDef): THREE.BufferGeometry {

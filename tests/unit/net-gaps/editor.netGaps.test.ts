@@ -142,7 +142,7 @@ describe('viewport dragging', () => {
     p.tail.setpoints[0].position = [2.7, -0.2, 0.1] // off base handle P3, which would win the press
     const vp = viewport(p)
     const base = new BaseMesh(vp)
-    const tail = new TailMesh(vp, base)
+    const tail = new TailMesh(vp)
     disposers.push(() => {
       tail.dispose()
       base.dispose()

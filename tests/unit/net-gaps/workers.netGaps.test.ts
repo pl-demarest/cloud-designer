@@ -69,6 +69,8 @@ describe('marchingCubes worker: branches outside the fixture set', () => {
     // The first tail setpoint sets u = 1; inside the cloud, vertices beyond it clamp to u = 1.
     // With it at x = 2.5 (the fixture) the surface never reaches u = 1 and 5 of the 7 targets
     // (u = 0, 1/6, ..., 1) have segments; here 6 do. The u = 0 contour is always empty.
+    // Detached, so the stored position is the one the tail starts at.
+    p.tail.attachToBase = 'none'
     p.tail.setpoints[0].position = [0.5, -0.8, 0]
     const out = await marchingCubesDigest(p)
     expect(out.bands.count).toBe(p.flowCloud.wireframe.numBands)

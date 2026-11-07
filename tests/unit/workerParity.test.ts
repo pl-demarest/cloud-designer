@@ -1,11 +1,13 @@
 // @vitest-environment happy-dom
+import * as THREE from 'three'
 import { afterEach, describe, expect, test } from 'vitest'
 import { BaseMesh } from '../../src/three/BaseMesh'
+import { TailMesh } from '../../src/three/TailMesh'
 import { useCloudStore } from '../../src/store/cloudStore'
-import { createViewportStub } from '../helpers/scene'
+import { createViewportStub, isHandle } from '../helpers/scene'
 import { runWorker } from '../helpers/workerHarness'
-import { fixture, surfaceMeshMessage } from '../fixtures/presets'
-import type { BaseDef, CloudPreset } from '../../src/model/types'
+import { fixture, marchingCubesMessage, surfaceMeshMessage } from '../fixtures/presets'
+import type { BaseDef, CloudPreset, TailDef } from '../../src/model/types'
 
 /**
  * The workers model each primitive exactly as the editor draws it (refactor plan D4/D5):
@@ -155,5 +157,86 @@ describe('base: the surface mesh is the drawn base, closed by flat caps in its e
     expect(y).toBeLessThanOrEqual(0.6 + 1e-6)
     expect(z).toBeGreaterThan(0.1)
     expect(z).toBeLessThanOrEqual(0.2 + 1e-6)
+  })
+})
+
+// ── Tail attachment ──────────────────────────────────────────────────────────
+
+/** The drawn base curve (BaseMesh's 'catmullrom' curve), straight from three. */
+function drawnBasePoint(base: BaseDef, t: number): V3 {
+  const curve = new THREE.CatmullRomCurve3(base.controlPoints.map((q) => new THREE.Vector3(...q)), base.closed, 'catmullrom', 0.5)
+  return curve.getPointAt(t).toArray() as V3
+}
+
+/** The default preset with its stored first tail setpoint moved off the base, to (6, 3, 0). */
+function detachedFirstSetpoint(attachToBase: TailDef['attachToBase'], attachOffset: number): CloudPreset {
+  const p = fixture('default')
+  p.tail.setpoints[0].position = [6, 3, 0]
+  p.tail.attachToBase = attachToBase
+  p.tail.attachOffset = attachOffset
+  return p
+}
+
+/** TailMesh's handles for `preset`: the first one sits where the drawn tail starts. */
+function drawnTailHandles(preset: CloudPreset): V3[] {
+  store().loadPreset(preset)
+  const vp = createViewportStub()
+  const base = new BaseMesh(vp)
+  const tail = new TailMesh(vp)
+  disposers.push(() => {
+    tail.dispose()
+    base.dispose()
+  })
+  return vp.tailGroup.children.filter(isHandle).map((h) => h.position.toArray() as V3)
+}
+
+function maxX(positions: Float32Array): number {
+  let m = -Infinity
+  for (let i = 0; i < positions.length; i += 3) m = Math.max(m, positions[i])
+  return m
+}
+
+describe('tail: the workers attach the tail where TailMesh draws it', () => {
+  test("TailMesh starts an 'end' tail at the drawn base's point attachOffset of the way along", () => {
+    const p = detachedFirstSetpoint('end', 0.6)
+    const first = new THREE.Vector3(...drawnTailHandles(p)[0])
+    expect(first.distanceTo(new THREE.Vector3(...drawnBasePoint(p.base, 0.6)))).toBeLessThan(1e-9)
+  })
+
+  test("Cut & Glue: the tail volume holds the drawn tail's start, not the stored first setpoint", async () => {
+    const p = detachedFirstSetpoint('end', 0.6)
+    const start = drawnTailHandles(p)[0]
+    // Base edges are clipped by the tail (and spheres, here none) but never by the base itself.
+    const near = [start, [start[0] + 0.2, start[1], start[2]], [start[0], start[1] + 0.2, start[2]]] as V3[]
+    const segs = (pts: V3[]) => new Float32Array(pts.flatMap((q) => [...q, ...q]))
+    const empty = new Float32Array(0)
+    const run = async (pts: V3[]) =>
+      (
+        await runWorker<{ clippedEdges: Float32Array }>('cutAndGlue', {
+          spheres: [],
+          base: p.base,
+          tail: p.tail,
+          sphereEdgeGroups: [],
+          baseEdges: segs(pts),
+          tailEdges: empty,
+          spiralEdges: empty,
+          flowCloudEdges: empty,
+        })
+      ).message.clippedEdges.length / 6
+    expect(await run(near), 'points at the drawn start that survive').toBe(0)
+    expect(await run([[6, 3, 0]]), 'the stored first setpoint survives').toBe(1)
+  })
+
+  test('surface mesh: nothing reaches the stored first setpoint at x = 6', async () => {
+    const { message } = await runWorker<{ positions: Float32Array }>('surfaceMesh', surfaceMeshMessage(detachedFirstSetpoint('end', 1)))
+    expect(maxX(message.positions)).toBeLessThan(5)
+  })
+
+  test('flow cloud with tailStrength 1: the tail lobe runs from the base, not from x = 6', async () => {
+    const p = detachedFirstSetpoint('end', 1)
+    p.flowCloud.tailStrength = 1
+    p.flowCloud.resolution = 32
+    const { message } = await runWorker<{ vertices: Float32Array }>('marchingCubes', marchingCubesMessage(p))
+    expect(maxX(message.vertices)).toBeLessThan(5)
   })
 })
