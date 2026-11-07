@@ -8,7 +8,7 @@ import { FIXTURE_NAMES, fixture, marchingCubesMessage, surfaceMeshMessage } from
  * Characterization goldens for the flow-cloud (marchingCubes) and surface-mesh
  * workers: every output array, the transfer list, and the surface-mesh worker's
  * debug log count, for every fixture. The cut-and-glue worker needs editor edge
- * buffers and is pinned in cutAndGlue.test.ts.
+ * buffers and is pinned in editor.test.ts (suite worker-cutAndGlue).
  */
 
 /** Names each transferable by the output field whose buffer it is. */
@@ -61,7 +61,8 @@ describe('surfaceMesh worker', () => {
         positions: digestArray(m.positions),
         indices: digestArray(m.indices),
         transfer: transferLabels(run, m),
-        // Includes the module-load marker. Drops to 0 when DEBUG_SPIRAL is deleted.
+        // 0 since Stage B removed DEBUG_SPIRAL and the module-load marker (they logged 1, or 49
+        // with a thick spiral); a debug log that comes back fails here.
         spiralDebugLogs: run.spiralDebugLogs,
         otherConsoleCalls: run.otherConsoleCalls,
       })
