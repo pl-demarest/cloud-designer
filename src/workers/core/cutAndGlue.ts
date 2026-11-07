@@ -15,7 +15,7 @@
  */
 
 import { insideSphere } from '../../geometry/primitives/sphere';
-import { attachedTail, insideTailCapsule, sampleTailSpline } from '../../geometry/primitives/tail';
+import { attachedTail, insideTailCapsule, sampleTailSpine } from '../../geometry/primitives/tail';
 import { buildBaseVolume, insideBase } from '../../geometry/primitives/base';
 import { clipEdgeSet } from '../../geometry/clip';
 import type { CutGlueRequest, CutGlueResult } from '../protocol';
@@ -26,7 +26,7 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
     sphereEdgeGroups, baseEdges, tailEdges, spiralEdges, flowCloudEdges,
   } = request;
 
-  const tailSamples = sampleTailSpline(attachedTail(request.tail, base), 64);
+  const tailSamples = sampleTailSpine(attachedTail(request.tail, base));
   const baseVolume  = buildBaseVolume(base);
 
   // ── Per-primitive clip functions ──────────────────────────────────────────

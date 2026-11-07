@@ -3,7 +3,7 @@ import { shallow } from 'zustand/vanilla/shallow';
 import type { BaseDef, TailDef, TailSetpoint } from '../model/types';
 import { Viewport } from './Viewport';
 import { useCloudStore } from '../store/cloudStore';
-import { resolveTailSetpoints, tailCurve } from '../geometry/primitives/tail';
+import { resolveTailSetpoints, sampleTailPath } from '../geometry/primitives/tail';
 
 const WIRE_MAT = new THREE.LineBasicMaterial({ color: 0x000000 });
 const HANDLE_MAT = new THREE.MeshBasicMaterial({ color: 0xdc2626 });
@@ -42,44 +42,28 @@ export class TailMesh {
     window.addEventListener('pointerup', this.onWindowPointerUp);
   }
 
-  private interpolateRadius(t: number, setpoints: TailSetpoint[]): number {
-    if (setpoints.length === 0) return 0.5;
-    if (setpoints.length === 1) return setpoints[0].width;
-
-    const segT = t * (setpoints.length - 1);
-    const i = Math.min(Math.floor(segT), setpoints.length - 2);
-    const f = segT - i;
-    return setpoints[i].width + (setpoints[i + 1].width - setpoints[i].width) * f;
-  }
-
   private buildWireframe(tail: TailDef, setpoints: TailSetpoint[]): THREE.BufferGeometry {
     if (setpoints.length < 2) return new THREE.BufferGeometry();
 
     const radSegs = tail.radialSegments;
     const lenSegs = tail.lengthSegments;
 
-    const curve = tailCurve(setpoints);
-
-    const arcLengths = curve.getLengths(lenSegs);
-    const totalLength = arcLengths[arcLengths.length - 1];
-    const frames = curve.computeFrenetFrames(lenSegs, false);
+    // Centre, frame and width at the same arc-length position u = i / lenSegs.
+    const path = sampleTailPath(setpoints, lenSegs);
 
     // Build all ring vertices
     const rings: THREE.Vector3[][] = [];
     for (let i = 0; i <= lenSegs; i++) {
-      const t = i / lenSegs;
-      const pt = curve.getPoint(t);
-
-      // Interpolate radius from setpoints by arc-length parameter
-      const arcT = arcLengths[Math.min(i, arcLengths.length - 1)] / totalLength;
-      const r = this.interpolateRadius(arcT, setpoints);
+      const u = i / lenSegs;
+      const pt = path.points[i];
+      const r = path.widths[i];
 
       // Curl in the last 20% of arc
-      const curlFraction = Math.max(0, (t - 0.8) / 0.2);
+      const curlFraction = Math.max(0, (u - 0.8) / 0.2);
       const curlAngle = tail.curlAmount * curlFraction;
 
-      const normal = frames.normals[Math.min(i, frames.normals.length - 1)];
-      const binormal = frames.binormals[Math.min(i, frames.binormals.length - 1)];
+      const normal = path.normals[i];
+      const binormal = path.binormals[i];
       const ring: THREE.Vector3[] = [];
 
       for (let j = 0; j < radSegs; j++) {

@@ -14,7 +14,7 @@ import type { SphereDef, FlowCloudSettings } from '../../model/types';
 import { evalMetaballField } from '../../geometry/flowField';
 import { fillField, gridFromBounds, polygonise } from '../../geometry/marchingCubes/polygonise';
 import { sphereSDF } from '../../geometry/primitives/sphere';
-import { attachedTail, sampleTailSpline, tailSDF } from '../../geometry/primitives/tail';
+import { attachedTail, sampleTailSpine, tailSDF } from '../../geometry/primitives/tail';
 import type { TailSample } from '../../geometry/primitives/tail';
 import { baseSDF, buildBaseVolume } from '../../geometry/primitives/base';
 import type { BaseVolume } from '../../geometry/primitives/base';
@@ -79,12 +79,12 @@ export function generateSurfaceMesh(input: SurfaceMeshRequest): SurfaceMeshResul
   const tail = attachedTail(input.tail, base);
 
   // Sample splines
-  const tailSamples = sampleTailSpline(tail, 64);
+  const tailSamples = sampleTailSpine(tail);
   const baseVolume = buildBaseVolume(base);
 
   // Tail samples for the metaball field (flow cloud SDF component)
   const tailStrength = flowCloud.tailStrength;
-  const fcTailSamples = tailStrength > 0 ? sampleTailSpline(tail, 32) : [];
+  const fcTailSamples = tailStrength > 0 ? tailSamples : [];
 
   // Sample spirals (only thick ones produce samples)
   const allSpiralSamples: SpiralSample[][] = spirals.map(

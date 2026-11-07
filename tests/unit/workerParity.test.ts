@@ -240,3 +240,131 @@ describe('tail: the workers attach the tail where TailMesh draws it', () => {
     expect(maxX(message.vertices)).toBeLessThan(5)
   })
 })
+
+// ── Tail rings and width profile ────────────────────────────────────────────
+
+/** TailMesh's rings: each ring's vertices and their mean (its centre). Ring segments come first in getEdges. */
+function drawnTailRings(preset: CloudPreset): { centre: V3; vertices: V3[] }[] {
+  store().loadPreset(preset)
+  const vp = createViewportStub()
+  const base = new BaseMesh(vp)
+  const tail = new TailMesh(vp)
+  disposers.push(() => {
+    tail.dispose()
+    base.dispose()
+  })
+  const edges = tail.getEdges()
+  const { radialSegments: radSegs, lengthSegments: lenSegs } = preset.tail
+  const rings: { centre: V3; vertices: V3[] }[] = []
+  for (let i = 0; i <= lenSegs; i++) {
+    const vertices: V3[] = []
+    for (let j = 0; j < radSegs; j++) {
+      const o = (i * radSegs + j) * 6
+      vertices.push([edges[o], edges[o + 1], edges[o + 2]])
+    }
+    rings.push({ centre: [0, 1, 2].map((k) => vertices.reduce((s, v) => s + v[k], 0) / radSegs) as V3, vertices })
+  }
+  return rings
+}
+
+/** The drawn tail curve through `preset`'s resolved setpoints, straight from three. */
+function drawnTailCurve(preset: CloudPreset): { curve: THREE.CatmullRomCurve3; widths: number[] } {
+  const handles = drawnTailHandles(preset)
+  const curve = new THREE.CatmullRomCurve3(handles.map((q) => new THREE.Vector3(...q)), false, 'catmullrom', 0.5)
+  return { curve, widths: preset.tail.setpoints.map((s) => s.width) }
+}
+
+/** Width at curve parameter t: linear between setpoint k at t = k / (n - 1) and setpoint k + 1. */
+function widthAt(widths: number[], t: number): number {
+  const s = t * (widths.length - 1)
+  const k = Math.min(Math.floor(s), widths.length - 2)
+  return widths[k] + (widths[k + 1] - widths[k]) * (s - k)
+}
+
+const TAILS: Array<[string, CloudPreset]> = [
+  ['the default tail', fixture('default')],
+  ['a non-uniform detached tail', fixture('tailNone')],
+]
+
+describe('tail: TailMesh samples centre, frame and width at the same arc-length position', () => {
+  for (const [name, preset] of TAILS) {
+    test(`${name}: ring i is centred at getPointAt(i / n), where its frame is taken`, () => {
+      const { curve } = drawnTailCurve(preset)
+      const n = preset.tail.lengthSegments
+      let worst = 0
+      drawnTailRings(preset).forEach(({ centre }, i) => {
+        worst = Math.max(worst, curve.getPointAt(i / n).distanceTo(new THREE.Vector3(...centre)))
+      })
+      expect(worst).toBeLessThan(1e-6)
+    })
+
+    test(`${name}: ring i's radius is the width at the curve parameter of arc length i / n`, () => {
+      const { curve, widths } = drawnTailCurve(preset)
+      const n = preset.tail.lengthSegments
+      let worst = 0
+      drawnTailRings(preset).forEach(({ centre, vertices }, i) => {
+        const expected = widthAt(widths, curve.getUtoTmapping(i / n, 0))
+        for (const v of vertices) {
+          worst = Math.max(worst, Math.abs(Math.hypot(v[0] - centre[0], v[1] - centre[1], v[2] - centre[2]) - expected))
+        }
+      })
+      expect(worst).toBeLessThan(1e-6)
+    })
+  }
+})
+
+describe('tail: the workers share TailMesh’s spine and width profile', () => {
+  /** Signed distance to the chain of capsules through `centres` with radii `radii`, the
+   *  workers' tail model, written out independently of src/geometry. */
+  function capsuleChainSDF(centres: V3[], radii: number[], q: V3): number {
+    let d = Infinity
+    for (let i = 0; i + 1 < centres.length; i++) {
+      const a = centres[i], b = centres[i + 1]
+      const ab = [0, 1, 2].map((k) => b[k] - a[k])
+      const ab2 = ab[0] ** 2 + ab[1] ** 2 + ab[2] ** 2
+      let s = ab2 > 1e-4 ? [0, 1, 2].reduce((acc, k) => acc + (q[k] - a[k]) * ab[k], 0) / ab2 : 0
+      s = Math.max(0, Math.min(1, s))
+      const dist = Math.hypot(...([0, 1, 2].map((k) => q[k] - a[k] - s * ab[k]) as V3))
+      d = Math.min(d, dist - (radii[i] + (radii[i + 1] - radii[i]) * s))
+    }
+    return d
+  }
+
+  /** Base edges are clipped by the tail (and spheres, here none) but not by the base. */
+  async function pointsOutsideTail(preset: CloudPreset, points: V3[]): Promise<number> {
+    const empty = new Float32Array(0)
+    const { message } = await runWorker<{ clippedEdges: Float32Array }>('cutAndGlue', {
+      spheres: [],
+      base: preset.base,
+      tail: preset.tail,
+      sphereEdgeGroups: [],
+      baseEdges: new Float32Array(points.flatMap((q) => [...q, ...q])),
+      tailEdges: empty,
+      spiralEdges: empty,
+      flowCloudEdges: empty,
+    })
+    return message.clippedEdges.length / 6
+  }
+
+  // The capsules through the drawn rings are what the workers model. Where the width falls fast
+  // they bulge past the drawn tube (up to 9% of the radius on the default tail, 13% on tailNone),
+  // so points just outside a ring can be inside a neighbouring capsule; the test sorts the
+  // points with the model and expects the worker to agree with it on every one.
+  for (const [name, preset] of TAILS) {
+    test(`${name}: the Cut & Glue tail is the chain of capsules through TailMesh's rings`, async () => {
+      const rings = drawnTailRings(preset)
+      const centres = rings.map((r) => r.centre)
+      const radii = rings.map(({ centre, vertices }) => Math.hypot(...([0, 1, 2].map((k) => vertices[0][k] - centre[k]) as V3)))
+      const points = rings.flatMap(({ centre, vertices }) =>
+        [0.95, 1.05, 1.15].flatMap((f) => vertices.map((v) => [0, 1, 2].map((k) => centre[k] + f * (v[k] - centre[k])) as V3)),
+      )
+      const clear = points.filter((q) => Math.abs(capsuleChainSDF(centres, radii, q)) > 1e-4)
+      const inside = clear.filter((q) => capsuleChainSDF(centres, radii, q) < 0)
+      const outside = clear.filter((q) => capsuleChainSDF(centres, radii, q) > 0)
+      expect(inside.length).toBeGreaterThan(0)
+      expect(outside.length).toBeGreaterThan(0)
+      expect(await pointsOutsideTail(preset, inside), `of ${inside.length} points inside the capsules`).toBe(0)
+      expect(await pointsOutsideTail(preset, outside), `of ${outside.length} points outside them`).toBe(outside.length)
+    })
+  }
+})

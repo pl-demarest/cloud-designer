@@ -7,7 +7,7 @@
 import type { SphereDef, TailDef, FlowCloudSettings } from '../../model/types';
 import { evalMetaballField, extractSpiral } from '../../geometry/flowField';
 import { fillField, gridFromBounds, polygonise } from '../../geometry/marchingCubes/polygonise';
-import { attachedTail, sampleTailSpline } from '../../geometry/primitives/tail';
+import { attachedTail, sampleTailSpine } from '../../geometry/primitives/tail';
 import type { FlowCloudRequest, FlowCloudResult } from '../protocol';
 
 function marchingCubes(
@@ -19,8 +19,8 @@ function marchingCubes(
   const iso = flowCloud.threshold;
   const tailStrength = flowCloud.tailStrength;
 
-  // Sample tail spline (32 segments gives smooth capsule approximation)
-  const tailSamples = tailStrength > 0 ? sampleTailSpline(tail, 32) : [];
+  // The tail's spine as TailMesh draws it
+  const tailSamples = tailStrength > 0 ? sampleTailSpine(tail) : [];
 
   // Compute bounding box from spheres
   let minX = Infinity, minY = Infinity, minZ = Infinity;
