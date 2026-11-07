@@ -17,6 +17,7 @@ import { CutGlueResult } from '../three/CutGlueResult';
 import { AxisGizmo } from '../three/AxisGizmo';
 import { useCloudStore } from '../store/cloudStore';
 import { useHistoryStore } from '../store/historyStore';
+import type { CutGlueRequest, SurfaceMeshRequest } from '../workers/protocol';
 import * as THREE from 'three';
 
 type PanelId = 'spheres' | 'base' | 'tail' | 'spirals' | 'flowCloud' | 'export';
@@ -166,7 +167,7 @@ export function App() {
       tailEdges,
       spiralEdges,
       flowCloudEdges,
-    });
+    } satisfies CutGlueRequest);
 
     // Dispatch surface mesh generation in parallel (SDF-based MC)
     const smWorker = surfaceMeshWorkerRef.current;
@@ -179,7 +180,7 @@ export function App() {
         flowCloud:  preset.flowCloud,
         spirals:    preset.spirals,
         resolution: preset.surfaceMeshResolution ?? 64,
-      });
+      } satisfies SurfaceMeshRequest);
     }
   }
 

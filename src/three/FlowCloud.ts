@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Viewport } from './Viewport';
 import { useCloudStore } from '../store/cloudStore';
+import type { FlowCloudRequest } from '../workers/protocol';
 
 const BLACK       = new THREE.LineBasicMaterial({ color: 0x000000 });
 const HANDLE_MAT  = new THREE.MeshBasicMaterial({ color: 0x06b6d4 }); // teal
@@ -114,7 +115,7 @@ export class FlowCloud {
       base:    preset.base,
       tail:    preset.tail,
       flowCloud: preset.flowCloud,
-    });
+    } satisfies FlowCloudRequest);
   }
 
   private onWorkerMessage = (e: MessageEvent<WorkerResult>): void => {

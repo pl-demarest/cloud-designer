@@ -3,16 +3,17 @@ import { vi } from 'vitest'
 /**
  * Runs a real worker module in-process.
  *
- * The three workers import types only and touch nothing but `self.onmessage`,
+ * Each worker is a thin shell over a pure core (src/workers/core) and the
+ * src/geometry modules; none of them touches anything but `self.onmessage`,
  * `self.postMessage(msg, { transfer })` and `console`. The harness swaps
- * `globalThis.self` for a stub, imports the module fresh (so its top-level code
- * runs again, as it would in a new Worker), delivers one structured-cloned
- * message and returns whatever the worker posted.
+ * `globalThis.self` for a stub, imports the shell fresh (so its module graph's
+ * top-level code runs again, as it would in a new Worker), delivers one
+ * structured-cloned message and returns whatever the worker posted.
  *
  * Console output is silenced. Calls whose first argument starts with
- * "[spiralSDF" (the surface-mesh worker's DEBUG_SPIRAL block and its load
- * marker) are counted: the count is part of the golden, so deleting that block
- * in Stage B shows up as a deliberate baseline change.
+ * "[spiralSDF" (the surface-mesh worker's former DEBUG_SPIRAL block and load
+ * marker, removed in Stage B) are counted: the golden pins 0, so a debug log
+ * that comes back fails it.
  */
 
 export type WorkerName = 'marchingCubes' | 'cutAndGlue' | 'surfaceMesh'
