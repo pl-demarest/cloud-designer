@@ -30,7 +30,7 @@
       "positions",
       "indices"
     ],
-    "spiralDebugLogs": 1,
+    "spiralDebugLogs": 0,
     "otherConsoleCalls": 0
   },
   "default": {
@@ -64,7 +64,7 @@
       "positions",
       "indices"
     ],
-    "spiralDebugLogs": 1,
+    "spiralDebugLogs": 0,
     "otherConsoleCalls": 0
   },
   "degenerateBase": {
@@ -98,7 +98,7 @@
       "positions",
       "indices"
     ],
-    "spiralDebugLogs": 1,
+    "spiralDebugLogs": 0,
     "otherConsoleCalls": 0
   },
   "degenerateEllipsoid": {
@@ -132,7 +132,7 @@
       "positions",
       "indices"
     ],
-    "spiralDebugLogs": 1,
+    "spiralDebugLogs": 0,
     "otherConsoleCalls": 0
   },
   "edgesMode": {
@@ -166,7 +166,7 @@
       "positions",
       "indices"
     ],
-    "spiralDebugLogs": 1,
+    "spiralDebugLogs": 0,
     "otherConsoleCalls": 0
   },
   "flatSpiral": {
@@ -200,7 +200,7 @@
       "positions",
       "indices"
     ],
-    "spiralDebugLogs": 1,
+    "spiralDebugLogs": 0,
     "otherConsoleCalls": 0
   },
   "rectClosedBase": {
@@ -234,7 +234,7 @@
       "positions",
       "indices"
     ],
-    "spiralDebugLogs": 1,
+    "spiralDebugLogs": 0,
     "otherConsoleCalls": 0
   },
   "rotated": {
@@ -268,7 +268,7 @@
       "positions",
       "indices"
     ],
-    "spiralDebugLogs": 1,
+    "spiralDebugLogs": 0,
     "otherConsoleCalls": 0
   },
   "tailNone": {
@@ -302,7 +302,7 @@
       "positions",
       "indices"
     ],
-    "spiralDebugLogs": 1,
+    "spiralDebugLogs": 0,
     "otherConsoleCalls": 0
   },
   "tailStart": {
@@ -336,7 +336,7 @@
       "positions",
       "indices"
     ],
-    "spiralDebugLogs": 1,
+    "spiralDebugLogs": 0,
     "otherConsoleCalls": 0
   },
   "tailStrength": {
@@ -370,7 +370,7 @@
       "positions",
       "indices"
     ],
-    "spiralDebugLogs": 1,
+    "spiralDebugLogs": 0,
     "otherConsoleCalls": 0
   },
   "thickSpiral": {
@@ -404,7 +404,7 @@
       "positions",
       "indices"
     ],
-    "spiralDebugLogs": 49,
+    "spiralDebugLogs": 0,
     "otherConsoleCalls": 0
   }
 }

@@ -15,10 +15,6 @@
 
 import type { SphereDef, BaseDef, TailDef, FlowCloudSettings, SpiralDef } from '../types/cloud';
 
-// [DEBUG_SPIRAL] top-level boot marker — if you don't see this in the console,
-// the worker file wasn't loaded (likely stale HMR — hard reload the page).
-console.log('[spiralSDF debug] surfaceMesh.worker.ts LOADED at', new Date().toISOString());
-
 // ---------------------------------------------------------------------------
 // Spline sampling (same algorithms as cutAndGlue.worker.ts)
 // ---------------------------------------------------------------------------
@@ -295,7 +291,6 @@ function evalMetaballField(
 interface SpiralSample {
   cx: number; cy: number; cz: number;   // center (world space)
   rx: number; ry: number; rz: number;   // radial direction (world)
-  sx: number; sy: number; sz: number;   // separation direction (world)
   halfThick: number;
   halfSep: number;
   cornerRadius: number;
@@ -353,9 +348,7 @@ function sampleSpiral(def: SpiralDef, samplesPerTurn: number): SpiralSample[] {
 
     // Local-space frame:
     // radial direction (thickness axis): (cosT, sinT, 0)
-    // separation direction: (0, 0, 1)
     const lrx = cosT, lry = sinT, lrz = 0;
-    const lsx = 0, lsy = 0, lsz = 1;
 
     // Rotate center + axes to world space
     const wcx = r00*lcx + r01*lcy + r02*lcz + ox;
@@ -366,14 +359,9 @@ function sampleSpiral(def: SpiralDef, samplesPerTurn: number): SpiralSample[] {
     const wry = r10*lrx + r11*lry + r12*lrz;
     const wrz = r20*lrx + r21*lry + r22*lrz;
 
-    const wsx = r00*lsx + r01*lsy + r02*lsz;
-    const wsy = r10*lsx + r11*lsy + r12*lsz;
-    const wsz = r20*lsx + r21*lsy + r22*lsz;
-
     samples.push({
       cx: wcx, cy: wcy, cz: wcz,
       rx: wrx, ry: wry, rz: wrz,
-      sx: wsx, sy: wsy, sz: wsz,
       halfThick,
       halfSep: sep / 2,
       cornerRadius: Math.min(cornerR, Math.min(halfThick, sep / 2)),
@@ -870,18 +858,6 @@ function generateSurfaceMesh(input: SMInput): { positions: Float32Array; indices
   const { spheres, base, tail, flowCloud, spirals, resolution } = input;
   const res = resolution;
 
-  // [DEBUG_SPIRAL] Temporary instrumentation — REMOVE after Phase 9 spiral SDF bug fix.
-  const DEBUG_SPIRAL = (spirals ?? []).some((sp) => (sp.thickness ?? 0) > 0);
-  if (DEBUG_SPIRAL) {
-    console.log('[spiralSDF debug] === generateSurfaceMesh start ===');
-    console.log('[spiralSDF debug] input:', {
-      sphereCount: spheres.length,
-      spiralCount: spirals?.length ?? 0,
-      resolution,
-      firstSpiral: spirals?.find((sp) => (sp.thickness ?? 0) > 0),
-    });
-  }
-
   // Sample splines
   const tailSamples = sampleTailSpline(tail, 64);
   const baseSet = sampleBaseSpline(base, 64);
@@ -894,28 +870,6 @@ function generateSurfaceMesh(input: SMInput): { positions: Float32Array; indices
   const allSpiralSamples: SpiralSample[][] = (spirals ?? []).map(
     (sp) => sampleSpiral(sp, 64)
   );
-
-  if (DEBUG_SPIRAL) {
-    console.log('[spiralSDF debug] samples per spiral:', allSpiralSamples.map((s) => s.length));
-    const firstSamples = allSpiralSamples.find((s) => s.length > 0);
-    if (firstSamples) {
-      const s0 = firstSamples[0];
-      console.log('[spiralSDF debug] first sample:', {
-        center: [s0.cx, s0.cy, s0.cz],
-        radial: [s0.rx, s0.ry, s0.rz],
-        separation: [s0.sx, s0.sy, s0.sz],
-        halfThick: s0.halfThick,
-        halfSep: s0.halfSep,
-        cornerRadius: s0.cornerRadius,
-      });
-      console.log('[spiralSDF debug] radial dot separation (should be ≈ 0):',
-        s0.rx * s0.sx + s0.ry * s0.sy + s0.rz * s0.sz);
-      console.log('[spiralSDF debug] radial magnitude (should be ≈ 1):',
-        Math.sqrt(s0.rx * s0.rx + s0.ry * s0.ry + s0.rz * s0.rz));
-      console.log('[spiralSDF debug] separation magnitude (should be ≈ 1):',
-        Math.sqrt(s0.sx * s0.sx + s0.sy * s0.sy + s0.sz * s0.sz));
-    }
-  }
 
   // Compute bounding box from all primitives
   let minX = Infinity, minY = Infinity, minZ = Infinity;
@@ -979,129 +933,6 @@ function generateSurfaceMesh(input: SMInput): { positions: Float32Array; indices
   const sy = (maxY - minY) / res;
   const sz = (maxZ - minZ) / res;
 
-  if (DEBUG_SPIRAL) {
-    console.log('[spiralSDF debug] bbox:',
-      `minX=${minX.toFixed(3)} minY=${minY.toFixed(3)} minZ=${minZ.toFixed(3)} maxX=${maxX.toFixed(3)} maxY=${maxY.toFixed(3)} maxZ=${maxZ.toFixed(3)}`);
-    console.log('[spiralSDF debug] voxel size:',
-      `sx=${sx.toFixed(4)} sy=${sy.toFixed(4)} sz=${sz.toFixed(4)}`);
-
-    const firstSamples = allSpiralSamples.find((s) => s.length > 0);
-    if (firstSamples) {
-      const s0 = firstSamples[0];
-      console.log('[spiralSDF debug] s0 center:',
-        `(${s0.cx.toFixed(3)}, ${s0.cy.toFixed(3)}, ${s0.cz.toFixed(3)})`);
-      console.log('[spiralSDF debug] s0 radial:',
-        `(${s0.rx.toFixed(3)}, ${s0.ry.toFixed(3)}, ${s0.rz.toFixed(3)})`);
-      console.log('[spiralSDF debug] s0 separation:',
-        `(${s0.sx.toFixed(3)}, ${s0.sy.toFixed(3)}, ${s0.sz.toFixed(3)})`);
-
-      // ── Deep probe: iterate all segments for ONE query point and find the min-contributing segment.
-      // Mirrors the production spiralSDF(): Gram-Schmidt frame, (localR, localS, localT),
-      // 2D rounded-rect d2 + 1D tangent dT + IQ 3D extrude combine. `minD` here must match
-      // the production field value at the same query point.
-      const deepProbe = (qx: number, qy: number, qz: number, label: string) => {
-        console.log(`[spiralSDF deep] ${label} query=(${qx.toFixed(3)}, ${qy.toFixed(3)}, ${qz.toFixed(3)})`);
-        let minD = Infinity;
-        let minInfo: {
-          i: number; tParam: number; segLen: number;
-          cx: number; cy: number; cz: number;
-          nrx: number; nry: number; nrz: number;
-          nsx: number; nsy: number; nsz: number;
-          tx: number; ty: number; tz: number;
-          localR: number; localS: number; localT: number;
-          halfThick: number; halfSep: number;
-          d2: number; dT: number;
-        } | null = null;
-
-        for (let i = 0; i < firstSamples.length - 1; i++) {
-          const a = firstSamples[i];
-          const b = firstSamples[i + 1];
-
-          const segX = b.cx - a.cx, segY = b.cy - a.cy, segZ = b.cz - a.cz;
-          const segLen2 = segX * segX + segY * segY + segZ * segZ;
-          if (segLen2 < 1e-20) continue;
-          const segLen = Math.sqrt(segLen2);
-          const tx = segX / segLen, ty = segY / segLen, tz = segZ / segLen;
-
-          const dpax = qx - a.cx, dpay = qy - a.cy, dpaz = qz - a.cz;
-          const uRaw = dpax * tx + dpay * ty + dpaz * tz;
-          const tParam = Math.max(0, Math.min(1, uRaw / segLen));
-
-          const cx = a.cx + tParam * segX, cy = a.cy + tParam * segY, cz = a.cz + tParam * segZ;
-          const irx = a.rx + tParam * (b.rx - a.rx);
-          const iry = a.ry + tParam * (b.ry - a.ry);
-          const irz = a.rz + tParam * (b.rz - a.rz);
-          const rLen = Math.sqrt(irx * irx + iry * iry + irz * irz);
-          let nrx = rLen > 1e-10 ? irx / rLen : irx;
-          let nry = rLen > 1e-10 ? iry / rLen : iry;
-          let nrz = rLen > 1e-10 ? irz / rLen : irz;
-          const rDotT = nrx * tx + nry * ty + nrz * tz;
-          nrx -= rDotT * tx; nry -= rDotT * ty; nrz -= rDotT * tz;
-          const nrLen = Math.sqrt(nrx * nrx + nry * nry + nrz * nrz);
-          if (nrLen < 1e-10) continue;
-          nrx /= nrLen; nry /= nrLen; nrz /= nrLen;
-          const nsx = ty * nrz - tz * nry;
-          const nsy = tz * nrx - tx * nrz;
-          const nsz = tx * nry - ty * nrx;
-
-          const halfThick = a.halfThick + tParam * (b.halfThick - a.halfThick);
-          const halfSep = a.halfSep + tParam * (b.halfSep - a.halfSep);
-          const cr = a.cornerRadius + tParam * (b.cornerRadius - a.cornerRadius);
-
-          const dx = qx - cx, dy = qy - cy, dz = qz - cz;
-          const localR = dx * nrx + dy * nry + dz * nrz;
-          const localS = dx * nsx + dy * nsy + dz * nsz;
-          const localT = dx * tx + dy * ty + dz * tz;
-
-          const d2 = sdRoundedRect2D(localR, localS, halfThick, halfSep, cr);
-          const lo = -tParam * segLen;
-          const hi = (1 - tParam) * segLen;
-          const dT = Math.max(lo - localT, localT - hi);
-
-          const outX = Math.max(d2, 0);
-          const outY = Math.max(dT, 0);
-          const dOutside = Math.sqrt(outX * outX + outY * outY);
-          const dInside = Math.min(Math.max(d2, dT), 0);
-          const d = dOutside + dInside;
-
-          if (d < minD) {
-            minD = d;
-            minInfo = { i, tParam, segLen, cx, cy, cz, nrx, nry, nrz, nsx, nsy, nsz, tx, ty, tz, localR, localS, localT, halfThick, halfSep, d2, dT };
-          }
-        }
-
-        console.log(`[spiralSDF deep] ${label} minD=${minD.toFixed(4)}`);
-        if (minInfo) {
-          console.log(`[spiralSDF deep]   winning segment i=${minInfo.i} tParam=${minInfo.tParam.toFixed(4)} segLen=${minInfo.segLen.toFixed(4)}`);
-          console.log(`[spiralSDF deep]   footpoint=(${minInfo.cx.toFixed(3)}, ${minInfo.cy.toFixed(3)}, ${minInfo.cz.toFixed(3)})`);
-          console.log(`[spiralSDF deep]   R=(${minInfo.nrx.toFixed(3)}, ${minInfo.nry.toFixed(3)}, ${minInfo.nrz.toFixed(3)})  |R|=${Math.sqrt(minInfo.nrx**2 + minInfo.nry**2 + minInfo.nrz**2).toFixed(4)}`);
-          console.log(`[spiralSDF deep]   S=(${minInfo.nsx.toFixed(3)}, ${minInfo.nsy.toFixed(3)}, ${minInfo.nsz.toFixed(3)})  |S|=${Math.sqrt(minInfo.nsx**2 + minInfo.nsy**2 + minInfo.nsz**2).toFixed(4)}`);
-          console.log(`[spiralSDF deep]   T=(${minInfo.tx.toFixed(3)}, ${minInfo.ty.toFixed(3)}, ${minInfo.tz.toFixed(3)})  |T|=${Math.sqrt(minInfo.tx**2 + minInfo.ty**2 + minInfo.tz**2).toFixed(4)}`);
-          console.log(`[spiralSDF deep]   R·S=${(minInfo.nrx*minInfo.nsx + minInfo.nry*minInfo.nsy + minInfo.nrz*minInfo.nsz).toFixed(4)}  R·T=${(minInfo.nrx*minInfo.tx + minInfo.nry*minInfo.ty + minInfo.nrz*minInfo.tz).toFixed(4)}  S·T=${(minInfo.nsx*minInfo.tx + minInfo.nsy*minInfo.ty + minInfo.nsz*minInfo.tz).toFixed(4)}`);
-          console.log(`[spiralSDF deep]   localR=${minInfo.localR.toFixed(4)}  localS=${minInfo.localS.toFixed(4)}  localT=${minInfo.localT.toFixed(4)}  halfThick=${minInfo.halfThick.toFixed(3)}  halfSep=${minInfo.halfSep.toFixed(3)}`);
-          console.log(`[spiralSDF deep]   d2(cross-section)=${minInfo.d2.toFixed(4)}  dT(tangent)=${minInfo.dT.toFixed(4)}  d3D=${minD.toFixed(4)}`);
-          const dx = qx - minInfo.cx, dy = qy - minInfo.cy, dz = qz - minInfo.cz;
-          const dist3d = Math.sqrt(dx * dx + dy * dy + dz * dz);
-          console.log(`[spiralSDF deep]   3D distance query→footpoint=${dist3d.toFixed(4)}`);
-        }
-      };
-
-      deepProbe(s0.cx, s0.cy, s0.cz, 'center');
-      deepProbe(
-        s0.cx + s0.halfThick * s0.rx,
-        s0.cy + s0.halfThick * s0.ry,
-        s0.cz + s0.halfThick * s0.rz,
-        'edge +radial'
-      );
-      deepProbe(
-        s0.cx + 10 * s0.halfThick * s0.rx,
-        s0.cy + 10 * s0.halfThick * s0.ry,
-        s0.cz + 10 * s0.halfThick * s0.rz,
-        'far +radial'
-      );
-    }
-  }
-
   // Build SDF field — store negated SDF so MC's "field >= 0" = "inside"
   const fieldSize = (res + 1) * (res + 1) * (res + 1);
   const field = new Float32Array(fieldSize);
@@ -1121,31 +952,10 @@ function generateSurfaceMesh(input: SMInput): { positions: Float32Array; indices
     }
   }
 
-  if (DEBUG_SPIRAL) {
-    let fieldMin = Infinity, fieldMax = -Infinity;
-    let nanCount = 0, infCount = 0, positiveCount = 0, negativeCount = 0;
-    for (let i = 0; i < field.length; i++) {
-      const v = field[i];
-      if (Number.isNaN(v)) nanCount++;
-      else if (!Number.isFinite(v)) infCount++;
-      else {
-        if (v < fieldMin) fieldMin = v;
-        if (v > fieldMax) fieldMax = v;
-        if (v >= 0) positiveCount++;
-        else negativeCount++;
-      }
-    }
-    console.log('[spiralSDF debug] field stats:', {
-      fieldMin, fieldMax, nanCount, infCount,
-      positiveCount, negativeCount, total: field.length,
-    });
-  }
-
   // March cubes at threshold = 0
   const verts: number[] = [];
   const tris: number[] = [];
   const edgeVerts = new Map<string, number>();
-  let fullyOutsideCount = 0, fullyInsideCount = 0, crossingCount = 0;
 
   function getEdgeVert(
     x0: number, y0: number, z0: number, v0: number,
@@ -1177,9 +987,7 @@ function generateSurfaceMesh(input: SMInput): { positions: Float32Array; indices
           if (vals[v] >= 0) cubeIdx |= (1 << v);
         }
 
-        if (cubeIdx === 0) { fullyOutsideCount++; continue; }
-        if (cubeIdx === 255) { fullyInsideCount++; continue; }
-        crossingCount++;
+        if (cubeIdx === 0 || cubeIdx === 255) continue;
 
         const triList = TRI_TABLE[cubeIdx];
         if (!triList || triList[0] === -1) continue;
@@ -1203,18 +1011,6 @@ function generateSurfaceMesh(input: SMInput): { positions: Float32Array; indices
         }
       }
     }
-  }
-
-  if (DEBUG_SPIRAL) {
-    console.log('[spiralSDF debug] MC summary:', {
-      totalVoxels: res * res * res,
-      fullyOutsideCount,
-      fullyInsideCount,
-      crossingCount,
-      verticesProduced: verts.length / 3,
-      trianglesProduced: tris.length / 3,
-    });
-    console.log('[spiralSDF debug] === generateSurfaceMesh end ===');
   }
 
   return {
