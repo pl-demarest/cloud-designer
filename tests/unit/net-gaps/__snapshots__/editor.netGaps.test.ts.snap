@@ -1,0 +1,43 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SpiralMesh wireframe variants outside the fixture set > thick archimedean 1`] = `
+{
+  "inf": 0,
+  "length": 6360,
+  "max": 3.431152582168579,
+  "min": -0.938376247882843,
+  "nan": 0,
+  "sha256": "3f6cbcbab854d78af81622661db356fdeaf6ab2e39c4330cf1d6b5518b9665aa",
+  "sum": 5398.89624988928,
+  "sumSq": 12807.449036733082,
+  "type": "Float32Array",
+}
+`;
+
+exports[`SpiralMesh wireframe variants outside the fixture set > thick, sharp corners 1`] = `
+{
+  "inf": 0,
+  "length": 4344,
+  "max": 3.245286464691162,
+  "min": -0.938376247882843,
+  "nan": 0,
+  "sha256": "3facff668f94a586ce0af9bcf034e8122e84aa47895e8fcf02986f9038920462",
+  "sum": 3664.147812106181,
+  "sumSq": 8342.072858707717,
+  "type": "Float32Array",
+}
+`;
+
+exports[`SpiralMesh wireframe variants outside the fixture set > thick, taperPower 0 1`] = `
+{
+  "inf": 0,
+  "length": 6360,
+  "max": 3.245286464691162,
+  "min": -0.938376247882843,
+  "nan": 0,
+  "sha256": "9d2eceeb567d445a0fa6419ff6eb06d53844b980eecd99f83f2c6f0da4a8d721",
+  "sum": 5487.742008884903,
+  "sumSq": 11835.123407616387,
+  "type": "Float32Array",
+}
+`;

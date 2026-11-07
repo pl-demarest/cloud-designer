@@ -1,0 +1,580 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`panel controls map to one preset field each > BasePanel 1`] = `
+{
+  "00 select Shape": [
+    [
+      "base.crossSectionShape",
+      "oval",
+      "rect",
+    ],
+  ],
+  "01 range Width": [
+    [
+      "base.crossSectionWidth",
+      1.2,
+      1.5430000000000001,
+    ],
+  ],
+  "02 range Height": [
+    [
+      "base.crossSectionHeight",
+      0.4,
+      0.7715000000000001,
+    ],
+  ],
+  "03 range Ring Density": [
+    [
+      "base.ringSegments",
+      16,
+      15.62,
+    ],
+  ],
+  "04 range Length Density": [
+    [
+      "base.lengthSegments",
+      24,
+      22.8,
+    ],
+  ],
+  "05 checkbox Closed": [
+    [
+      "base.closed",
+      false,
+      true,
+    ],
+  ],
+  "06 number P0": [
+    [
+      "base.controlPoints.0.0",
+      -2.5,
+      -2.13,
+    ],
+  ],
+  "07 number P0": [
+    [
+      "base.controlPoints.0.1",
+      -0.8,
+      -0.43000000000000005,
+    ],
+  ],
+  "08 number P0": [
+    [
+      "base.controlPoints.0.2",
+      0,
+      0.37,
+    ],
+  ],
+  "09 number P1": [
+    [
+      "base.controlPoints.1.0",
+      -1,
+      -0.63,
+    ],
+  ],
+  "10 number P1": [
+    [
+      "base.controlPoints.1.1",
+      -1,
+      -0.63,
+    ],
+  ],
+  "11 number P1": [
+    [
+      "base.controlPoints.1.2",
+      0.3,
+      0.6699999999999999,
+    ],
+  ],
+  "12 number P2": [
+    [
+      "base.controlPoints.2.0",
+      1,
+      1.37,
+    ],
+  ],
+  "13 number P2": [
+    [
+      "base.controlPoints.2.1",
+      -1,
+      -0.63,
+    ],
+  ],
+  "14 number P2": [
+    [
+      "base.controlPoints.2.2",
+      -0.3,
+      0.07,
+    ],
+  ],
+  "15 number P3": [
+    [
+      "base.controlPoints.3.0",
+      2.5,
+      2.87,
+    ],
+  ],
+  "16 number P3": [
+    [
+      "base.controlPoints.3.1",
+      -0.8,
+      -0.43000000000000005,
+    ],
+  ],
+  "17 number P3": [
+    [
+      "base.controlPoints.3.2",
+      0,
+      0.37,
+    ],
+  ],
+}
+`;
+
+exports[`panel controls map to one preset field each > FlowCloudPanel 1`] = `
+{
+  "00 checkbox Surface Mesh": [],
+  "01 select Mesh Density": [
+    [
+      "surfaceMeshResolution",
+      64,
+      32,
+    ],
+  ],
+  "02 range X": [
+    [
+      "flowCloud.position.0",
+      0.1,
+      -5.199999999999999,
+    ],
+  ],
+  "03 range Y": [
+    [
+      "flowCloud.position.1",
+      0.2,
+      -5.199999999999999,
+    ],
+  ],
+  "04 range Z": [
+    [
+      "flowCloud.position.2",
+      0.3,
+      -5.199999999999999,
+    ],
+  ],
+  "05 select Resolution": [
+    [
+      "flowCloud.resolution",
+      64,
+      32,
+    ],
+  ],
+  "06 range Threshold": [
+    [
+      "flowCloud.threshold",
+      1,
+      1.055,
+    ],
+  ],
+  "07 checkbox Smooth": [
+    [
+      "flowCloud.smooth",
+      true,
+      false,
+    ],
+  ],
+  "08 select Mode": [
+    [
+      "flowCloud.wireframe.mode",
+      "spiral",
+      "edges",
+    ],
+  ],
+  "09 checkbox Generate Bands": [
+    [
+      "flowCloud.wireframe.generateBands",
+      true,
+      false,
+    ],
+  ],
+  "10 checkbox Show Bands": [
+    [
+      "flowCloud.wireframe.showBands",
+      true,
+      false,
+    ],
+  ],
+  "11 checkbox Show Flow Lines": [
+    [
+      "flowCloud.wireframe.showFlowLines",
+      true,
+      false,
+    ],
+  ],
+  "12 range Bands": [
+    [
+      "flowCloud.wireframe.numBands",
+      8,
+      10,
+    ],
+  ],
+  "13 range Flow Lines": [
+    [
+      "flowCloud.wireframe.numFlowLines",
+      16,
+      11,
+    ],
+  ],
+  "14 range Spiral Twist": [
+    [
+      "flowCloud.wireframe.spiralTwist",
+      3.141592653589793,
+      4.649557127312894,
+    ],
+  ],
+}
+`;
+
+exports[`panel controls map to one preset field each > SpherePanel 1`] = `
+{
+  "00 select Shape": [
+    [
+      "spheres.0.shape",
+      "ellipsoid",
+      "sphere",
+    ],
+  ],
+  "01 range Pos X": [
+    [
+      "spheres.0.position.0",
+      0.11,
+      -2.08,
+    ],
+  ],
+  "02 range Pos Y": [
+    [
+      "spheres.0.position.1",
+      0.22,
+      -1.04,
+    ],
+  ],
+  "03 range Pos Z": [
+    [
+      "spheres.0.position.2",
+      0.33,
+      -1.04,
+    ],
+  ],
+  "04 range Radius": [
+    [
+      "spheres.0.radius",
+      1.2,
+      1.173,
+    ],
+  ],
+  "05 range Falloff": [
+    [
+      "spheres.0.falloff",
+      0.5,
+      2.165,
+    ],
+  ],
+  "06 checkbox Half": [
+    [
+      "spheres.0.half",
+      false,
+      true,
+    ],
+  ],
+  "07 range Rotate X": [
+    [
+      "spheres.0.rotation.0",
+      0.1,
+      -0.816814089933346,
+    ],
+  ],
+  "08 range Rotate Y": [
+    [
+      "spheres.0.rotation.1",
+      0.2,
+      -0.816814089933346,
+    ],
+  ],
+  "09 range Rotate Z": [
+    [
+      "spheres.0.rotation.2",
+      0.3,
+      -0.816814089933346,
+    ],
+  ],
+  "10 range Scale X": [
+    [
+      "spheres.0.scale.0",
+      1.1,
+      1.236,
+    ],
+  ],
+  "11 range Scale Y": [
+    [
+      "spheres.0.scale.1",
+      0.9,
+      1.236,
+    ],
+  ],
+  "12 range Scale Z": [
+    [
+      "spheres.0.scale.2",
+      0.8,
+      1.236,
+    ],
+  ],
+}
+`;
+
+exports[`panel controls map to one preset field each > SpiralPanel 1`] = `
+{
+  "00 select Type": [
+    [
+      "spirals.0.spiralType",
+      "golden",
+      "archimedean",
+    ],
+  ],
+  "01 range Inner Radius": [
+    [
+      "spirals.0.startRadius",
+      0.1,
+      0.7463,
+    ],
+  ],
+  "02 range Outer Radius": [
+    [
+      "spirals.0.endRadius",
+      1.4,
+      2.2830000000000004,
+    ],
+  ],
+  "03 range Turns": [
+    [
+      "spirals.0.turns",
+      2.5,
+      2.3775,
+    ],
+  ],
+  "04 range Separation": [
+    [
+      "spirals.0.separation",
+      0.3,
+      0.74,
+    ],
+  ],
+  "05 range Taper Power": [
+    [
+      "spirals.0.taperPower",
+      1,
+      1.48,
+    ],
+  ],
+  "06 range Rung Density": [
+    [
+      "spirals.0.rungDensity",
+      8,
+      12,
+    ],
+  ],
+  "07 range Thickness": [
+    [
+      "spirals.0.thickness",
+      0.15,
+      0.74,
+    ],
+  ],
+  "08 range Corner Rnd": [
+    [
+      "spirals.0.cornerRadius",
+      0.04,
+      0.37,
+    ],
+  ],
+  "09 range Pos X": [
+    [
+      "spirals.0.position.0",
+      0.5,
+      -2.08,
+    ],
+  ],
+  "10 range Pos Y": [
+    [
+      "spirals.0.position.1",
+      2.2,
+      -1.04,
+    ],
+  ],
+  "11 range Pos Z": [
+    [
+      "spirals.0.position.2",
+      -0.3,
+      -1.04,
+    ],
+  ],
+  "12 range Rotate X": [
+    [
+      "spirals.0.rotation.0",
+      0.4,
+      -0.816814089933346,
+    ],
+  ],
+  "13 range Rotate Y": [
+    [
+      "spirals.0.rotation.1",
+      0.2,
+      -0.816814089933346,
+    ],
+  ],
+  "14 range Rotate Z": [
+    [
+      "spirals.0.rotation.2",
+      0.1,
+      -0.816814089933346,
+    ],
+  ],
+}
+`;
+
+exports[`panel controls map to one preset field each > TailPanel 1`] = `
+{
+  "00 range Start radius": [
+    [
+      "tail.setpoints.0.width",
+      0.8,
+      0.5865,
+    ],
+  ],
+  "01 range End radius": [
+    [
+      "tail.setpoints.2.width",
+      0.1,
+      0.5865,
+    ],
+  ],
+  "02 range Curl": [
+    [
+      "tail.curlAmount",
+      1.5707963267948966,
+      2.324778563656447,
+    ],
+  ],
+  "03 range Radial Density": [
+    [
+      "tail.radialSegments",
+      12,
+      11.4,
+    ],
+  ],
+  "04 range Length Density": [
+    [
+      "tail.lengthSegments",
+      32,
+      28.72,
+    ],
+  ],
+  "05 select Attach": [
+    [
+      "tail.attachToBase",
+      "end",
+      "none",
+    ],
+  ],
+  "06 range Attach Offset": [
+    [
+      "tail.attachOffset",
+      1,
+      0.37,
+    ],
+  ],
+  "07 number w": [
+    [
+      "tail.setpoints.0.position.0",
+      2.5,
+      2.87,
+    ],
+  ],
+  "08 number w": [
+    [
+      "tail.setpoints.0.position.1",
+      -0.8,
+      -0.43000000000000005,
+    ],
+  ],
+  "09 number w": [
+    [
+      "tail.setpoints.0.position.2",
+      0,
+      0.37,
+    ],
+  ],
+  "10 number w": [
+    [
+      "tail.setpoints.0.width",
+      0.8,
+      1.17,
+    ],
+  ],
+  "11 number w": [
+    [
+      "tail.setpoints.1.position.0",
+      3.5,
+      3.87,
+    ],
+  ],
+  "12 number w": [
+    [
+      "tail.setpoints.1.position.1",
+      -0.4,
+      -0.030000000000000027,
+    ],
+  ],
+  "13 number w": [
+    [
+      "tail.setpoints.1.position.2",
+      0.5,
+      0.87,
+    ],
+  ],
+  "14 number w": [
+    [
+      "tail.setpoints.1.width",
+      0.4,
+      0.77,
+    ],
+  ],
+  "15 number w": [
+    [
+      "tail.setpoints.2.position.0",
+      4.2,
+      4.57,
+    ],
+  ],
+  "16 number w": [
+    [
+      "tail.setpoints.2.position.1",
+      0.2,
+      0.5700000000000001,
+    ],
+  ],
+  "17 number w": [
+    [
+      "tail.setpoints.2.position.2",
+      0.8,
+      1.17,
+    ],
+  ],
+  "18 number w": [
+    [
+      "tail.setpoints.2.width",
+      0.1,
+      0.47,
+    ],
+  ],
+}
+`;
