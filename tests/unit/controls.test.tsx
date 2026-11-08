@@ -4,6 +4,8 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { BasePanel } from '../../src/ui/panels/BasePanel'
 import { TailPanel } from '../../src/ui/panels/TailPanel'
 import { FlowCloudPanel } from '../../src/ui/panels/FlowCloudPanel'
+import { SpherePanel } from '../../src/ui/panels/SpherePanel'
+import { formatPi } from '../../src/ui/controls/format'
 import { Accordion } from '../../src/ui/controls/Accordion'
 import { useCloudStore } from '../../src/store/cloudStore'
 import { useHistoryStore } from '../../src/store/historyStore'
@@ -157,6 +159,30 @@ describe('SliderRow', () => {
     fireEvent.pointerUp(window, { pointerId: 1 })
     const steps = history().past.map((p) => [p.base.controlPoints[0][0], p.base.crossSectionWidth])
     expect(steps, 'the opening preset, the typed X, then the drag').toEqual([[-2.5, 1.2], [-2, 1.2], [-2, 1.5]])
+  })
+})
+
+describe('values that round to zero (plan decision D22)', () => {
+  test('a number field shows 0.00 for -0, -0.001 and -1.1e-16, never -0.00', () => {
+    for (const y of [-0, -0.001, -1.1e-16]) {
+      const p = structuredClone(store().preset)
+      p.base.controlPoints[0] = [-2.5, y, 0]
+      useCloudStore.setState({ preset: p })
+      const { container, unmount } = render(<BasePanel />)
+      expect(container.querySelector<HTMLInputElement>('.control-point-row input:nth-of-type(2)')!.value, String(y)).toBe('0.00')
+      unmount()
+    }
+  })
+
+  test('a slider shows 0.00 and 0°, never -0.00 or -0°', () => {
+    const p = structuredClone(store().preset)
+    p.spheres[0] = { ...p.spheres[0], position: [-0.001, 0, 0], rotation: [-0.0016, 0, 0] }
+    useCloudStore.setState({ preset: p })
+    const { container } = render(<SpherePanel />)
+    fireEvent.click(container.querySelector('.swirl-item-header')!)
+    expect(slider(container, 'Pos X').getAttribute('aria-valuetext')).toBe('0.00')
+    expect(slider(container, 'Rotate X').getAttribute('aria-valuetext')).toBe('0°')
+    expect(formatPi(-0.001)).toBe('0.00π')
   })
 })
 

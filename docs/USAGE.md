@@ -367,7 +367,8 @@ run again. Reset, Import and Discard replace the whole cloud and clear them.
   control is a button, a slider, a checkbox, a drop-down list or a text field, and has a name for
   screen readers.
 - A focused slider steps with the arrow keys, Page Up and Page Down, Home and End.
-- A number field changes only when you press Enter or leave it. An empty or non-numeric entry is
+- A number field shows its value with two decimals, a value that rounds to zero as 0.00 (never
+  −0.00), and changes only when you press Enter or leave it. An empty or non-numeric entry is
   refused and the field shows the stored value again; a number outside the field's range is
   clamped to it (setpoint width 0.05 to 1.5); Escape drops what you typed.
 

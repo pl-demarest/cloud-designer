@@ -1,6 +1,7 @@
 import { useState, type KeyboardEvent } from 'react';
 import { useCloudStore } from '../../store/cloudStore';
 import { historyShortcut } from '../shortcuts';
+import { formatFixed } from './format';
 
 interface Props {
   /** The accessible name: the inputs sit in rows without a label of their own. */
@@ -65,7 +66,7 @@ export function NumberField({ label, id, value, onChange, min = -Infinity, max =
       type="number"
       className="cp-input"
       aria-label={label}
-      value={draft ?? value.toFixed(digits)}
+      value={draft ?? formatFixed(value, digits)}
       min={Number.isFinite(min) ? min : undefined}
       max={Number.isFinite(max) ? max : undefined}
       step={step}

@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, type KeyboardEvent, type PointerEvent } from 'react';
 import { useCloudStore } from '../../store/cloudStore';
 import type { NumberRange } from '../../model/ranges';
+import { formatFixed } from './format';
 
 interface Props {
   label: string;
@@ -32,7 +33,7 @@ export function SliderRow({ label, ariaLabel, value, range, onChange, format }: 
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const keyHeld = useRef(false);
-  const display = format ? format(value) : value.toFixed(2);
+  const display = format ? format(value) : formatFixed(value, 2);
 
   // React's onChange is the input event; the native change event fires once per release or step.
   useEffect(() => {
