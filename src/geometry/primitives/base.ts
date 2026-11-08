@@ -160,6 +160,21 @@ function pieceSDF(x: number, y: number, z: number, v: BaseVolume, k: number): nu
     const oh = Math.max(h, 0);
     d = Math.min(Math.max(d, h), 0) + Math.sqrt(od * od + oh * oh);
   }
+
+  // Rings more than 90 degrees apart: the centre line turns back within this piece (a two-point
+  // curve does at its start, since three extrapolates both of its ends into one shared vector).
+  // The blended tangent then nearly vanishes, the two ring planes face each other, and the
+  // region between them is unbounded. Every drawn ring vertex lies within `reach` of its ring's
+  // centre (the larger half-size of the oval, the corner of the rectangle), and the wire runs
+  // straight from ring to ring, so the drawn piece lies within `reach` of the chord: the piece is
+  // cut to that capsule.
+  if (t[i] * t[j] + t[i + 1] * t[j + 1] + t[i + 2] * t[j + 2] < 0) {
+    const ab2 = abx * abx + aby * aby + abz * abz;
+    const h = ab2 > 0 ? Math.max(0, Math.min(1, (apx * abx + apy * aby + apz * abz) / ab2)) : 0;
+    const cx = apx - h * abx, cy = apy - h * aby, cz = apz - h * abz;
+    const reach = v.rect ? Math.sqrt(v.halfH * v.halfH + v.halfW * v.halfW) : Math.max(v.halfH, v.halfW);
+    d = Math.max(d, Math.sqrt(cx * cx + cy * cy + cz * cz) - reach);
+  }
   return d;
 }
 
@@ -173,7 +188,8 @@ function pieceSDF(x: number, y: number, z: number, v: BaseVolume, k: number): nu
  * two ring planes (as pieceSDF computes them): the cross-section distance is at least
  * -min(halfH, halfW), its value at the centre for the oval and the rectangle alike; past a shared
  * ring the depth adds the distance past the plane, and a cap intersects with the half-space
- * behind or beyond the end plane. The result is exact wherever the exact value is below `cap`, and
+ * behind or beyond the end plane (as the capsule of a piece that turns back does, which only
+ * raises the value). The result is exact wherever the exact value is below `cap`, and
  * above `cap` elsewhere; min(cap, result) is always min(cap, exact value).
  */
 export function baseSDF(x: number, y: number, z: number, v: BaseVolume, cap = Infinity): number {

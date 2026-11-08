@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { baseSDF, buildBaseVolume, insideBase, sampleBasePath } from '../../src/geometry/primitives/base'
+import { baseSDF, buildBaseVolume, insideBase, sampleBasePath, type BaseVolume } from '../../src/geometry/primitives/base'
 import { fixture } from '../fixtures/presets'
 import type { BaseDef } from '../../src/model/types'
 
@@ -84,4 +84,53 @@ describe('baseSDF', () => {
     expect(baseSDF(0, 0, 0, v)).toBe(Infinity)
     expect(insideBase(0, 0, 0, v)).toBe(false)
   })
+})
+
+describe('a centre line that turns back within one segment', () => {
+  // three's CatmullRomCurve3 extrapolates both ends of a two-point curve into one shared vector,
+  // so such a curve first runs backwards from its first point and turns round within one
+  // segment. Removing two of the default base's four points in the Base panel gives one. A
+  // control polygon that doubles back does the same in the middle of the base.
+  const pts = fixture('default').base.controlPoints
+  const TURNING: Array<[string, BaseDef]> = [
+    ...([[0, 1], [0, 2], [1, 3], [2, 3]] as const).map(
+      ([a, b]) => [`the default base cut to P${a} and P${b}`, { ...fixture('default').base, controlPoints: [pts[a], pts[b]] }] as [string, BaseDef],
+    ),
+    ['a rectangular base whose control polygon doubles back', {
+      ...fixture('default').base,
+      crossSectionShape: 'rect',
+      controlPoints: [[-2, -1, 0], [1.5, -1, 0], [-0.5, -0.9, 0.05], [2, -1, 0.1]],
+    }],
+  ]
+
+  /** Distance from (x, y, z) to the nearest straight piece between two of the volume's samples. */
+  function centreLineDistance(v: BaseVolume, x: number, y: number, z: number): number {
+    let best = Infinity
+    for (let k = 0; k < v.count - 1; k++) {
+      const [ax, ay, az] = [v.p[3 * k], v.p[3 * k + 1], v.p[3 * k + 2]]
+      const [bx, by, bz] = [v.p[3 * k + 3] - ax, v.p[3 * k + 4] - ay, v.p[3 * k + 5] - az]
+      const len2 = bx * bx + by * by + bz * bz
+      const h = len2 > 0 ? Math.max(0, Math.min(1, ((x - ax) * bx + (y - ay) * by + (z - az) * bz) / len2)) : 0
+      best = Math.min(best, Math.hypot(x - ax - h * bx, y - ay - h * by, z - az - h * bz))
+    }
+    return best
+  }
+
+  for (const [name, base] of TURNING) {
+    test(`${name}: nothing farther from the centre line than its drawn rings reach is inside`, () => {
+      const v = buildBaseVolume(base)
+      // Every drawn ring vertex lies within this distance of its ring's centre.
+      const reach = base.crossSectionShape === 'rect' ? Math.hypot(v.halfH, v.halfW) : Math.max(v.halfH, v.halfW)
+      const rnd = lcg(13)
+      let far = 0
+      for (let n = 0; n < 4000; n++) {
+        const x = (rnd() * 2 - 1) * 12, y = (rnd() * 2 - 1) * 12, z = (rnd() * 2 - 1) * 12
+        if (centreLineDistance(v, x, y, z) <= reach + 1e-9) continue
+        far++
+        expect(baseSDF(x, y, z, v), `(${x}, ${y}, ${z})`).toBeGreaterThan(0)
+        expect(insideBase(x, y, z, v), `(${x}, ${y}, ${z})`).toBe(false)
+      }
+      expect(far).toBeGreaterThan(3000)
+    })
+  }
 })

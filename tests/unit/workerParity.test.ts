@@ -7,6 +7,7 @@ import { SphereMesh } from '../../src/three/SphereMesh'
 import { useCloudStore } from '../../src/store/cloudStore'
 import { createViewportStub, isHandle } from '../helpers/scene'
 import { runWorker } from '../helpers/workerHarness'
+import { edgeUse } from '../helpers/mesh'
 import { fixture, marchingCubesMessage, surfaceMeshMessage } from '../fixtures/presets'
 import type { BaseDef, CloudPreset, TailDef } from '../../src/model/types'
 
@@ -158,6 +159,17 @@ describe('base: the surface mesh is the drawn base, closed by flat caps in its e
     expect(y).toBeLessThanOrEqual(0.6 + 1e-6)
     expect(z).toBeGreaterThan(0.1)
     expect(z).toBeLessThanOrEqual(0.2 + 1e-6)
+  })
+
+  // The Base panel removes points down to two. A two-point curve turns back on itself at its
+  // start (see baseVolume.test.ts), which must not put solid anywhere but near the drawn base.
+  test('the default preset with its base cut to P0 and P1: the surface mesh is closed', async () => {
+    const p = fixture('default')
+    p.base.controlPoints = p.base.controlPoints.slice(0, 2)
+    p.surfaceMeshResolution = 32
+    const { message } = await runWorker<{ positions: Float32Array; indices: Uint32Array }>('surfaceMesh', surfaceMeshMessage(p))
+    expect(message.indices.length).toBeGreaterThan(0)
+    expect(edgeUse(message.indices).notShared).toEqual([])
   })
 })
 
