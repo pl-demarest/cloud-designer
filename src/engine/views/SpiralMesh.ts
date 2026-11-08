@@ -98,7 +98,7 @@ export class SpiralMesh implements DragSource {
   dragTarget(handle: THREE.Object3D): DragTarget {
     const id = handle.userData.spiralId as string;
     return {
-      position: () => useCloudStore.getState().preset.spirals.find((s) => s.id === id)!.position,
+      position: () => useCloudStore.getState().preset.spirals.find((s) => s.id === id)?.position ?? [0, 0, 0],
       range: RANGES.spiral.position,
       moveTo: (position) => useCloudStore.getState().updateSpiral(id, { position }),
     };

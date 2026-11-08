@@ -8,7 +8,7 @@
 import type { BaseDef, TailDef, TailSetpoint } from '../../model/types';
 import { CatmullRomCurve } from '../catmullRom';
 import { samplePath, type PathSamples } from '../path';
-import { vec3, type Vec3 } from '../vec3';
+import { packVectors, vec3 } from '../vec3';
 import { basePointAt } from './base';
 import { BOUND_SLACK, boxDistance, emptyBox, expandBox, type Box } from '../bounds';
 
@@ -116,16 +116,6 @@ export interface TailVolume {
    *  point's distance to the box minus maxWidth (see tailPieceSDF). */
   box: Box;
   maxWidth: number;
-}
-
-function packVectors(vs: Vec3[]): Float64Array {
-  const out = new Float64Array(vs.length * 3);
-  vs.forEach((v, i) => {
-    out[i * 3] = v.x;
-    out[i * 3 + 1] = v.y;
-    out[i * 3 + 2] = v.z;
-  });
-  return out;
 }
 
 /** The solid of `tail`, whose setpoints are already resolved against the base (attachedTail). */

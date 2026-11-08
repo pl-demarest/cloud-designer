@@ -6,7 +6,7 @@
 import type { BaseDef } from '../../model/types';
 import { CatmullRomCurve } from '../catmullRom';
 import { samplePath, type PathSamples } from '../path';
-import { vec3, type Vec3 } from '../vec3';
+import { packVectors, vec3 } from '../vec3';
 import { BOUND_SLACK } from '../bounds';
 
 /** The base's centre line: uniform Catmull-Rom (tension 0.5) through the control points,
@@ -61,16 +61,6 @@ export interface BaseVolume {
  *  the corner of the rectangle. Every drawn ring vertex lies within it. */
 export function sectionReach(v: Pick<BaseVolume, 'rect' | 'halfH' | 'halfW'>): number {
   return v.rect ? Math.sqrt(v.halfH * v.halfH + v.halfW * v.halfW) : Math.max(v.halfH, v.halfW);
-}
-
-function packVectors(vs: Vec3[]): Float64Array {
-  const out = new Float64Array(vs.length * 3);
-  vs.forEach((v, i) => {
-    out[i * 3] = v.x;
-    out[i * 3 + 1] = v.y;
-    out[i * 3 + 2] = v.z;
-  });
-  return out;
 }
 
 export function buildBaseVolume(base: BaseDef): BaseVolume {

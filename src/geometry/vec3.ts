@@ -41,6 +41,17 @@ export function distance(a: Vec3, b: Vec3): number {
   return Math.sqrt(dx * dx + dy * dy + dz * dz);
 }
 
+/** x, y, z of each vector in turn, for code that reads them at every grid node. */
+export function packVectors(vs: readonly Vec3[]): Float64Array {
+  const out = new Float64Array(vs.length * 3);
+  vs.forEach((v, i) => {
+    out[i * 3] = v.x;
+    out[i * 3 + 1] = v.y;
+    out[i * 3 + 2] = v.z;
+  });
+  return out;
+}
+
 /** v / |v|, or v itself for a zero vector (Vector3.normalize: a multiply by 1 / length). */
 export function normalize(v: Vec3): Vec3 {
   const s = 1 / (length(v) || 1);

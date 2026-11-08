@@ -103,7 +103,7 @@ export class SphereMesh implements DragSource {
   dragTarget(handle: THREE.Object3D): DragTarget {
     const id = handle.userData.sphereId as string;
     return {
-      position: () => useCloudStore.getState().preset.spheres.find((s) => s.id === id)!.position,
+      position: () => useCloudStore.getState().preset.spheres.find((s) => s.id === id)?.position ?? [0, 0, 0],
       range: RANGES.sphere.position,
       moveTo: (position) => useCloudStore.getState().updateSphere(id, { position }),
     };

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import type { CloudPreset, SphereDef, BaseDef, TailDef, SpiralDef, FlowCloudSettings } from '../model/types';
-import { DEFAULT_PRESET, makeTailSetpoint } from '../model/defaults';
+import { DEFAULT_PRESET, makeSphere, makeSpiral, makeTailSetpoint } from '../model/defaults';
 import { normalizePreset } from '../model/normalize';
 import { RANGES, clampTo, clampVec3 } from '../model/ranges';
 import { sameValue } from '../engine/sameValue';
@@ -91,16 +91,7 @@ export const useCloudStore = create<CloudStore>()(
           RANGES.sphere.position,
           last ? [last.position[0] + 1.2, last.position[1], last.position[2]] : [0, 0, 0],
         );
-        const newSphere: SphereDef = {
-          id: `sphere-${nanoid()}`,
-          position: pos,
-          radius: 1.0,
-          falloff: 0.5,
-          shape: 'sphere',
-          scale: [1, 1, 1],
-          rotation: [0, 0, 0],
-          half: false,
-        };
+        const newSphere = makeSphere(`sphere-${nanoid()}`, { position: pos });
         return { preset: { ...s.preset, spheres: [...s.preset.spheres, newSphere] } };
       }),
 
@@ -206,20 +197,12 @@ export const useCloudStore = create<CloudStore>()(
     addSpiral: () =>
       set((s) => {
         const existingCount = s.preset.spirals.length;
-        const newSpiral: SpiralDef = {
-          id: `spiral-${nanoid()}`,
+        // A thick spiral with rounded corners; makeSpiral's flat default is version 1's reading.
+        const newSpiral = makeSpiral(`spiral-${nanoid()}`, {
           position: clampVec3(RANGES.spiral.position, [existingCount * 0.5, 3, 0]),
-          rotation: [0, 0, 0],
-          startRadius: 0.1,
-          endRadius: 1.5,
-          turns: 2,
-          separation: 0.3,
-          taperPower: 1,
-          rungDensity: 8,
-          spiralType: 'golden',
           thickness: 0.15,
           cornerRadius: 0.04,
-        };
+        });
         return { preset: { ...s.preset, spirals: [...s.preset.spirals, newSpiral] } };
       }),
 

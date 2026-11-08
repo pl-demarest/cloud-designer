@@ -41,9 +41,10 @@ export function readAutosave(storage: Storage): { preset: CloudPreset; savedAt: 
   const text = storage.getItem(AUTOSAVE_KEY);
   if (text === null) return null;
   try {
-    const record = JSON.parse(text) as Partial<AutosaveRecord> | null;
-    const preset = presetFromJson(record?.preset);
-    const savedAt = new Date(typeof record?.savedAt === 'string' ? record.savedAt : NaN);
+    const parsed: unknown = JSON.parse(text);
+    const record: Partial<Record<keyof AutosaveRecord, unknown>> = typeof parsed === 'object' && parsed !== null ? parsed : {};
+    const preset = presetFromJson(record.preset);
+    const savedAt = new Date(typeof record.savedAt === 'string' ? record.savedAt : NaN);
     return { preset, savedAt };
   } catch (err) {
     if (!(err instanceof SyntaxError || err instanceof PresetFileError)) throw err;

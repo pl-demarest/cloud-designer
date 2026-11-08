@@ -197,7 +197,7 @@ export class Viewport {
       root.traverseVisible((obj) => {
         if (!(obj instanceof THREE.Mesh || obj instanceof THREE.Line || obj instanceof THREE.Points)) return;
         if (isEditorOnly(obj) || !obj.layers.test(this.camera.layers)) return;
-        const geometry = obj.geometry as THREE.BufferGeometry;
+        const geometry = obj.geometry;
         if (!geometry.getAttribute('position')) return;
         if (!geometry.boundingBox) geometry.computeBoundingBox();
         box.union(part.copy(geometry.boundingBox!).applyMatrix4(obj.matrixWorld));
