@@ -9,6 +9,7 @@ import { useHistoryStore } from '../../src/store/historyStore'
 import { useUiStore } from '../../src/store/uiStore'
 import { DEFAULT_PRESET } from '../../src/model/defaults'
 import { RANGES } from '../../src/model/ranges'
+import { BasePanel } from '../../src/ui/panels/BasePanel'
 import { SphereMesh } from '../../src/engine/views/SphereMesh'
 import { createViewportStub } from '../helpers/scene'
 import * as THREE from 'three'
@@ -121,6 +122,21 @@ describe('a file with a repeated sphere id (cd:explore CDX-02)', () => {
     } finally {
       mesh.dispose()
     }
+  })
+})
+
+describe('a number field being typed in when a file is dropped (cd:review CDR-10)', () => {
+  test('the typed value is its own step before the import, and the field then shows the imported value', async () => {
+    const { container } = render(<BasePanel />)
+    const x = container.querySelector<HTMLInputElement>('.control-point-row input')!
+    x.focus()
+    fireEvent.change(x, { target: { value: '5' } }) // a draft, not applied yet
+    await importPresetFile(presetFile('dropped.json', (p) => { p.base.controlPoints[0] = [-4, -0.8, 0] }))
+    expect(store().preset.base.controlPoints[0][0]).toBe(-4)
+    await waitFor(() => expect(x.value).toBe('-4.00'))
+    fireEvent.blur(x)
+    expect(store().preset.base.controlPoints[0][0], 'leaving the field changes nothing').toBe(-4)
+    expect(history().past.map((p) => p.base.controlPoints[0][0])).toEqual([-2.5, 5, -4])
   })
 })
 

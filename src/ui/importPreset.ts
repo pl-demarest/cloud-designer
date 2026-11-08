@@ -10,6 +10,9 @@ import { PresetFileError, parsePresetJson } from '../model/presetFile';
  * nothing; the notice says why.
  */
 export async function importPresetFile(file: File): Promise<void> {
+  // A dropped file takes no focus, so a number field or the name being typed in keeps its draft;
+  // it records the draft now, as a click would, before the import replaces the preset under it.
+  if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
   const ui = useUiStore.getState();
   const report = { clamped: 0 };
   let preset;

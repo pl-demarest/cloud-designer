@@ -402,8 +402,9 @@ A file is refused, and the preset left as it was, when it is not valid JSON, is 
 holds none of the fields above, or ends up with a base of fewer than two control points or a tail
 of fewer than two setpoints. The notice says which ("Could not import <file>: …"); a successful
 import shows "Imported <file>.", and, when numbers were outside their ranges, how many ("4 values
-were outside the editor's ranges and clamped to them."). An import is one undo step. It clears the generated flow cloud and
-Cut & Glue result and regenerates nothing.
+were outside the editor's ranges and clamped to them."). An import is one undo step; a value being typed into a field when a file is dropped is applied
+first, as its own step. It clears the generated flow cloud and Cut & Glue result and regenerates
+nothing.
 
 ### Export
 
