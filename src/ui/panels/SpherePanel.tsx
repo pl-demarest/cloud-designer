@@ -1,7 +1,9 @@
 import { useCloudStore } from '../../store/cloudStore';
 import type { SphereDef } from '../../model/types';
 import { SliderRow } from '../controls/SliderRow';
-import { useState } from 'react';
+import { Vec3Field } from '../controls/Vec3Field';
+import { formatDegrees } from '../controls/format';
+import { useToggleSet } from '../hooks/useToggleSet';
 
 export function SpherePanel() {
   const spheres = useCloudStore((s) => s.preset.spheres);
@@ -9,15 +11,7 @@ export function SpherePanel() {
   const updateSphere = useCloudStore((s) => s.updateSphere);
   const removeSphere = useCloudStore((s) => s.removeSphere);
   const commit = useCloudStore((s) => s.commit);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
-
-  function toggleExpanded(id: string) {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  }
+  const [expanded, toggleExpanded] = useToggleSet<string>();
 
   function handleAdd() {
     addSphere();
@@ -69,25 +63,11 @@ export function SpherePanel() {
                     <option value="ellipsoid">Ellipsoid</option>
                   </select>
                 </div>
-                <SliderRow
-                  label="Pos X"
-                  value={sw.position[0]}
-                  min={-8} max={8} step={0.05}
-                  onChange={(v) => handleUpdate(sw.id, { position: [v, sw.position[1], sw.position[2]] })}
-                  onCommit={commit}
-                />
-                <SliderRow
-                  label="Pos Y"
-                  value={sw.position[1]}
-                  min={-4} max={4} step={0.05}
-                  onChange={(v) => handleUpdate(sw.id, { position: [sw.position[0], v, sw.position[2]] })}
-                  onCommit={commit}
-                />
-                <SliderRow
-                  label="Pos Z"
-                  value={sw.position[2]}
-                  min={-4} max={4} step={0.05}
-                  onChange={(v) => handleUpdate(sw.id, { position: [sw.position[0], sw.position[1], v] })}
+                <Vec3Field
+                  label="Pos"
+                  value={sw.position}
+                  min={[-8, -4, -4]} max={[8, 4, 4]} step={0.05}
+                  onChange={(position) => handleUpdate(sw.id, { position })}
                   onCommit={commit}
                 />
                 <SliderRow
@@ -112,54 +92,22 @@ export function SpherePanel() {
                     onChange={(e) => { handleUpdate(sw.id, { half: e.target.checked }); commit(); }}
                   />
                 </div>
-                <SliderRow
-                  label="Rotate X"
-                  value={sw.rotation[0]}
+                <Vec3Field
+                  label="Rotate"
+                  value={sw.rotation}
                   min={-Math.PI} max={Math.PI} step={0.01}
-                  onChange={(v) => handleUpdate(sw.id, { rotation: [v, sw.rotation[1], sw.rotation[2]] })}
+                  format={formatDegrees}
+                  onChange={(rotation) => handleUpdate(sw.id, { rotation })}
                   onCommit={commit}
-                  format={(v) => `${(v / Math.PI * 180).toFixed(0)}°`}
-                />
-                <SliderRow
-                  label="Rotate Y"
-                  value={sw.rotation[1]}
-                  min={-Math.PI} max={Math.PI} step={0.01}
-                  onChange={(v) => handleUpdate(sw.id, { rotation: [sw.rotation[0], v, sw.rotation[2]] })}
-                  onCommit={commit}
-                  format={(v) => `${(v / Math.PI * 180).toFixed(0)}°`}
-                />
-                <SliderRow
-                  label="Rotate Z"
-                  value={sw.rotation[2]}
-                  min={-Math.PI} max={Math.PI} step={0.01}
-                  onChange={(v) => handleUpdate(sw.id, { rotation: [sw.rotation[0], sw.rotation[1], v] })}
-                  onCommit={commit}
-                  format={(v) => `${(v / Math.PI * 180).toFixed(0)}°`}
                 />
                 {sw.shape === 'ellipsoid' && (
-                  <>
-                    <SliderRow
-                      label="Scale X"
-                      value={sw.scale[0]}
-                      min={0.2} max={3.0} step={0.05}
-                      onChange={(v) => handleUpdate(sw.id, { scale: [v, sw.scale[1], sw.scale[2]] })}
-                      onCommit={commit}
-                    />
-                    <SliderRow
-                      label="Scale Y"
-                      value={sw.scale[1]}
-                      min={0.2} max={3.0} step={0.05}
-                      onChange={(v) => handleUpdate(sw.id, { scale: [sw.scale[0], v, sw.scale[2]] })}
-                      onCommit={commit}
-                    />
-                    <SliderRow
-                      label="Scale Z"
-                      value={sw.scale[2]}
-                      min={0.2} max={3.0} step={0.05}
-                      onChange={(v) => handleUpdate(sw.id, { scale: [sw.scale[0], sw.scale[1], v] })}
-                      onCommit={commit}
-                    />
-                  </>
+                  <Vec3Field
+                    label="Scale"
+                    value={sw.scale}
+                    min={0.2} max={3.0} step={0.05}
+                    onChange={(scale) => handleUpdate(sw.id, { scale })}
+                    onCommit={commit}
+                  />
                 )}
               </div>
             )}

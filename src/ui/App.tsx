@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { ViewportCanvas } from './ViewportCanvas';
 import { Toolbar } from './Toolbar';
 import { SpherePanel } from './panels/SpherePanel';
@@ -10,6 +10,7 @@ import { ExportPanel } from './panels/ExportPanel';
 import { useEditorEngine } from '../engine/useEditorEngine';
 import { useCloudStore } from '../store/cloudStore';
 import { useUiStore } from '../store/uiStore';
+import { useToggleSet } from './hooks/useToggleSet';
 
 type PanelId = 'spheres' | 'base' | 'tail' | 'spirals' | 'flowCloud' | 'export';
 
@@ -17,9 +18,7 @@ export function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useEditorEngine(canvasRef);
 
-  const [openPanels, setOpenPanels]         = useState<Set<PanelId>>(
-    new Set(['spheres', 'flowCloud'])
-  );
+  const [openPanels, togglePanel] = useToggleSet<PanelId>(['spheres', 'flowCloud']);
 
   // The engine follows these flags (computeVisibility); the toolbar and panels set them.
   const mode               = useUiStore((s) => s.mode);
@@ -68,15 +67,6 @@ export function App() {
   function handleToggleSurfaceMesh(v: boolean) { useUiStore.getState().setSurfaceMeshVisible(v); }
 
   function handleToggleFlowCloud() { useUiStore.getState().toggleFlowCloud(); }
-
-  function togglePanel(id: PanelId) {
-    setOpenPanels((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
 
   function handleModeChange(m: 'edit' | 'preview') { useUiStore.getState().setMode(m); }
 

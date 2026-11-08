@@ -1,6 +1,8 @@
-import { useState } from 'react';
 import { useCloudStore } from '../../store/cloudStore';
 import { SliderRow } from '../controls/SliderRow';
+import { Vec3Field } from '../controls/Vec3Field';
+import { formatDegrees } from '../controls/format';
+import { useToggleSet } from '../hooks/useToggleSet';
 import type { SpiralDef } from '../../model/types';
 
 export function SpiralPanel() {
@@ -9,15 +11,7 @@ export function SpiralPanel() {
   const updateSpiral = useCloudStore((s) => s.updateSpiral);
   const removeSpiral = useCloudStore((s) => s.removeSpiral);
   const commit = useCloudStore((s) => s.commit);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
-
-  function toggleExpanded(id: string) {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  }
+  const [expanded, toggleExpanded] = useToggleSet<string>();
 
   function handleAdd() {
     addSpiral();
@@ -142,52 +136,22 @@ export function SpiralPanel() {
                 )}
 
                 {/* Position */}
-                <SliderRow
-                  label="Pos X"
-                  value={sp.position[0]}
-                  min={-8} max={8} step={0.05}
-                  onChange={(v) => handleUpdate(sp.id, { position: [v, sp.position[1], sp.position[2]] })}
-                  onCommit={commit}
-                />
-                <SliderRow
-                  label="Pos Y"
-                  value={sp.position[1]}
-                  min={-4} max={4} step={0.05}
-                  onChange={(v) => handleUpdate(sp.id, { position: [sp.position[0], v, sp.position[2]] })}
-                  onCommit={commit}
-                />
-                <SliderRow
-                  label="Pos Z"
-                  value={sp.position[2]}
-                  min={-4} max={4} step={0.05}
-                  onChange={(v) => handleUpdate(sp.id, { position: [sp.position[0], sp.position[1], v] })}
+                <Vec3Field
+                  label="Pos"
+                  value={sp.position}
+                  min={[-8, -4, -4]} max={[8, 4, 4]} step={0.05}
+                  onChange={(position) => handleUpdate(sp.id, { position })}
                   onCommit={commit}
                 />
 
                 {/* Rotation */}
-                <SliderRow
-                  label="Rotate X"
-                  value={sp.rotation[0]}
+                <Vec3Field
+                  label="Rotate"
+                  value={sp.rotation}
                   min={-Math.PI} max={Math.PI} step={0.01}
-                  onChange={(v) => handleUpdate(sp.id, { rotation: [v, sp.rotation[1], sp.rotation[2]] })}
+                  format={formatDegrees}
+                  onChange={(rotation) => handleUpdate(sp.id, { rotation })}
                   onCommit={commit}
-                  format={(v) => `${(v / Math.PI * 180).toFixed(0)}°`}
-                />
-                <SliderRow
-                  label="Rotate Y"
-                  value={sp.rotation[1]}
-                  min={-Math.PI} max={Math.PI} step={0.01}
-                  onChange={(v) => handleUpdate(sp.id, { rotation: [sp.rotation[0], v, sp.rotation[2]] })}
-                  onCommit={commit}
-                  format={(v) => `${(v / Math.PI * 180).toFixed(0)}°`}
-                />
-                <SliderRow
-                  label="Rotate Z"
-                  value={sp.rotation[2]}
-                  min={-Math.PI} max={Math.PI} step={0.01}
-                  onChange={(v) => handleUpdate(sp.id, { rotation: [sp.rotation[0], sp.rotation[1], v] })}
-                  onCommit={commit}
-                  format={(v) => `${(v / Math.PI * 180).toFixed(0)}°`}
                 />
 
               </div>

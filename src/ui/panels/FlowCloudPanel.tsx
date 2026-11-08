@@ -1,5 +1,7 @@
 import { useCloudStore } from '../../store/cloudStore';
 import { SliderRow } from '../controls/SliderRow';
+import { Vec3Field } from '../controls/Vec3Field';
+import { formatPi } from '../controls/format';
 import type { FlowCloudSettings } from '../../model/types';
 
 interface Props {
@@ -92,25 +94,11 @@ export function FlowCloudPanel({ onRegenerate, generating, showFlowCloud = true,
       </div>
       <div className="panel-subsection">
         <div className="panel-subsection-header">Position</div>
-        <SliderRow
-          label="X"
-          value={flowCloud.position[0]}
+        <Vec3Field
+          label=""
+          value={flowCloud.position}
           min={-20} max={20} step={0.1}
-          onChange={(v) => setFlowCloud({ position: [v, flowCloud.position[1], flowCloud.position[2]] })}
-          onCommit={commit}
-        />
-        <SliderRow
-          label="Y"
-          value={flowCloud.position[1]}
-          min={-20} max={20} step={0.1}
-          onChange={(v) => setFlowCloud({ position: [flowCloud.position[0], v, flowCloud.position[2]] })}
-          onCommit={commit}
-        />
-        <SliderRow
-          label="Z"
-          value={flowCloud.position[2]}
-          min={-20} max={20} step={0.1}
-          onChange={(v) => setFlowCloud({ position: [flowCloud.position[0], flowCloud.position[1], v] })}
+          onChange={(position) => setFlowCloud({ position })}
           onCommit={commit}
         />
       </div>
@@ -205,7 +193,7 @@ export function FlowCloudPanel({ onRegenerate, generating, showFlowCloud = true,
               min={0} max={Math.PI * 4} step={0.05}
               onChange={(v) => setWireframe({ spiralTwist: v })}
               onCommit={commit}
-              format={(v) => `${(v / Math.PI).toFixed(2)}π`}
+              format={formatPi}
             />
             <div className="axis-coords">
               <div>

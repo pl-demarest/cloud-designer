@@ -1,5 +1,6 @@
 import { useCloudStore } from '../../store/cloudStore';
 import { SliderRow } from '../controls/SliderRow';
+import { formatPi } from '../controls/format';
 
 export function TailPanel() {
   const tail = useCloudStore((s) => s.preset.tail);
@@ -35,7 +36,7 @@ export function TailPanel() {
         min={0} max={Math.PI * 2} step={0.05}
         onChange={(v) => setTail({ curlAmount: v })}
         onCommit={commit}
-        format={(v) => `${(v / Math.PI).toFixed(2)}π`}
+        format={formatPi}
       />
       <SliderRow
         label="Radial Density"
