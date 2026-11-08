@@ -1,9 +1,9 @@
 import type { Object3D } from 'three';
-import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { useCloudStore } from '../../store/cloudStore';
 import { useEngine } from '../EngineContext';
 import { downloadBlob, safeFileName } from '../../export/download';
 import { cloudScene, fullScene, scaffoldScene, wireframeScene, type ExportSources } from '../../export/scenes';
+import { writeGlb } from '../../export/glb';
 
 export function ExportPanel() {
   const engine = useEngine();
@@ -22,20 +22,13 @@ export function ExportPanel() {
     downloadBlob(new Blob([json], { type: 'application/json' }), `${fileStem()}-preset.json`);
   }
 
-  function exportGLB(exportGroup: Object3D, suffix: string, done?: () => void) {
-    const exporter = new GLTFExporter();
-    exporter.parse(
-      exportGroup,
-      (result) => {
-        downloadBlob(new Blob([result as ArrayBuffer], { type: 'model/gltf-binary' }), `${fileStem()}${suffix}.glb`);
-        done?.();
-      },
-      (err) => {
-        console.error('GLTFExporter error', err);
-        done?.();
-      },
-      { binary: true }
-    );
+  async function exportGLB(scene: Object3D, suffix: string) {
+    try {
+      const glb = await writeGlb(scene);
+      downloadBlob(new Blob([glb], { type: 'model/gltf-binary' }), `${fileStem()}${suffix}.glb`);
+    } catch (err) {
+      console.error('GLTFExporter error', err);
+    }
   }
 
   function handleExportScaffold() {
@@ -45,7 +38,7 @@ export function ExportPanel() {
       alert('No scaffold geometry visible.');
       return;
     }
-    exportGLB(scene, '-scaffold');
+    void exportGLB(scene, '-scaffold');
   }
 
   function handleExportWireframe() {
@@ -55,7 +48,7 @@ export function ExportPanel() {
       alert('No flow cloud geometry. Click Regenerate first.');
       return;
     }
-    exportGLB(scene, '-wireframe');
+    void exportGLB(scene, '-wireframe');
   }
 
   function handleExportBoth() {
@@ -65,7 +58,7 @@ export function ExportPanel() {
       alert('Nothing to export.');
       return;
     }
-    exportGLB(scene, '-full');
+    void exportGLB(scene, '-full');
   }
 
   function handleExportCloudGLB() {
@@ -76,7 +69,7 @@ export function ExportPanel() {
     }
     // githubLanding's input; the contract is at cloudScene (src/export/scenes.ts).
     const cloud = cloudScene(edges);
-    exportGLB(cloud.scene, '-cloud', cloud.dispose);
+    void exportGLB(cloud.scene, '-cloud').finally(cloud.dispose);
   }
 
   function copySnippet() {
