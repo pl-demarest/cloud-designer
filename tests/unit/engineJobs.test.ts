@@ -354,11 +354,12 @@ describe('the Surface Mesh box follows whether a surface mesh exists (cd:review 
     expect(shown, 'the clipped wireframe shows').toHaveLength(1)
   })
 
-  test('the engine going away unchecks it too', () => {
+  test('the engine going away unchecks it too, and leaves no surface mesh behind', () => {
     useUiStore.getState().setHasSurfaceMesh(true)
     useUiStore.getState().setSurfaceMeshVisible(true)
     engine!.dispose()
     expect(useUiStore.getState().surfaceMeshVisible).toBe(false)
+    expect(useUiStore.getState().hasSurfaceMesh, 'cd:review CDR-16').toBe(false)
     engine = null
   })
 })

@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import * as THREE from 'three'
-import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
 import { REVOKE_DELAY_MS, downloadBlob, safeFileName } from '../../src/export/download'
 import { cloneExportable, cloudScene, fullScene, scaffoldScene, wireframeScene, type ExportSources } from '../../src/export/scenes'
 import { THICK_SPIRAL, fixture } from '../fixtures/presets'
@@ -21,6 +21,9 @@ describe('safeFileName', () => {
     ['a/b:c?d*e', 'a-b-c-d-e'],
     ['Nuage d’été', 'nuage-d-ete'],
     ['keep_under-score', 'keep_under-score'],
+    // A '-' typed beside replaced characters joins one run (cd:review CDR-16).
+    ['Storm - Front', 'storm-front'],
+    ['a--b', 'a-b'],
     ['---', 'cloud'],
     ['', 'cloud'],
     ['雲', 'cloud'],
@@ -92,11 +95,15 @@ describe('the GLB scenes over the editor scene', () => {
   beforeAll(() => {
     installFakeWorker()
     installCanvas2dStub()
+  })
+  // A fresh editor per test, so no test depends on another's Regenerate (cd:review CDR-15: under
+  // --sequence.shuffle the shared scene failed one or both of the flow-cloud tests).
+  beforeEach(() => {
     const p = fixture('default')
     p.spirals = [structuredClone(THICK_SPIRAL)]
     scene = buildEditorScene(p)
   })
-  afterAll(() => scene.dispose())
+  afterEach(() => scene.dispose())
 
   const sources = (): ExportSources => ({ ...scene.engine.scaffoldGroups(), flowCloud: scene.vp.flowCloudGroup })
 
@@ -144,11 +151,11 @@ describe('the GLB scenes over the editor scene', () => {
     for (const o of [scaffold, wire, full]) expect(o.editorOnly).toBe(0)
   })
 
-  test('the part copies keep the flow-cloud group transform', () => {
+  test('the part copies keep the flow-cloud group transform', async () => {
+    await regenerateFlowCloud(scene)
     scene.vp.flowCloudGroup.position.set(1, 2, 3)
     const body = wireframeScene(sources())!.getObjectByName('body')!
     expect(body.position.toArray()).toEqual([1, 2, 3])
-    scene.vp.flowCloudGroup.position.set(0, 0, 0)
   })
 })
 

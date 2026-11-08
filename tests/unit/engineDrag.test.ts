@@ -188,6 +188,19 @@ describe('only the primary button drags', () => {
 })
 
 describe('ending a drag', () => {
+  test("another pointer's release does not end the drag (cd:review CDR-16)", () => {
+    const at = over(sphereHandle('sphere-1'))
+    pointer('pointerdown', at)
+    canvas.dispatchEvent(new PointerEvent('pointerup', { pointerId: 2, clientX: 10, clientY: 10 }))
+    window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 2, clientX: 10, clientY: 10 }))
+    expect(orbitEnabled(), 'still dragging').toBe(false)
+    const before = structuredClone(store().preset.spheres[1].position)
+    pointer('pointermove', at.clone().add(new THREE.Vector2(0.1, 0)))
+    expect(store().preset.spheres[1].position, 'the drag still moves the sphere').not.toEqual(before)
+    pointer('pointerup', at)
+    expect(orbitEnabled()).toBe(true)
+  })
+
   test('a window blur ends the drag: one undo step, the controls back, and later moves drag nothing', () => {
     history().push(store().preset)
     const at = over(sphereHandle('sphere-1'))

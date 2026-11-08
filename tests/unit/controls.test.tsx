@@ -111,6 +111,17 @@ describe('SliderRow', () => {
     expect(history().past).toHaveLength(2)
   })
 
+  test('leaving a slider while a step key is held ends its gesture (cd:review CDR-16)', () => {
+    const { container } = render(<BasePanel />)
+    const width = slider(container, 'Width')
+    fireEvent.keyDown(width, { key: 'ArrowRight' })
+    step(width, '1.25')
+    expect(store().gestureActive).toBe(true)
+    fireEvent.blur(width)
+    expect(store().gestureActive, 'the blur ended it').toBe(false)
+    expect(history().past.map((p) => p.base.crossSectionWidth)).toEqual([1.2, 1.25])
+  })
+
   test('a right or middle press opens no gesture', () => {
     const { container } = render(<BasePanel />)
     const width = slider(container, 'Width')
