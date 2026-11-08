@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { afterEach, beforeEach, describe, expect, test } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { Toolbar } from '../../src/ui/Toolbar'
 import { useCloudStore } from '../../src/store/cloudStore'
@@ -145,5 +145,26 @@ describe('Toolbar', () => {
     fireEvent.click(redo)
     expect(sphereCount()).toBe(4)
     expect(undo).toHaveProperty('disabled', false)
+  })
+
+  test('Reset asks first; accepted, it resets to the default as one undo step', () => {
+    renderToolbar()
+    act(() => {
+      store().addSphere()
+      store().commit()
+    })
+    // happy-dom has no window.confirm
+    const confirm = vi.fn().mockReturnValueOnce(false).mockReturnValueOnce(true)
+    Object.assign(window, { confirm })
+    const reset = screen.getByRole('button', { name: 'Reset' })
+    fireEvent.click(reset)
+    expect(sphereCount(), 'declined').toBe(4)
+    fireEvent.click(reset)
+    expect(confirm).toHaveBeenCalledTimes(2)
+    expect(sphereCount()).toBe(3)
+    expect(history().past).toHaveLength(3)
+    store().undo()
+    expect(sphereCount()).toBe(4)
+    Reflect.deleteProperty(window, 'confirm')
   })
 })

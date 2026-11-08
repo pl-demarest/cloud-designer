@@ -2,6 +2,7 @@ import { useCloudStore } from '../store/cloudStore';
 import { useHistoryStore } from '../store/historyStore';
 import { useUiStore } from '../store/uiStore';
 import { useEngine } from './EngineContext';
+import { confirmAndResetPreset } from './resetPreset';
 
 export function Toolbar() {
   const engine = useEngine();
@@ -49,7 +50,7 @@ export function Toolbar() {
         <button className={showGrid ? 'active' : ''} onClick={toggleGrid}>Grid</button>
         <button onClick={() => engine.current?.zoomToFit()}>Fit</button>
       </div>
-      <button onClick={() => window.location.reload()} className="btn-reset">Reset</button>
+      <button onClick={confirmAndResetPreset} className="btn-reset">Reset</button>
     </div>
   );
 }

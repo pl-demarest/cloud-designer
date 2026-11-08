@@ -158,3 +158,40 @@ test('Ctrl+Z while a slider has focus undoes its step', async ({ page }) => {
   await page.keyboard.press('Control+z')
   await expect(row.locator('.slider-value')).toHaveText('1.20')
 })
+
+// Audit finding reset-reload-data-loss: the toolbar's Reset reloaded the page, discarding the design
+// and its history without asking.
+test.describe('Reset', () => {
+  async function clickAnswering(page: import('@playwright/test').Page, button: import('@playwright/test').Locator, accept: boolean): Promise<string> {
+    const message = new Promise<string>((resolve) => {
+      page.once('dialog', (dialog) => {
+        resolve(dialog.message())
+        void (accept ? dialog.accept() : dialog.dismiss())
+      })
+    })
+    await button.click()
+    return message
+  }
+
+  for (const [where, find] of [
+    ['toolbar Reset', (page: import('@playwright/test').Page) => toolbarButton(page, 'Reset')],
+    ['Flow Cloud Reset to Default', (page: import('@playwright/test').Page) => page.getByRole('button', { name: 'Reset to Default' })],
+  ] as const) {
+    test(`${where} asks first, resets without a reload, and is one undo step`, async ({ page }) => {
+      await addSphere(page)
+      await page.evaluate(() => Object.assign(window, { notReloaded: true }))
+
+      expect(await clickAnswering(page, find(page), false)).toMatch(/default/i)
+      await expect(accordionHeader(page, 'Spheres')).toContainText('Spheres (4)')
+
+      await clickAnswering(page, find(page), true)
+      await expect(accordionHeader(page, 'Spheres')).toContainText('Spheres (3)')
+      expect(await page.evaluate(() => 'notReloaded' in window), 'no page reload').toBe(true)
+
+      await toolbarButton(page, 'Undo').click()
+      await expect(accordionHeader(page, 'Spheres')).toContainText('Spheres (4)')
+      await toolbarButton(page, 'Redo').click()
+      await expect(accordionHeader(page, 'Spheres')).toContainText('Spheres (3)')
+    })
+  }
+})

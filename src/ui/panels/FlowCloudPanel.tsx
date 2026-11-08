@@ -1,6 +1,7 @@
 import { useCloudStore } from '../../store/cloudStore';
 import { useUiStore } from '../../store/uiStore';
 import { useEngine } from '../EngineContext';
+import { confirmAndResetPreset } from '../resetPreset';
 import { SliderRow } from '../controls/SliderRow';
 import { Vec3Field } from '../controls/Vec3Field';
 import { formatPi } from '../controls/format';
@@ -12,7 +13,6 @@ export function FlowCloudPanel() {
   const surfaceMeshResolution = useCloudStore((s) => s.preset.surfaceMeshResolution);
   const setFlowCloud = useCloudStore((s) => s.setFlowCloud);
   const setSurfaceMeshResolution = useCloudStore((s) => s.setSurfaceMeshResolution);
-  const resetToDefault = useCloudStore((s) => s.resetToDefault);
   const commit = useCloudStore((s) => s.commit);
 
   // Job state and view flags: the engine publishes the first, the buttons below set the second.
@@ -28,11 +28,6 @@ export function FlowCloudPanel() {
 
   function setWireframe(patch: Partial<FlowCloudSettings['wireframe']>) {
     setFlowCloud({ wireframe: { ...flowCloud.wireframe, ...patch } });
-  }
-
-  function handleResetToDefault() {
-    resetToDefault();
-    commit();
   }
 
   function snapBackToTail() {
@@ -58,7 +53,7 @@ export function FlowCloudPanel() {
         </div>
       </div>
       <div style={{ padding: '6px 12px', borderBottom: '1px solid #eee' }}>
-        <button onClick={handleResetToDefault} className="btn-reset" style={{ width: '100%' }}>
+        <button onClick={confirmAndResetPreset} className="btn-reset" style={{ width: '100%' }}>
           Reset to Default
         </button>
         <button
