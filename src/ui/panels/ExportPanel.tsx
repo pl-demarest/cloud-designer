@@ -27,11 +27,15 @@ export function ExportPanel() {
   }
 
   async function exportGLB(scene: Object3D, suffix: string) {
+    const file = `${fileStem()}${suffix}.glb`;
     try {
       const glb = await writeGlb(scene);
-      downloadBlob(new Blob([glb], { type: 'model/gltf-binary' }), `${fileStem()}${suffix}.glb`);
+      downloadBlob(new Blob([glb], { type: 'model/gltf-binary' }), file);
     } catch (err) {
+      // writeGlb loads GLTFExporter on first use, which fails offline or after a deploy.
       console.error('GLTFExporter error', err);
+      const reason = err instanceof Error ? err.message : String(err);
+      useUiStore.getState().showNotice({ tone: 'error', text: `Could not export ${file}: ${reason}` });
     }
   }
 

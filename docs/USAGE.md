@@ -416,7 +416,8 @@ Cut & Glue result and regenerates nothing.
 | Export Both (Full) | `<name>-full.glb`: `scaffold` (spheres, base), `tail`, `spirals` and the flow cloud as `wireframe`, under `cloud`, each part when it has content. | — |
 | Copy CloudLayer Snippet | Copies the landing page's loader call for `<name>-cloud.glb` to the clipboard. | Clipboard access (a secure context such as localhost or HTTPS); a notice reports the outcome. |
 
-Every GLB holds lines only. Drag handles, the F/B anchors, the grid and the axes helper are never
+A GLB export that fails (the exporter loads on the first export, which needs the network) says
+why in the notice: "Could not export <file>: <reason>". Every GLB holds lines only. Drag handles, the F/B anchors, the grid and the axes helper are never
 exported. Each part is exported whether the viewport shows it or not (the scaffold in Preview, the
 flow cloud after Hide), but within a part an object hidden at export time is left out, such as the
 bands while Show Bands is off. The parts keep their positions: the flow cloud's node carries its
