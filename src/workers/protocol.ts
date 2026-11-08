@@ -27,9 +27,11 @@ export interface FlowCloudResult {
   /** The metaball isosurface, three floats per vertex. */
   vertices: Float32Array;
   indices: Uint32Array;
-  /** Constant-u band contours as segment pairs (spiral mode with generateBands only). */
+  /** Constant-u band contours, one array of segment pairs per contour level (spiral mode with
+   *  generateBands only). */
   bands: Float32Array[];
-  /** Flow-line polylines (spiral mode with showFlowLines only). */
+  /** Flow lines, one polyline per connected piece of each line, from low to high u (spiral mode
+   *  with showFlowLines only). */
   flowLines: Float32Array[];
 }
 
