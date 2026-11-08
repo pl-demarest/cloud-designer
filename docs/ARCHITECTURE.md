@@ -17,11 +17,11 @@ does is in [USAGE.md](USAGE.md).
 
 | Layer | Folder | Holds | Imports from `src/` | Packages |
 |---|---|---|---|---|
-| Model | `src/model` | The preset types (`CloudPreset`, every field required), `DEFAULT_PRESET` and one factory per primitive, the range table of every numeric field (`RANGES`, `RESOLUTIONS`), `normalizePreset`, and `presetFromJson` / `parsePresetJson` for files people supply | nothing | none |
+| Model | `src/model` | The preset types (`CloudPreset`, every field required), `DEFAULT_PRESET` and one factory per primitive, the range table of every numeric field (`RANGES`, `RESOLUTIONS`), `normalizePreset`, `presetFromJson` / `parsePresetJson` for files people supply, and `sameValue`, structural equality for preset data | nothing | none |
 | Geometry kernel | `src/geometry` | Vectors and rotations, the Catmull-Rom curve and Frenet frames, each primitive's path and volume, the metaball field and the flow lines, marching cubes, clipping, bounds | model (types) | none |
-| Workers | `src/workers` | `protocol.ts` (message types), three pure cores in `core/`, three thin worker shells | model, geometry | none |
+| Workers | `src/workers` | `protocol.ts` (the message types, `WorkerKind`, and `JobState` with `IDLE_JOB`), three pure cores in `core/`, three thin worker shells | model, geometry | none |
 | Engine | `src/engine` | `EditorEngine`, which owns the `Viewport`, a view per primitive in `views/`, the `DragController` and a `WorkerClient` per worker | model, geometry, store, workers | three, zustand, react (only `useEditorEngine`) |
-| Store | `src/store` | `cloudStore` (the preset, its actions, the history API), `historyStore` (the snapshot stack), `uiStore` (view flags, job states, the notice), `autosave` | model, four leaf modules of engine (below) | zustand |
+| Store | `src/store` | `cloudStore` (the preset, its actions, the history API), `historyStore` (the snapshot stack), `uiStore` (the view flags, `ViewFlags`; job states; the notice), `autosave` | model, workers (`protocol.ts`, for the job types) | zustand |
 | UI | `src/ui` | React components: `App`, `Toolbar`, the panels, the controls and hooks, import, reset and the keyboard shortcuts | model, geometry (`resolveTailSetpoints`, for Snap Back), store, engine, export | react, three (one type) |
 | Export | `src/export` | The GLB scenes, the GLB writer, the download helper | nothing | three |
 
@@ -34,10 +34,10 @@ The rules the code follows today:
 2. **A worker core is a pure function of its request.** `generateFlowCloud`, `cutAndGlue` and
    `generateSurfaceMesh` leave the request unchanged and return a new result; a shell adds only
    the message handling (`tests/unit/workerCores.test.ts`).
-3. **The stores hold no three.js objects.** The preset is plain data. The store imports four
-   modules of `src/engine` that import no store: `sameValue.ts`, and the types and constants of
-   `WorkerClient.ts` (`JobState`, `IDLE_JOB`), `visibility.ts` (`ViewFlags`) and `workers.ts`
-   (`WorkerKind`).
+3. **The stores hold no three.js objects and import nothing from `src/engine`.** The preset is
+   plain data. The engine depends on the stores, never the other way round: `computeVisibility`
+   reads `ViewFlags` from `uiStore`, and `WorkerClient` reports the `JobState` of
+   `src/workers/protocol.ts` that `uiStore.jobs` holds.
 4. **three.js objects live in the engine**, and in `src/export`, which builds its scenes from
    copies of the engine's groups.
 5. **The UI reaches the engine through `EngineContext`**, a ref that event handlers read; no

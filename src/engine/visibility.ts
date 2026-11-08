@@ -1,14 +1,4 @@
-/** The view state that decides what the viewport shows (src/store/uiStore.ts holds it). */
-export interface ViewFlags {
-  mode: 'edit' | 'preview';
-  showAxes: boolean;
-  showGrid: boolean;
-  /** Show/Hide for the flow cloud. */
-  showFlowCloud: boolean;
-  /** The Surface Mesh checkbox: the Cut & Glue result shows the surface mesh instead of the
-   *  clipped wireframe. */
-  surfaceMeshVisible: boolean;
-}
+import type { ViewFlags } from '../store/uiStore';
 
 export interface VisibilityInputs extends ViewFlags {
   /** Some spiral is flat (thickness 0); the surface mesh holds only thick ones. */

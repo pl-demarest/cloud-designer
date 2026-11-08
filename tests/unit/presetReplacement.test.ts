@@ -10,7 +10,7 @@ import { confirmAndResetPreset } from '../../src/ui/resetPreset'
 import { DEFAULT_PRESET } from '../../src/model/defaults'
 import { fullScene, wireframeScene, type ExportSources } from '../../src/export/scenes'
 import type { SurfaceMeshRequest } from '../../src/workers/protocol'
-import type { WorkerKind } from '../../src/engine/workers'
+import type { WorkerKind } from '../../src/workers/protocol'
 import { createRendererStub, installCanvas2dStub, manualWorkers, mountCanvas, type ManualWorker } from '../helpers/engine'
 
 /**

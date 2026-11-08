@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test, vi } from 'vitest'
-import { WorkerClient, type JobState } from '../../src/engine/WorkerClient'
+import { WorkerClient } from '../../src/engine/WorkerClient'
+import type { JobState } from '../../src/workers/protocol'
 
 /** A worker whose replies the test delivers by hand. */
 class ScriptedWorker {

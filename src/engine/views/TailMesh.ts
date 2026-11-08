@@ -5,7 +5,7 @@ import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import { resolveTailSetpoints, sampleTailPath } from '../../geometry/primitives/tail';
 import type { DragSource, DragTarget } from '../DragController';
-import { sameValue } from '../sameValue';
+import { sameValue } from '../../model/sameValue';
 import { RANGES } from '../../model/ranges';
 
 /** What the tail's wire and handles are built from: the attachment folds into the setpoints. */

@@ -10,7 +10,7 @@ import { createViewportStub } from '../helpers/scene'
 import { fixture } from '../fixtures/presets'
 import { digestArray } from '../helpers/digest'
 import { runWorker } from '../helpers/workerHarness'
-import type { WorkerKind } from '../../src/engine/workers'
+import type { WorkerKind } from '../../src/workers/protocol'
 
 /**
  * The engine's worker jobs (Regenerate, and Cut & Glue with its surface mesh), each through a

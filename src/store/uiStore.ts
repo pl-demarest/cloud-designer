@@ -1,7 +1,17 @@
 import { create } from 'zustand';
-import type { WorkerKind } from '../engine/workers';
-import { IDLE_JOB, type JobState } from '../engine/WorkerClient';
-import type { ViewFlags } from '../engine/visibility';
+import { IDLE_JOB, type JobState, type WorkerKind } from '../workers/protocol';
+
+/** The view state that decides what the viewport shows (computeVisibility, src/engine/visibility.ts). */
+export interface ViewFlags {
+  mode: 'edit' | 'preview';
+  showAxes: boolean;
+  showGrid: boolean;
+  /** Show/Hide for the flow cloud. */
+  showFlowCloud: boolean;
+  /** The Surface Mesh checkbox: the Cut & Glue result shows the surface mesh instead of the
+   *  clipped wireframe. */
+  surfaceMeshVisible: boolean;
+}
 
 /** A message over the viewport, such as the outcome of an import. */
 export interface Notice {

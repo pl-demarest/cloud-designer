@@ -1,7 +1,8 @@
 import type * as THREE from 'three'
 import { vi } from 'vitest'
 import type { EditorEngineOptions } from '../../src/engine/EditorEngine'
-import type { WorkerFactory, WorkerKind } from '../../src/engine/workers'
+import type { WorkerFactory } from '../../src/engine/workers'
+import type { WorkerKind } from '../../src/workers/protocol'
 import { FakeWorker } from './scene'
 import { runWorker, type WorkerName } from './workerHarness'
 

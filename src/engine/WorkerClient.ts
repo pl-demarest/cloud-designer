@@ -1,16 +1,4 @@
-import type { WorkerError } from '../workers/protocol';
-
-/** The state of a client's job, as the UI shows it. */
-export interface JobState {
-  /** 'running' from a request until its reply (or the reply of the request that replaced it). */
-  status: 'idle' | 'running' | 'done' | 'failed';
-  /** The id of the latest request; 0 before the first. */
-  requestId: number;
-  /** Why the latest request failed ('failed' only). */
-  error: string | null;
-}
-
-export const IDLE_JOB: JobState = { status: 'idle', requestId: 0, error: null };
+import { IDLE_JOB, type JobState, type WorkerError } from '../workers/protocol';
 
 /** How a request ended. 'superseded': a newer request replaced it before its reply was used. */
 export type JobOutcome<Res> =

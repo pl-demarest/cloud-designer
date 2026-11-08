@@ -14,6 +14,22 @@ export interface WorkerError {
   error: string;
 }
 
+/** The three workers: marchingCubes.worker.ts (the flow cloud), cutAndGlue.worker.ts and
+ *  surfaceMesh.worker.ts. */
+export type WorkerKind = 'flowCloud' | 'cutAndGlue' | 'surfaceMesh';
+
+/** The state of a worker's job, as WorkerClient reports it and the UI shows it (uiStore.jobs). */
+export interface JobState {
+  /** 'running' from a request until its reply (or the reply of the request that replaced it). */
+  status: 'idle' | 'running' | 'done' | 'failed';
+  /** The id of the latest request; 0 before the first. */
+  requestId: number;
+  /** Why the latest request failed ('failed' only). */
+  error: string | null;
+}
+
+export const IDLE_JOB: JobState = { status: 'idle', requestId: 0, error: null };
+
 // ── Flow cloud: marchingCubes.worker.ts ─────────────────────────────────────
 
 export interface FlowCloudRequest {

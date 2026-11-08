@@ -3,7 +3,7 @@
  * of each through a WorkerFactory; tests pass their own factory (or stub the global Worker).
  */
 
-export type WorkerKind = 'flowCloud' | 'cutAndGlue' | 'surfaceMesh';
+import type { WorkerKind } from '../workers/protocol';
 
 export type WorkerFactory = (kind: WorkerKind) => Worker;
 

@@ -100,7 +100,8 @@ src/
 │   ├── defaults.ts              DEFAULT_PRESET, PRESET_VERSION (2), one factory per primitive
 │   ├── ranges.ts                the range of every numeric field, which the panels and normalize read
 │   ├── normalize.ts             normalizePreset: any version or partial preset to a complete one
-│   └── presetFile.ts            reading a preset from JSON, with the reason when it is refused
+│   ├── presetFile.ts            reading a preset from JSON, with the reason when it is refused
+│   └── sameValue.ts             structural equality for preset data
 ├── geometry/                    the kernel the workers run and the base, tail and spiral views draw from
 │   ├── vec3.ts                  vector operations, computed as three.js's Vector3 does
 │   ├── mat3.ts                  the Euler XYZ rotation matrix, as three.js's Matrix4 computes it
@@ -120,7 +121,7 @@ src/
 │       ├── tail.ts              attachment, width profile, tail path and spine, TailVolume
 │       └── spiral.ts            spiral samples, the wire SpiralMesh draws, SpiralVolume
 ├── workers/
-│   ├── protocol.ts              request and response types of the three workers
+│   ├── protocol.ts              the three workers' messages, their kinds and job states
 │   ├── core/                    each worker's computation, a pure function of its request
 │   │   ├── flowCloud.ts         generateFlowCloud
 │   │   ├── cutAndGlue.ts        cutAndGlue
@@ -138,7 +139,6 @@ src/
 │   ├── visibility.ts            computeVisibility: what the viewport shows
 │   ├── materials.ts             one shared material per role
 │   ├── KeyedMeshSet.ts          per-id objects for the sphere and spiral lists
-│   ├── sameValue.ts             structural equality for preset data
 │   └── views/
 │       ├── SphereMesh.ts        sphere wireframes and handles
 │       ├── BaseMesh.ts          the base wireframe and its control-point handles

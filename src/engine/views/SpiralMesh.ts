@@ -3,7 +3,7 @@ import type { SpiralDef } from '../../model/types';
 import { THICK_SPIRAL_LAYER, Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import { KeyedMeshSet } from '../KeyedMeshSet';
-import { sameValue } from '../sameValue';
+import { sameValue } from '../../model/sameValue';
 import type { DragSource, DragTarget } from '../DragController';
 import { sampleSpiral, spiralWire } from '../../geometry/primitives/spiral';
 import { RANGES } from '../../model/ranges';

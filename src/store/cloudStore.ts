@@ -4,7 +4,7 @@ import type { CloudPreset, SphereDef, BaseDef, TailDef, SpiralDef, FlowCloudSett
 import { DEFAULT_PRESET, makeSphere, makeSpiral, makeTailSetpoint } from '../model/defaults';
 import { normalizePreset } from '../model/normalize';
 import { RANGES, clampTo, clampVec3 } from '../model/ranges';
-import { sameValue } from '../engine/sameValue';
+import { sameValue } from '../model/sameValue';
 import { useHistoryStore } from './historyStore';
 
 function nanoid(): string {

@@ -4,7 +4,7 @@ import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import { sampleBasePath } from '../../geometry/primitives/base';
 import type { DragSource, DragTarget } from '../DragController';
-import { sameValue } from '../sameValue';
+import { sameValue } from '../../model/sameValue';
 import { RANGES } from '../../model/ranges';
 
 export class BaseMesh implements DragSource {

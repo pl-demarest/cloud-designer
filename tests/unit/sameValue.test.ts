@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { sameValue } from '../../src/engine/sameValue'
+import { sameValue } from '../../src/model/sameValue'
 
 /** Structural equality for preset data (cd:review CDR-16: no test read it directly, and dropping
  *  its key-count check survived the suite). */

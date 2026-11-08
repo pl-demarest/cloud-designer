@@ -3,7 +3,7 @@ import type { SphereDef } from '../../model/types';
 import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import { KeyedMeshSet } from '../KeyedMeshSet';
-import { sameValue } from '../sameValue';
+import { sameValue } from '../../model/sameValue';
 import type { DragSource, DragTarget } from '../DragController';
 import { RANGES } from '../../model/ranges';
 
