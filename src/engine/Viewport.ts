@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { createEditorMaterials, disposeEditorMaterials, type EditorMaterials } from './materials';
 
 /** Creates the renderer for a canvas; tests pass one that needs no WebGL. */
 export type RendererFactory = (canvas: HTMLCanvasElement) => THREE.WebGLRenderer;
@@ -23,6 +24,8 @@ export class Viewport {
   gizmoGroup: THREE.Group;
   /** Cut & Glue output — shown in Preview mode only. NOT inside activeUnitGroup. */
   cutGlueGroup: THREE.Group;
+  /** The materials every view draws with, disposed with the viewport. */
+  readonly materials: EditorMaterials = createEditorMaterials();
 
   private tickCallbacks: Array<(dt: number) => void> = [];
   private timer = new THREE.Timer();
@@ -177,8 +180,8 @@ export class Viewport {
 
   /**
    * Stops the loop and releases what the constructor created: listeners, the grid and axes
-   * helpers, the lights and the renderer. The views dispose their own objects first
-   * (EditorEngine.dispose).
+   * helpers, the lights, the shared materials and the renderer. The views dispose their own
+   * objects first (EditorEngine.dispose).
    */
   dispose(): void {
     this.stop();
@@ -189,6 +192,7 @@ export class Viewport {
     this.grid.dispose();
     this.axes.dispose();
     for (const light of this.lights) light.dispose();
+    disposeEditorMaterials(this.materials);
     this.scene.clear();
     this.renderer.dispose();
   }

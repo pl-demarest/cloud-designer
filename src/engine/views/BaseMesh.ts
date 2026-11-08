@@ -4,9 +4,6 @@ import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import { basePointAt, sampleBasePath } from '../../geometry/primitives/base';
 
-const WIRE_MAT = new THREE.LineBasicMaterial({ color: 0x000000 });
-const HANDLE_MAT = new THREE.MeshBasicMaterial({ color: 0x16a34a });
-
 export class BaseMesh {
   private group: THREE.Group;
   private viewport: Viewport;
@@ -122,7 +119,7 @@ export class BaseMesh {
       this.wire.geometry.dispose();
     }
     const wireGeo = this.buildWireframe(def);
-    this.wire = new THREE.LineSegments(wireGeo, WIRE_MAT);
+    this.wire = new THREE.LineSegments(wireGeo, this.viewport.materials.line);
     this.group.add(this.wire);
 
     // Rebuild handles
@@ -132,7 +129,7 @@ export class BaseMesh {
     }
     this.handles = def.controlPoints.map((pt, i) => {
       const geo = new THREE.SphereGeometry(0.1, 8, 6);
-      const mesh = new THREE.Mesh(geo, HANDLE_MAT);
+      const mesh = new THREE.Mesh(geo, this.viewport.materials.baseHandle);
       mesh.position.set(...pt);
       mesh.userData.isBaseHandle = true;
       mesh.userData.cpIdx = i;

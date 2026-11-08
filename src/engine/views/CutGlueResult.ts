@@ -1,17 +1,16 @@
 import * as THREE from 'three';
 import { Viewport } from '../Viewport';
-import { disposeMaterial } from '../dispose';
-
-const MAT = new THREE.LineBasicMaterial({ color: 0x000000 });
 
 export class CutGlueResult {
   private group: THREE.Group;
+  private material: THREE.LineBasicMaterial;
   private lines: THREE.LineSegments | null = null;
   private surfaceWire: THREE.LineSegments | null = null;
   private edgesBuffer: Float32Array = new Float32Array(0);
 
   constructor(viewport: Viewport) {
     this.group = viewport.cutGlueGroup;
+    this.material = viewport.materials.line;
   }
 
   /** Update the clipped edge wireframe (from Cut & Glue worker). */
@@ -27,7 +26,7 @@ export class CutGlueResult {
     if (edges.length > 0) {
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.BufferAttribute(edges, 3));
-      this.lines = new THREE.LineSegments(geo, MAT.clone());
+      this.lines = new THREE.LineSegments(geo, this.material);
       this.group.add(this.lines);
     }
   }
@@ -45,7 +44,7 @@ export class CutGlueResult {
       geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       geo.setIndex(new THREE.BufferAttribute(indices, 1));
       const wireGeo = new THREE.WireframeGeometry(geo);
-      this.surfaceWire = new THREE.LineSegments(wireGeo, MAT.clone());
+      this.surfaceWire = new THREE.LineSegments(wireGeo, this.material);
       this.surfaceWire.visible = false; // toggled by user
       this.group.add(this.surfaceWire);
       geo.dispose();
@@ -74,8 +73,6 @@ export class CutGlueResult {
       if (!obj) continue;
       this.group.remove(obj);
       obj.geometry.dispose();
-      // Each result's material is its own clone.
-      disposeMaterial(obj.material);
     }
     this.lines = null;
     this.surfaceWire = null;

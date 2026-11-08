@@ -2,9 +2,6 @@ import * as THREE from 'three';
 import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 
-const FRONT_MAT = new THREE.MeshBasicMaterial({ color: 0x2563eb, depthTest: false });
-const BACK_MAT = new THREE.MeshBasicMaterial({ color: 0xdc2626, depthTest: false });
-
 export class AxisGizmo {
   private viewport: Viewport;
   private frontHandle: THREE.Mesh;
@@ -26,7 +23,7 @@ export class AxisGizmo {
     this.group = viewport.gizmoGroup;
 
     const hGeo = new THREE.SphereGeometry(0.2, 12, 8);
-    this.frontHandle = new THREE.Mesh(hGeo, FRONT_MAT);
+    this.frontHandle = new THREE.Mesh(hGeo, viewport.materials.gizmoFront);
     this.frontHandle.userData.isAxisGizmo = true;
     this.frontHandle.userData.which = 'front';
     this.frontHandle.renderOrder = 999;
@@ -34,7 +31,7 @@ export class AxisGizmo {
     // Add text label sprites via canvas
     this.frontHandle.add(this.makeLabel('F'));
 
-    this.backHandle = new THREE.Mesh(hGeo.clone(), BACK_MAT);
+    this.backHandle = new THREE.Mesh(hGeo.clone(), viewport.materials.gizmoBack);
     this.backHandle.userData.isAxisGizmo = true;
     this.backHandle.userData.which = 'back';
     this.backHandle.renderOrder = 999;

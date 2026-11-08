@@ -2,10 +2,6 @@ import * as THREE from 'three';
 import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import type { FlowCloudResult } from '../../workers/protocol';
-import { disposeMaterial } from '../dispose';
-
-const BLACK       = new THREE.LineBasicMaterial({ color: 0x000000 });
-const HANDLE_MAT  = new THREE.MeshBasicMaterial({ color: 0x06b6d4 }); // teal
 
 /**
  * The generated flow cloud: shows each result of the flow-cloud worker (EditorEngine runs the
@@ -38,7 +34,7 @@ export class FlowCloud {
 
     // Drag handle lives at local [0,0,0] of flowCloudGroup, moves with it
     const handleGeo = new THREE.BoxGeometry(0.25, 0.25, 0.25);
-    this.handle = new THREE.Mesh(handleGeo, HANDLE_MAT.clone());
+    this.handle = new THREE.Mesh(handleGeo, viewport.materials.flowCloudHandle);
     this.handle.userData.isHandle = true;
     this.handle.visible = false; // shown only after first Regenerate
     this.group.add(this.handle);
@@ -85,6 +81,7 @@ export class FlowCloud {
 
     const preset = useCloudStore.getState().preset;
     const mode   = preset.flowCloud.wireframe.mode;
+    const { line } = this.viewport.materials;
 
     if (mode === 'edges' && vertices.length > 0) {
       const geo = new THREE.BufferGeometry();
@@ -92,7 +89,7 @@ export class FlowCloud {
       geo.setIndex(new THREE.BufferAttribute(indices, 1));
       geo.computeVertexNormals();
       const edges = new THREE.EdgesGeometry(geo, 15);
-      const lines = new THREE.LineSegments(edges, BLACK.clone());
+      const lines = new THREE.LineSegments(edges, line);
       geo.dispose();
       this.group.add(lines);
       this.currentObjects.push(lines);
@@ -109,7 +106,7 @@ export class FlowCloud {
       for (const bandArr of bands) {
         const geo = new THREE.BufferGeometry();
         geo.setAttribute('position', new THREE.BufferAttribute(bandArr, 3));
-        bandsGrp.add(new THREE.LineSegments(geo, BLACK.clone()));
+        bandsGrp.add(new THREE.LineSegments(geo, line));
       }
 
       const flowGrp = new THREE.Group();
@@ -118,7 +115,7 @@ export class FlowCloud {
       for (const flArr of flowLines) {
         const geo = new THREE.BufferGeometry();
         geo.setAttribute('position', new THREE.BufferAttribute(flArr, 3));
-        flowGrp.add(new THREE.Line(geo, BLACK.clone()));
+        flowGrp.add(new THREE.Line(geo, line));
       }
 
       spiralGroup.add(bandsGrp, flowGrp);
@@ -195,13 +192,12 @@ export class FlowCloud {
 
   // ── Internal helpers ────────────────────────────────────────────────────────
 
-  private clearScene(disposeMaterials = false): void {
+  private clearScene(): void {
     for (const obj of this.currentObjects) {
       this.group.remove(obj);
       obj.traverse((child) => {
         if (child instanceof THREE.Line || child instanceof THREE.LineSegments) {
           child.geometry.dispose();
-          if (disposeMaterials) disposeMaterial(child.material);
         }
       });
     }
@@ -268,11 +264,9 @@ export class FlowCloud {
   dispose(): void {
     this.unsubscribeWireframe();
     this.unsubscribePosition();
-    // Each line object's material is its own clone, as is the handle's.
-    this.clearScene(true);
+    this.clearScene();
     this.group.remove(this.handle);
     this.handle.geometry.dispose();
-    disposeMaterial(this.handle.material);
 
     const canvas = this.viewport.renderer.domElement;
     canvas.removeEventListener('pointerdown', this.onPointerDown);

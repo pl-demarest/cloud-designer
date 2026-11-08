@@ -2,18 +2,21 @@ import * as THREE from 'three';
 import type { SpiralDef } from '../../model/types';
 import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
-import { disposeMaterial } from '../dispose';
-
-const HANDLE_MAT = new THREE.MeshBasicMaterial({ color: 0xf97316 }); // orange
-const WIRE_MAT = new THREE.LineBasicMaterial({ color: 0x000000 });
+import { KeyedMeshSet } from '../KeyedMeshSet';
 
 /** Smooth curve samples per full 360° turn. 64 gives sub-pixel smoothness at normal zoom. */
 const SAMPLES_PER_TURN = 64;
 
+interface SpiralEntry {
+  wire: THREE.LineSegments;
+  handle: THREE.Mesh;
+  objects: readonly THREE.Object3D[];
+}
+
 export class SpiralMesh {
   private group: THREE.Group;
   private viewport: Viewport;
-  private meshMap = new Map<string, { wire: THREE.LineSegments; handle: THREE.Mesh }>();
+  private meshes: KeyedMeshSet<SpiralDef, SpiralEntry>;
   private unsubscribe: () => void;
 
   // Drag state
@@ -26,6 +29,10 @@ export class SpiralMesh {
   constructor(viewport: Viewport) {
     this.viewport = viewport;
     this.group = viewport.spiralGroup;
+    this.meshes = new KeyedMeshSet(this.group, {
+      create: (def) => this.createMesh(def),
+      update: (entry, def) => this.updateMesh(entry, def),
+    });
 
     this.unsubscribe = useCloudStore.subscribe(
       (s) => s.preset.spirals,
@@ -42,50 +49,30 @@ export class SpiralMesh {
 
   /** Call with false in preview mode to hide handles while keeping spiral geometry visible. */
   setHandlesVisible(visible: boolean): void {
-    for (const { handle } of this.meshMap.values()) {
+    for (const { handle } of this.meshes.values()) {
       handle.visible = visible;
     }
   }
 
   private sync(spirals: SpiralDef[]): void {
-    const incomingIds = new Set(spirals.map((s) => s.id));
-
-    // Remove stale
-    for (const [id, { wire, handle }] of this.meshMap) {
-      if (!incomingIds.has(id)) {
-        this.group.remove(wire, handle);
-        wire.geometry.dispose();
-        handle.geometry.dispose();
-        this.meshMap.delete(id);
-      }
-    }
-
-    // Add / update
-    for (const def of spirals) {
-      if (this.meshMap.has(def.id)) {
-        this.updateMesh(def);
-      } else {
-        this.createMesh(def);
-      }
-    }
+    this.meshes.sync(spirals);
   }
 
-  private createMesh(def: SpiralDef): void {
-    const wire = new THREE.LineSegments(this.buildGeo(def), WIRE_MAT.clone());
+  private createMesh(def: SpiralDef): SpiralEntry {
+    const { materials } = this.viewport;
+    const wire = new THREE.LineSegments(this.buildGeo(def), materials.line);
     wire.userData.spiralId = def.id;
 
     const handleGeo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
-    const handle = new THREE.Mesh(handleGeo, HANDLE_MAT.clone());
+    const handle = new THREE.Mesh(handleGeo, materials.spiralHandle);
     handle.position.set(...def.position);
     handle.userData.spiralId = def.id;
     handle.userData.isHandle = true;
 
-    this.group.add(wire, handle);
-    this.meshMap.set(def.id, { wire, handle });
+    return { wire, handle, objects: [wire, handle] };
   }
 
-  private updateMesh(def: SpiralDef): void {
-    const entry = this.meshMap.get(def.id)!;
+  private updateMesh(entry: SpiralEntry, def: SpiralDef): void {
     entry.wire.geometry.dispose();
     entry.wire.geometry = this.buildGeo(def);
     entry.handle.position.set(...def.position);
@@ -325,7 +312,7 @@ export class SpiralMesh {
   private onPointerDown = (e: PointerEvent): void => {
     this.getPointer(e);
     this.raycaster.setFromCamera(this.pointer, this.viewport.camera);
-    const handles = Array.from(this.meshMap.values()).map((v) => v.handle);
+    const handles = Array.from(this.meshes.values()).map((v) => v.handle);
     const hits = this.raycaster.intersectObjects(handles);
     if (hits.length === 0) return;
     if (!this.viewport.claimDrag()) return;
@@ -395,7 +382,7 @@ export class SpiralMesh {
   getEdgesGrouped(): Array<{ spiralId: string; edges: Float32Array }> {
     const result: Array<{ spiralId: string; edges: Float32Array }> = [];
     const v = new THREE.Vector3();
-    for (const [id, { wire }] of this.meshMap) {
+    for (const [id, { wire }] of this.meshes) {
       const verts: number[] = [];
       wire.updateWorldMatrix(true, false);
       const pos = wire.geometry.attributes.position;
@@ -412,15 +399,7 @@ export class SpiralMesh {
 
   dispose(): void {
     this.unsubscribe();
-    for (const { wire, handle } of this.meshMap.values()) {
-      this.group.remove(wire, handle);
-      wire.geometry.dispose();
-      handle.geometry.dispose();
-      // Each spiral's materials are its own clones.
-      disposeMaterial(wire.material);
-      disposeMaterial(handle.material);
-    }
-    this.meshMap.clear();
+    this.meshes.clear();
 
     const canvas = this.viewport.renderer.domElement;
     canvas.removeEventListener('pointerdown', this.onPointerDown);

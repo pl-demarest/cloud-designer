@@ -58,6 +58,7 @@ try {
   const { TailMesh } = await load('/src/engine/views/TailMesh.ts')
   const { SpiralMesh } = await load('/src/engine/views/SpiralMesh.ts')
   const { FlowCloud } = await load('/src/engine/views/FlowCloud.ts')
+  const { createEditorMaterials } = await load('/src/engine/materials.ts')
 
   /** The groups and fields of Viewport that the editor modules touch (tests/helpers/scene.ts). */
   function viewportStub() {
@@ -85,6 +86,7 @@ try {
       ...groups,
       cutGlueGroup: named('cutGlueGroup'),
       renderer: { domElement: new EventTarget() },
+      materials: createEditorMaterials(),
       controls: { enabled: true },
       claimDrag: () => (claimed ? false : (claimed = true)),
       releaseDrag: () => {

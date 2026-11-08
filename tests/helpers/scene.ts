@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { vi } from 'vitest'
 import type { Viewport } from '../../src/engine/Viewport'
 import { EditorEngine } from '../../src/engine/EditorEngine'
+import { createEditorMaterials } from '../../src/engine/materials'
 import type { SphereMesh } from '../../src/engine/views/SphereMesh'
 import type { BaseMesh } from '../../src/engine/views/BaseMesh'
 import type { TailMesh } from '../../src/engine/views/TailMesh'
@@ -25,7 +26,8 @@ import { createRendererStub, mountCanvas } from './engine'
 /**
  * The parts of Viewport the mesh modules touch: the eight groups (with the same
  * scene hierarchy as the real Viewport, so matrixWorld is identical), the camera,
- * the canvas, OrbitControls' `enabled` flag and drag arbitration. No WebGL.
+ * the canvas, the shared materials, OrbitControls' `enabled` flag and drag
+ * arbitration. No WebGL.
  */
 export function createViewportStub(): Viewport {
   const scene = new THREE.Scene()
@@ -57,6 +59,7 @@ export function createViewportStub(): Viewport {
     ...groups,
     cutGlueGroup,
     renderer: { domElement: document.createElement('canvas') },
+    materials: createEditorMaterials(),
     controls: { enabled: true },
     claimDrag: () => (claimed ? false : (claimed = true)),
     releaseDrag: () => {
@@ -72,10 +75,14 @@ export function createViewportStub(): Viewport {
 /**
  * Stands in for the browser Worker. `new Worker(new URL('../workers/x.worker.ts', ...))`
  * is mapped to the worker name; postMessage runs the real module through the
- * harness on a later task and delivers the result to `onmessage`.
+ * harness on a later task and delivers the result to `onmessage`. Runs of all
+ * instances take turns: the harness swaps the global `self` for the duration of a
+ * run, so two overlapping runs (the cut-and-glue and surface-mesh requests of one
+ * Cut & Glue) would install their handlers on each other's stub.
  */
 export class FakeWorker {
   static instances: FakeWorker[] = []
+  private static turn: Promise<unknown> = Promise.resolve()
   readonly name: WorkerName
   onmessage: ((e: MessageEvent) => void) | null = null
   onerror: ((e: unknown) => void) | null = null
@@ -92,12 +99,14 @@ export class FakeWorker {
 
   postMessage(data: unknown): void {
     this.posted.push(data)
+    const run = FakeWorker.turn
+      .then(() => new Promise<void>((resolve) => setTimeout(resolve, 0)))
+      .then(() => runWorker(this.name, data))
+    FakeWorker.turn = run.catch(() => {})
     this.inflight.push(
-      new Promise<void>((resolve) => setTimeout(resolve, 0))
-        .then(() => runWorker(this.name, data))
-        .then((run) => {
-          if (!this.terminated) this.onmessage?.({ data: run.message } as MessageEvent)
-        }),
+      run.then((r) => {
+        if (!this.terminated) this.onmessage?.({ data: r.message } as MessageEvent)
+      }),
     )
   }
 

@@ -2,15 +2,18 @@ import * as THREE from 'three';
 import type { SphereDef } from '../../model/types';
 import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
-import { disposeMaterial } from '../dispose';
+import { KeyedMeshSet } from '../KeyedMeshSet';
 
-const HANDLE_MAT = new THREE.MeshBasicMaterial({ color: 0x2563eb });
-const WIRE_MAT = new THREE.LineBasicMaterial({ color: 0x000000 });
+interface SphereEntry {
+  wire: THREE.LineSegments;
+  handle: THREE.Mesh;
+  objects: readonly THREE.Object3D[];
+}
 
 export class SphereMesh {
   private group: THREE.Group;
   private viewport: Viewport;
-  private meshMap = new Map<string, { wire: THREE.LineSegments; handle: THREE.Mesh }>();
+  private meshes: KeyedMeshSet<SphereDef, SphereEntry>;
   private unsubscribe: () => void;
 
   // Drag state
@@ -23,6 +26,10 @@ export class SphereMesh {
   constructor(viewport: Viewport) {
     this.viewport = viewport;
     this.group = viewport.sphereGroup;
+    this.meshes = new KeyedMeshSet(this.group, {
+      create: (def) => this.createMesh(def),
+      update: (entry, def) => this.updateMesh(entry, def),
+    });
 
     // Subscribe to store changes
     this.unsubscribe = useCloudStore.subscribe(
@@ -42,46 +49,26 @@ export class SphereMesh {
   }
 
   private sync(spheres: SphereDef[]): void {
-    const incomingIds = new Set(spheres.map((s) => s.id));
-
-    // Remove stale
-    for (const [id, { wire, handle }] of this.meshMap) {
-      if (!incomingIds.has(id)) {
-        this.group.remove(wire, handle);
-        wire.geometry.dispose();
-        handle.geometry.dispose();
-        this.meshMap.delete(id);
-      }
-    }
-
-    // Add / update
-    for (const def of spheres) {
-      if (this.meshMap.has(def.id)) {
-        this.updateMesh(def);
-      } else {
-        this.createMesh(def);
-      }
-    }
+    this.meshes.sync(spheres);
   }
 
-  private createMesh(def: SphereDef): void {
+  private createMesh(def: SphereDef): SphereEntry {
     const geo = this.buildGeo(def);
-    const wire = new THREE.LineSegments(new THREE.WireframeGeometry(geo), WIRE_MAT.clone());
+    const { materials } = this.viewport;
+    const wire = new THREE.LineSegments(new THREE.WireframeGeometry(geo), materials.line);
     wire.userData.sphereId = def.id;
 
     const handleGeo = new THREE.BoxGeometry(0.18, 0.18, 0.18);
-    const handle = new THREE.Mesh(handleGeo, HANDLE_MAT.clone());
+    const handle = new THREE.Mesh(handleGeo, materials.sphereHandle);
     handle.userData.sphereId = def.id;
     handle.userData.isHandle = true;
 
     this.applyTransform(wire, handle, def);
-    this.group.add(wire, handle);
-    this.meshMap.set(def.id, { wire, handle });
     geo.dispose();
+    return { wire, handle, objects: [wire, handle] };
   }
 
-  private updateMesh(def: SphereDef): void {
-    const entry = this.meshMap.get(def.id)!;
+  private updateMesh(entry: SphereEntry, def: SphereDef): void {
     entry.wire.geometry.dispose();
     const geo = this.buildGeo(def);
     entry.wire.geometry = new THREE.WireframeGeometry(geo);
@@ -118,7 +105,7 @@ export class SphereMesh {
   private onPointerDown = (e: PointerEvent): void => {
     this.getPointer(e);
     this.raycaster.setFromCamera(this.pointer, this.viewport.camera);
-    const handles = Array.from(this.meshMap.values()).map((v) => v.handle);
+    const handles = Array.from(this.meshes.values()).map((v) => v.handle);
     const hits = this.raycaster.intersectObjects(handles);
     if (hits.length === 0) return;
     if (!this.viewport.claimDrag()) return;
@@ -187,7 +174,7 @@ export class SphereMesh {
   getEdgesGrouped(): Array<{ sphereId: string; edges: Float32Array }> {
     const groups: Array<{ sphereId: string; edges: Float32Array }> = [];
     const v = new THREE.Vector3();
-    for (const [id, { wire }] of this.meshMap) {
+    for (const [id, { wire }] of this.meshes) {
       wire.updateWorldMatrix(true, false);
       const pos = wire.geometry.attributes.position;
       if (!pos) continue;
@@ -204,15 +191,7 @@ export class SphereMesh {
 
   dispose(): void {
     this.unsubscribe();
-    for (const { wire, handle } of this.meshMap.values()) {
-      this.group.remove(wire, handle);
-      wire.geometry.dispose();
-      handle.geometry.dispose();
-      // Each sphere's materials are its own clones.
-      disposeMaterial(wire.material);
-      disposeMaterial(handle.material);
-    }
-    this.meshMap.clear();
+    this.meshes.clear();
 
     const canvas = this.viewport.renderer.domElement;
     canvas.removeEventListener('pointerdown', this.onPointerDown);

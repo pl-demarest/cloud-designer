@@ -5,9 +5,6 @@ import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import { resolveTailSetpoints, sampleTailPath } from '../../geometry/primitives/tail';
 
-const WIRE_MAT = new THREE.LineBasicMaterial({ color: 0x000000 });
-const HANDLE_MAT = new THREE.MeshBasicMaterial({ color: 0xdc2626 });
-
 export class TailMesh {
   private group: THREE.Group;
   private viewport: Viewport;
@@ -110,7 +107,7 @@ export class TailMesh {
       this.wire.geometry.dispose();
     }
     const wireGeo = this.buildWireframe(tail, resolved);
-    this.wire = new THREE.LineSegments(wireGeo, WIRE_MAT);
+    this.wire = new THREE.LineSegments(wireGeo, this.viewport.materials.line);
     this.group.add(this.wire);
 
     // Rebuild handles
@@ -120,7 +117,7 @@ export class TailMesh {
     }
     this.handles = resolved.map((sp, i) => {
       const hGeo = new THREE.SphereGeometry(0.08, 8, 6);
-      const mesh = new THREE.Mesh(hGeo, HANDLE_MAT);
+      const mesh = new THREE.Mesh(hGeo, this.viewport.materials.tailHandle);
       mesh.position.set(...sp.position);
       mesh.userData.isTailHandle = true;
       mesh.userData.spId = tail.setpoints[i]?.id ?? sp.id;
