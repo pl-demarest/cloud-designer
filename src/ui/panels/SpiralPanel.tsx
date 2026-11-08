@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useCloudStore } from '../store/cloudStore';
-import { SliderRow } from './ui/SliderRow';
-import type { SpiralDef } from '../model/types';
+import { useCloudStore } from '../../store/cloudStore';
+import { SliderRow } from '../controls/SliderRow';
+import type { SpiralDef } from '../../model/types';
 
 export function SpiralPanel() {
   const spirals = useCloudStore((s) => s.preset.spirals);

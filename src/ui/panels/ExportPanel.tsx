@@ -1,4 +1,4 @@
-import { useCloudStore } from '../store/cloudStore';
+import { useCloudStore } from '../../store/cloudStore';
 import * as THREE from 'three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 

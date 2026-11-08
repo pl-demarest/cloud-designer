@@ -1,6 +1,6 @@
-import { useCloudStore } from '../store/cloudStore';
-import { SliderRow } from './ui/SliderRow';
-import type { FlowCloudSettings } from '../model/types';
+import { useCloudStore } from '../../store/cloudStore';
+import { SliderRow } from '../controls/SliderRow';
+import type { FlowCloudSettings } from '../../model/types';
 
 interface Props {
   onRegenerate?: () => void;

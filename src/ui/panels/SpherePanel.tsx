@@ -1,6 +1,6 @@
-import { useCloudStore } from '../store/cloudStore';
-import type { SphereDef } from '../model/types';
-import { SliderRow } from './ui/SliderRow';
+import { useCloudStore } from '../../store/cloudStore';
+import type { SphereDef } from '../../model/types';
+import { SliderRow } from '../controls/SliderRow';
 import { useState } from 'react';
 
 export function SpherePanel() {

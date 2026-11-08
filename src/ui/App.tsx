@@ -1,12 +1,12 @@
 import { useRef, useState, useEffect } from 'react';
 import { ViewportCanvas } from './ViewportCanvas';
 import { Toolbar } from './Toolbar';
-import { SpherePanel } from './SpherePanel';
-import { BasePanel } from './BasePanel';
-import { TailPanel } from './TailPanel';
-import { SpiralPanel } from './SpiralPanel';
-import { FlowCloudPanel } from './FlowCloudPanel';
-import { ExportPanel } from './ExportPanel';
+import { SpherePanel } from './panels/SpherePanel';
+import { BasePanel } from './panels/BasePanel';
+import { TailPanel } from './panels/TailPanel';
+import { SpiralPanel } from './panels/SpiralPanel';
+import { FlowCloudPanel } from './panels/FlowCloudPanel';
+import { ExportPanel } from './panels/ExportPanel';
 import { useEditorEngine } from '../engine/useEditorEngine';
 import { useCloudStore } from '../store/cloudStore';
 import { useUiStore } from '../store/uiStore';

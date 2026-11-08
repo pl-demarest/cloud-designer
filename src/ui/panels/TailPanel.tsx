@@ -1,5 +1,5 @@
-import { useCloudStore } from '../store/cloudStore';
-import { SliderRow } from './ui/SliderRow';
+import { useCloudStore } from '../../store/cloudStore';
+import { SliderRow } from '../controls/SliderRow';
 
 export function TailPanel() {
   const tail = useCloudStore((s) => s.preset.tail);
