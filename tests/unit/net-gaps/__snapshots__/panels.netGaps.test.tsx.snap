@@ -176,56 +176,49 @@ exports[`panel controls map to one preset field each > FlowCloudPanel 1`] = `
       1.055,
     ],
   ],
-  "07 checkbox Smooth": [
-    [
-      "flowCloud.smooth",
-      true,
-      false,
-    ],
-  ],
-  "08 select Mode": [
+  "07 select Mode": [
     [
       "flowCloud.wireframe.mode",
       "spiral",
       "edges",
     ],
   ],
-  "09 checkbox Generate Bands": [
+  "08 checkbox Generate Bands": [
     [
       "flowCloud.wireframe.generateBands",
       true,
       false,
     ],
   ],
-  "10 checkbox Show Bands": [
+  "09 checkbox Show Bands": [
     [
       "flowCloud.wireframe.showBands",
       true,
       false,
     ],
   ],
-  "11 checkbox Show Flow Lines": [
+  "10 checkbox Show Flow Lines": [
     [
       "flowCloud.wireframe.showFlowLines",
       true,
       false,
     ],
   ],
-  "12 range Bands": [
+  "11 range Bands": [
     [
       "flowCloud.wireframe.numBands",
       8,
       10,
     ],
   ],
-  "13 range Flow Lines": [
+  "12 range Flow Lines": [
     [
       "flowCloud.wireframe.numFlowLines",
       16,
       11,
     ],
   ],
-  "14 range Spiral Twist": [
+  "13 range Spiral Twist": [
     [
       "flowCloud.wireframe.spiralTwist",
       3.141592653589793,

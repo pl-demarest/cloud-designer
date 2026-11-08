@@ -342,14 +342,18 @@ test.describe('checkboxes', () => {
     await expect(fieldRow(body, 'Show Bands').locator('input[type=checkbox]')).not.toBeChecked()
   })
 
-  test('Show Flow Lines and Smooth checkboxes toggle', async ({ page }) => {
+  test('Show Flow Lines checkbox toggles', async ({ page }) => {
     const body = await openPanel(page, 'Flow Cloud')
-    for (const label of ['Show Flow Lines', 'Smooth']) {
-      const box = fieldRow(body, label).locator('input[type=checkbox]')
-      await expect(box, label).toBeChecked()
-      await box.uncheck()
-      await expect(box, label).not.toBeChecked()
-    }
+    const box = fieldRow(body, 'Show Flow Lines').locator('input[type=checkbox]')
+    await expect(box).toBeChecked()
+    await box.uncheck()
+    await expect(box).not.toBeChecked()
+  })
+
+  // Plan decision D7: Smooth (flowCloud.smooth) changed nothing; the field stays in the preset.
+  test('the Flow Cloud panel has no Smooth control', async ({ page }) => {
+    const body = await openPanel(page, 'Flow Cloud')
+    await expect(body.getByText('Smooth', { exact: true })).toHaveCount(0)
   })
 
   test('Surface Mesh checkbox is disabled until Cut & Glue has run', async ({ page }) => {

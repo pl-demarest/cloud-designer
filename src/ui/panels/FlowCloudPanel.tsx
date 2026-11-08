@@ -115,14 +115,6 @@ export function FlowCloudPanel() {
         min={0.5} max={2.0} step={0.05}
         onChange={(v) => setFlowCloud({ threshold: v })}
       />
-      <div className="field-row">
-        <label>Smooth</label>
-        <input
-          type="checkbox"
-          checked={flowCloud.smooth}
-          onChange={(e) => { setFlowCloud({ smooth: e.target.checked }); commit(); }}
-        />
-      </div>
       <div className="panel-subsection">
         <div className="panel-subsection-header">Wireframe</div>
         <div className="field-row">
