@@ -52,7 +52,7 @@ function tailHandlePositions(vp: ReturnType<typeof createViewportStub>): number[
 }
 
 describe('known editor defects (expected to fail until fixed)', () => {
-  it.fails('history-stale-commit: after "+ Add" the newest history snapshot is the post-add preset', () => {
+  it('history-stale-commit: after "+ Add" the newest history snapshot is the post-add preset', () => {
     useHistoryStore.getState().push(store().preset) // App pushes the initial preset on mount
     render(<SpherePanel />)
     fireEvent.click(screen.getByRole('button', { name: '+ Add' }))

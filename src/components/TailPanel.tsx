@@ -1,19 +1,13 @@
 import { useCloudStore } from '../store/cloudStore';
-import { useHistoryStore } from '../store/historyStore';
 import { SliderRow } from './ui/SliderRow';
 
 export function TailPanel() {
   const tail = useCloudStore((s) => s.preset.tail);
-  const preset = useCloudStore((s) => s.preset);
   const setTail = useCloudStore((s) => s.setTail);
   const addTailSetpoint = useCloudStore((s) => s.addTailSetpoint);
   const removeTailSetpoint = useCloudStore((s) => s.removeTailSetpoint);
   const updateTailSetpoint = useCloudStore((s) => s.updateTailSetpoint);
-  const push = useHistoryStore((s) => s.push);
-
-  function commit() {
-    push(preset);
-  }
+  const commit = useCloudStore((s) => s.commit);
 
   return (
     <div className="panel-section">
@@ -61,8 +55,7 @@ export function TailPanel() {
         <label>Attach</label>
         <select
           value={tail.attachToBase}
-          onChange={(e) => setTail({ attachToBase: e.target.value as 'start' | 'end' | 'none' })}
-          onBlur={commit}
+          onChange={(e) => { setTail({ attachToBase: e.target.value as 'start' | 'end' | 'none' }); commit(); }}
         >
           <option value="none">None</option>
           <option value="start">Base Start</option>

@@ -3,6 +3,8 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import type { CloudPreset, SphereDef, BaseDef, TailDef, SpiralDef, FlowCloudSettings } from '../model/types';
 import { DEFAULT_PRESET } from '../model/defaults';
 import { normalizePreset } from '../model/normalize';
+import { sameValue } from '../engine/sameValue';
+import { useHistoryStore } from './historyStore';
 
 function nanoid(): string {
   return Math.random().toString(36).slice(2, 10);
@@ -45,10 +47,27 @@ interface CloudStore {
   loadPreset: (preset: unknown) => void;
   resetToDefault: () => void;
   setPresetName: (name: string) => void;
+
+  // History (the snapshots live in historyStore)
+  /** A continuous edit (a slider or a viewport drag) is in progress: commit() waits for its end. */
+  gestureActive: boolean;
+  /**
+   * Records the preset as it is now as one undo step. Skipped when it equals the newest step,
+   * and deferred while a gesture is in progress (endGesture commits). Call it after an edit.
+   */
+  commit: () => void;
+  /** Starts a continuous edit; the edits until endGesture() become one undo step. */
+  beginGesture: () => void;
+  /** Ends the continuous edit and commits it. */
+  endGesture: () => void;
+  /** Steps back: commits an edit not yet recorded (ending a gesture), then applies the previous step. */
+  undo: () => void;
+  /** Steps forward to the next step, if no new edit has been made since the undo. */
+  redo: () => void;
 }
 
 export const useCloudStore = create<CloudStore>()(
-  subscribeWithSelector((set) => ({
+  subscribeWithSelector((set, get) => ({
     preset: structuredClone(DEFAULT_PRESET),
 
     addSphere: () =>
@@ -218,5 +237,35 @@ export const useCloudStore = create<CloudStore>()(
 
     setPresetName: (name) =>
       set((s) => ({ preset: { ...s.preset, name } })),
+
+    gestureActive: false,
+
+    commit: () => {
+      if (get().gestureActive) return;
+      const history = useHistoryStore.getState();
+      const { preset } = get();
+      const newest = history.past[history.past.length - 1];
+      if (newest && sameValue(newest, preset)) return;
+      history.push(preset);
+    },
+
+    beginGesture: () => set({ gestureActive: true }),
+
+    endGesture: () => {
+      if (get().gestureActive) set({ gestureActive: false });
+      get().commit();
+    },
+
+    undo: () => {
+      get().endGesture();
+      const previous = useHistoryStore.getState().undo();
+      if (previous) get().loadPreset(previous);
+    },
+
+    redo: () => {
+      get().endGesture();
+      const next = useHistoryStore.getState().redo();
+      if (next) get().loadPreset(next);
+    },
   }))
 );

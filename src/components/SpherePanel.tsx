@@ -1,21 +1,15 @@
 import { useCloudStore } from '../store/cloudStore';
 import type { SphereDef } from '../model/types';
-import { useHistoryStore } from '../store/historyStore';
 import { SliderRow } from './ui/SliderRow';
 import { useState } from 'react';
 
 export function SpherePanel() {
   const spheres = useCloudStore((s) => s.preset.spheres);
-  const preset = useCloudStore((s) => s.preset);
   const addSphere = useCloudStore((s) => s.addSphere);
   const updateSphere = useCloudStore((s) => s.updateSphere);
   const removeSphere = useCloudStore((s) => s.removeSphere);
-  const push = useHistoryStore((s) => s.push);
+  const commit = useCloudStore((s) => s.commit);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-
-  function commit() {
-    push(preset);
-  }
 
   function toggleExpanded(id: string) {
     setExpanded((prev) => {
@@ -69,8 +63,7 @@ export function SpherePanel() {
                   <label>Shape</label>
                   <select
                     value={sw.shape}
-                    onChange={(e) => handleUpdate(sw.id, { shape: e.target.value as 'sphere' | 'ellipsoid' })}
-                    onBlur={commit}
+                    onChange={(e) => { handleUpdate(sw.id, { shape: e.target.value as 'sphere' | 'ellipsoid' }); commit(); }}
                   >
                     <option value="sphere">Sphere</option>
                     <option value="ellipsoid">Ellipsoid</option>

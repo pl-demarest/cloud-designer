@@ -1,19 +1,13 @@
 import { useCloudStore } from '../store/cloudStore';
-import { useHistoryStore } from '../store/historyStore';
 import { SliderRow } from './ui/SliderRow';
 
 export function BasePanel() {
   const base = useCloudStore((s) => s.preset.base);
-  const preset = useCloudStore((s) => s.preset);
   const setBase = useCloudStore((s) => s.setBase);
   const addBasePoint = useCloudStore((s) => s.addBasePoint);
   const removeBasePoint = useCloudStore((s) => s.removeBasePoint);
   const updateBasePoint = useCloudStore((s) => s.updateBasePoint);
-  const push = useHistoryStore((s) => s.push);
-
-  function commit() {
-    push(preset);
-  }
+  const commit = useCloudStore((s) => s.commit);
 
   return (
     <div className="panel-section">
@@ -25,8 +19,7 @@ export function BasePanel() {
         <label>Shape</label>
         <select
           value={base.crossSectionShape}
-          onChange={(e) => setBase({ crossSectionShape: e.target.value as 'oval' | 'rect' })}
-          onBlur={commit}
+          onChange={(e) => { setBase({ crossSectionShape: e.target.value as 'oval' | 'rect' }); commit(); }}
         >
           <option value="oval">Oval</option>
           <option value="rect">Rect</option>

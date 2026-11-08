@@ -132,6 +132,21 @@ describe('history', () => {
     expect(store().preset.spheres[1].position).toEqual(before.spheres[1].position)
   })
 
+  test('a drag is one history gesture: commits during it wait for its end', () => {
+    history().push(store().preset)
+    const at = over(sphereHandle('sphere-1'))
+    pointer('pointerdown', at)
+    expect(store().gestureActive, 'the press opens a gesture').toBe(true)
+    pointer('pointermove', at.clone().add(new THREE.Vector2(0.05, 0)))
+    store().commit() // a panel or key commit while the drag runs
+    pointer('pointermove', at.clone().add(new THREE.Vector2(0.1, 0)))
+    expect(history().past, 'nothing recorded mid-drag').toHaveLength(1)
+    pointer('pointerup', at)
+    expect(store().gestureActive).toBe(false)
+    expect(history().past).toHaveLength(2)
+    expect(history().past[1]).toEqual(store().preset)
+  })
+
   test('a press and release without moving adds no undo step', () => {
     history().push(store().preset)
     const at = over(sphereHandle('sphere-1'))

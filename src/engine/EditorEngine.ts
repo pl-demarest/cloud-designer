@@ -12,7 +12,6 @@ import { DragController } from './DragController';
 import { computeVisibility } from './visibility';
 import { createModuleWorker, type WorkerFactory } from './workers';
 import { useCloudStore } from '../store/cloudStore';
-import { useHistoryStore } from '../store/historyStore';
 import { useUiStore, viewFlags } from '../store/uiStore';
 import type {
   CutGlueRequest,
@@ -90,12 +89,11 @@ export class EditorEngine {
     this.flowCloud = new FlowCloud(vp);
     this.cutGlue = new CutGlueResult(vp);
 
-    // Every handle drags through one controller. A drag that moved something is one undo step:
-    // the preset is committed to the history once, when the drag ends.
+    // Every handle drags through one controller. Each drag is one history gesture, so a drag
+    // that moved something is one undo step, committed when it ends.
     this.drag = new DragController(vp, {
-      onDragEnd: (moved) => {
-        if (moved) useHistoryStore.getState().push(useCloudStore.getState().preset);
-      },
+      onDragStart: () => useCloudStore.getState().beginGesture(),
+      onDragEnd: () => useCloudStore.getState().endGesture(),
     });
     for (const source of [this.spheres, this.base, this.tail, this.spirals, this.gizmo, this.flowCloud]) {
       this.drag.register(source);

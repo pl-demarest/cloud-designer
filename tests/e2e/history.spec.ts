@@ -2,9 +2,9 @@ import { accordionHeader, expect, openApp, openPanel, test, toolbarButton } from
 
 // Audit finding (react-layer, high): "commit() pushes the render-closure preset, so discrete edits
 // (add/remove/checkbox/select-onChange) record the pre-edit state" (src/components/SpherePanel.tsx:16).
-// After "+ Add" the history holds [initial, initial]: Undo still returns to 3 spheres, but Redo
-// replays the pre-edit snapshot, so the added sphere never comes back. The redo assertions below
-// state the correct behaviour and are marked test.fail() until Stage C fixes the history layer.
+// After "+ Add" the history held [initial, initial]: Undo still returned to 3 spheres, but Redo
+// replayed the pre-edit snapshot, so the added sphere never came back. Since Stage C the store's
+// commit() records the preset as it is after the edit.
 
 test.beforeEach(async ({ page }) => {
   await openApp(page)
@@ -31,14 +31,13 @@ test('toolbar Undo removes an added sphere and enables Redo', async ({ page }) =
   await expect(toolbarButton(page, 'Undo')).toBeDisabled()
   await expect(toolbarButton(page, 'Redo')).toBeEnabled()
 
-  // Redo is accepted and consumes the redo stack (the restored state is pinned by the test.fail below).
+  // Redo is accepted and consumes the redo stack (the restored state is pinned by the next test).
   await toolbarButton(page, 'Redo').click()
   await expect(toolbarButton(page, 'Redo')).toBeDisabled()
   await expect(toolbarButton(page, 'Undo')).toBeEnabled()
 })
 
 test('toolbar Redo restores an added sphere', async ({ page }) => {
-  test.fail(true, 'react-layer finding: commit() records the stale pre-edit preset')
   await addSphere(page)
   await toolbarButton(page, 'Undo').click()
   await expect(accordionHeader(page, 'Spheres')).toContainText('Spheres (3)')

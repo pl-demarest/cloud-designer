@@ -14,21 +14,10 @@ interface Props {
 export function Toolbar({ mode, onModeChange, showAxes, onToggleAxes, showGrid, onToggleGrid, onZoomFit }: Props) {
   const preset = useCloudStore((s) => s.preset);
   const setPresetName = useCloudStore((s) => s.setPresetName);
-  const loadPreset = useCloudStore((s) => s.loadPreset);
-  const undo = useHistoryStore((s) => s.undo);
-  const redo = useHistoryStore((s) => s.redo);
+  const undo = useCloudStore((s) => s.undo);
+  const redo = useCloudStore((s) => s.redo);
   const canUndo = useHistoryStore((s) => s.canUndo());
   const canRedo = useHistoryStore((s) => s.canRedo());
-
-  function handleUndo() {
-    const prev = undo();
-    if (prev) loadPreset(prev);
-  }
-
-  function handleRedo() {
-    const next = redo();
-    if (next) loadPreset(next);
-  }
 
   return (
     <div className="toolbar">
@@ -39,8 +28,8 @@ export function Toolbar({ mode, onModeChange, showAxes, onToggleAxes, showGrid, 
         placeholder="Cloud name..."
       />
       <div className="toolbar-group">
-        <button onClick={handleUndo} disabled={!canUndo} title="Undo (Ctrl+Z)">Undo</button>
-        <button onClick={handleRedo} disabled={!canRedo} title="Redo (Ctrl+Shift+Z)">Redo</button>
+        <button onClick={() => undo()} disabled={!canUndo} title="Undo (Ctrl+Z)">Undo</button>
+        <button onClick={() => redo()} disabled={!canRedo} title="Redo (Ctrl+Shift+Z)">Redo</button>
       </div>
       <div className="toolbar-group">
         <button

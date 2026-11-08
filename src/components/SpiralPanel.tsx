@@ -1,21 +1,15 @@
 import { useState } from 'react';
 import { useCloudStore } from '../store/cloudStore';
-import { useHistoryStore } from '../store/historyStore';
 import { SliderRow } from './ui/SliderRow';
 import type { SpiralDef } from '../model/types';
 
 export function SpiralPanel() {
   const spirals = useCloudStore((s) => s.preset.spirals);
-  const preset = useCloudStore((s) => s.preset);
   const addSpiral = useCloudStore((s) => s.addSpiral);
   const updateSpiral = useCloudStore((s) => s.updateSpiral);
   const removeSpiral = useCloudStore((s) => s.removeSpiral);
-  const push = useHistoryStore((s) => s.push);
+  const commit = useCloudStore((s) => s.commit);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-
-  function commit() {
-    push(preset);
-  }
 
   function toggleExpanded(id: string) {
     setExpanded((prev) => {
@@ -72,8 +66,7 @@ export function SpiralPanel() {
                   <label>Type</label>
                   <select
                     value={sp.spiralType}
-                    onChange={(e) => handleUpdate(sp.id, { spiralType: e.target.value as 'archimedean' | 'golden' })}
-                    onBlur={commit}
+                    onChange={(e) => { handleUpdate(sp.id, { spiralType: e.target.value as 'archimedean' | 'golden' }); commit(); }}
                   >
                     <option value="golden">Golden (logarithmic)</option>
                     <option value="archimedean">Archimedean (equal spacing)</option>

@@ -9,7 +9,6 @@ import { FlowCloudPanel } from './FlowCloudPanel';
 import { ExportPanel } from './ExportPanel';
 import { useEditorEngine } from '../engine/useEditorEngine';
 import { useCloudStore } from '../store/cloudStore';
-import { useHistoryStore } from '../store/historyStore';
 import { useUiStore } from '../store/uiStore';
 
 type PanelId = 'spheres' | 'base' | 'tail' | 'spirals' | 'flowCloud' | 'export';
@@ -37,24 +36,23 @@ export function App() {
 
   const preset = useCloudStore((s) => s.preset);
 
-  // The first history entry is the preset the editor opens with. Pushed only into an empty
-  // history, so StrictMode's second run of this effect adds no undo step.
+  // The first history entry is the preset the editor opens with. commit() skips a snapshot equal
+  // to the newest one, so StrictMode's second run of this effect adds no undo step.
   useEffect(() => {
-    const history = useHistoryStore.getState();
-    if (history.past.length === 0) history.push(useCloudStore.getState().preset);
+    useCloudStore.getState().commit();
   }, []);
 
+  // The toolbar's Undo and Redo and these keys run the same store actions.
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
-      const history = useHistoryStore.getState();
-      const { loadPreset } = useCloudStore.getState();
+      const { undo, redo } = useCloudStore.getState();
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'z') {
         e.preventDefault();
-        if (history.canUndo()) { const prev = history.undo(); if (prev) loadPreset(prev); }
+        undo();
       }
       if ((e.ctrlKey || e.metaKey) && ((e.shiftKey && e.key === 'z') || e.key === 'y')) {
         e.preventDefault();
-        if (history.canRedo()) { const next = history.redo(); if (next) loadPreset(next); }
+        redo();
       }
     }
     window.addEventListener('keydown', handleKey);

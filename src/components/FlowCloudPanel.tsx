@@ -1,5 +1,4 @@
 import { useCloudStore } from '../store/cloudStore';
-import { useHistoryStore } from '../store/historyStore';
 import { SliderRow } from './ui/SliderRow';
 import type { FlowCloudSettings } from '../model/types';
 
@@ -21,11 +20,7 @@ export function FlowCloudPanel({ onRegenerate, generating, showFlowCloud = true,
   const setFlowCloud = useCloudStore((s) => s.setFlowCloud);
   const setSurfaceMeshResolution = useCloudStore((s) => s.setSurfaceMeshResolution);
   const resetToDefault = useCloudStore((s) => s.resetToDefault);
-  const push = useHistoryStore((s) => s.push);
-
-  function commit() {
-    push(preset);
-  }
+  const commit = useCloudStore((s) => s.commit);
 
   function setWireframe(patch: Partial<FlowCloudSettings['wireframe']>) {
     setFlowCloud({ wireframe: { ...flowCloud.wireframe, ...patch } });
@@ -33,8 +28,7 @@ export function FlowCloudPanel({ onRegenerate, generating, showFlowCloud = true,
 
   function handleResetToDefault() {
     resetToDefault();
-    // Read the post-reset state so history captures DEFAULT_PRESET, not the old preset
-    push(useCloudStore.getState().preset);
+    commit();
   }
 
   function snapBackToTail() {
@@ -124,8 +118,7 @@ export function FlowCloudPanel({ onRegenerate, generating, showFlowCloud = true,
         <label>Resolution</label>
         <select
           value={flowCloud.resolution}
-          onChange={(e) => setFlowCloud({ resolution: parseInt(e.target.value) })}
-          onBlur={commit}
+          onChange={(e) => { setFlowCloud({ resolution: parseInt(e.target.value) }); commit(); }}
         >
           <option value={32}>32 (fast)</option>
           <option value={64}>64 (balanced)</option>
@@ -153,8 +146,7 @@ export function FlowCloudPanel({ onRegenerate, generating, showFlowCloud = true,
           <label>Mode</label>
           <select
             value={flowCloud.wireframe.mode}
-            onChange={(e) => setWireframe({ mode: e.target.value as 'edges' | 'spiral' })}
-            onBlur={commit}
+            onChange={(e) => { setWireframe({ mode: e.target.value as 'edges' | 'spiral' }); commit(); }}
           >
             <option value="edges">Edges</option>
             <option value="spiral">Spiral</option>
