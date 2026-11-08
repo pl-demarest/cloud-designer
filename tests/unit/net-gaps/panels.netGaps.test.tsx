@@ -38,7 +38,9 @@ function mappingPreset(): CloudPreset {
   p.spirals = [structuredClone(THICK_SPIRAL)] // position [0.5, 2.2, -0.3], rotation [0.4, 0.2, 0.1]
   p.flowCloud.position = [0.1, 0.2, 0.3]
   p.flowCloud.wireframe.generateBands = true
-  p.base.ringSegments = 16
+  // Not the default 16: the whole-number sliders round, and Ring Density's test value 15.62
+  // rounds to 16, which would leave the field unchanged.
+  p.base.ringSegments = 12
   return p
 }
 

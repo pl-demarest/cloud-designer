@@ -7,6 +7,8 @@ interface Props {
   min: number;
   max: number;
   step?: number;
+  /** A whole-number field (a segment count, a density): each value is rounded. */
+  integer?: boolean;
   onChange: (v: number) => void;
   format?: (v: number) => string;
 }
@@ -23,7 +25,7 @@ const store = () => useCloudStore.getState();
  * assistive technology is recorded. A press that changes nothing records nothing: commit()
  * skips a preset equal to the newest step.
  */
-export function SliderRow({ label, value, min, max, step = 0.01, onChange, format }: Props) {
+export function SliderRow({ label, value, min, max, step = 0.01, integer = false, onChange, format }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const keyHeld = useRef(false);
   const display = format ? format(value) : value.toFixed(2);
@@ -71,7 +73,10 @@ export function SliderRow({ label, value, min, max, step = 0.01, onChange, forma
         max={max}
         step={step}
         value={value}
-        onChange={(e) => onChange(parseFloat(e.target.value))}
+        onChange={(e) => {
+          const v = parseFloat(e.target.value);
+          onChange(integer ? Math.round(v) : v);
+        }}
         onPointerDown={handlePointerDown}
         onKeyDown={handleKeyDown}
         onKeyUp={endKeyGesture}

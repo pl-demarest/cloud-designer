@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 import { cleanup, fireEvent, render } from '@testing-library/react'
 import { BasePanel } from '../../src/ui/panels/BasePanel'
+import { TailPanel } from '../../src/ui/panels/TailPanel'
 import { useCloudStore } from '../../src/store/cloudStore'
 import { useHistoryStore } from '../../src/store/historyStore'
 
@@ -102,5 +103,19 @@ describe('SliderRow', () => {
     fireEvent.pointerCancel(window, { pointerId: 1 })
     expect(store().gestureActive).toBe(false)
     expect(history().past).toHaveLength(2)
+  })
+})
+
+describe('whole-number sliders', () => {
+  test('segment counts round explicitly: a fractional value stores the nearest whole number', () => {
+    const base = render(<BasePanel />)
+    step(slider(base.container, 'Ring Density'), '12.6')
+    step(slider(base.container, 'Length Density'), '20.4')
+    base.unmount()
+    const tail = render(<TailPanel />)
+    step(slider(tail.container, 'Radial Density'), '7.5')
+    step(slider(tail.container, 'Length Density'), '40.49')
+    const { base: b, tail: t } = store().preset
+    expect([b.ringSegments, b.lengthSegments, t.radialSegments, t.lengthSegments]).toEqual([13, 20, 8, 40])
   })
 })

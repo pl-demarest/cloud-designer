@@ -38,13 +38,13 @@ export function TailPanel() {
       <SliderRow
         label="Radial Density"
         value={tail.radialSegments}
-        min={4} max={24} step={1}
+        min={4} max={24} step={1} integer
         onChange={(v) => setTail({ radialSegments: v })}
       />
       <SliderRow
         label="Length Density"
         value={tail.lengthSegments}
-        min={8} max={64} step={1}
+        min={8} max={64} step={1} integer
         onChange={(v) => setTail({ lengthSegments: v })}
       />
       <div className="field-row">

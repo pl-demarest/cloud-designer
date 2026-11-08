@@ -26,15 +26,15 @@ exports[`panel controls map to one preset field each > BasePanel 1`] = `
   "03 range Ring Density": [
     [
       "base.ringSegments",
+      12,
       16,
-      15.62,
     ],
   ],
   "04 range Length Density": [
     [
       "base.lengthSegments",
       24,
-      22.8,
+      23,
     ],
   ],
   "05 checkbox Closed": [
@@ -468,14 +468,14 @@ exports[`panel controls map to one preset field each > TailPanel 1`] = `
     [
       "tail.radialSegments",
       12,
-      11.4,
+      11,
     ],
   ],
   "04 range Length Density": [
     [
       "tail.lengthSegments",
       32,
-      28.72,
+      29,
     ],
   ],
   "05 select Attach": [

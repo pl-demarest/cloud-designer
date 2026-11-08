@@ -171,16 +171,16 @@ export function FlowCloudPanel({ onRegenerate, generating, showFlowCloud = true,
               <SliderRow
                 label="Bands"
                 value={flowCloud.wireframe.numBands}
-                min={4} max={20} step={1}
-                onChange={(v) => setWireframe({ numBands: Math.round(v) })}
+                min={4} max={20} step={1} integer
+                onChange={(v) => setWireframe({ numBands: v })}
                 format={(v) => String(Math.round(v))}
               />
             )}
             <SliderRow
               label="Flow Lines"
               value={flowCloud.wireframe.numFlowLines}
-              min={4} max={24} step={1}
-              onChange={(v) => setWireframe({ numFlowLines: Math.round(v) })}
+              min={4} max={24} step={1} integer
+              onChange={(v) => setWireframe({ numFlowLines: v })}
               format={(v) => String(Math.round(v))}
             />
             <SliderRow

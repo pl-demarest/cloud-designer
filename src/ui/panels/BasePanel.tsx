@@ -40,13 +40,13 @@ export function BasePanel() {
       <SliderRow
         label="Ring Density"
         value={base.ringSegments}
-        min={6} max={32} step={1}
+        min={6} max={32} step={1} integer
         onChange={(v) => setBase({ ringSegments: v })}
       />
       <SliderRow
         label="Length Density"
         value={base.lengthSegments}
-        min={8} max={48} step={1}
+        min={8} max={48} step={1} integer
         onChange={(v) => setBase({ lengthSegments: v })}
       />
       <div className="field-row">

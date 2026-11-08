@@ -105,8 +105,8 @@ export function SpiralPanel() {
                 <SliderRow
                   label="Rung Density"
                   value={sp.rungDensity}
-                  min={1} max={32} step={1}
-                  onChange={(v) => handleUpdate(sp.id, { rungDensity: Math.round(v) })}
+                  min={1} max={32} step={1} integer
+                  onChange={(v) => handleUpdate(sp.id, { rungDensity: v })}
                   format={(v) => `${Math.round(v)}/turn`}
                 />
 
