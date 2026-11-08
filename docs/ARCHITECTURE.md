@@ -68,9 +68,11 @@ Take a sphere's Radius slider:
    and spiral lists). `tests/unit/viewRebuilds.test.ts` counts the rebuilds per action.
 4. The viewport draws every animation frame (`renderer.setAnimationLoop`), so the new wire shows
    on the next frame. React components re-render through their own selectors.
-5. History: the slider's `pointerdown` calls `beginGesture()`; the release (a `pointerup` or
-   `pointercancel` on the window) calls `endGesture()`, which calls `commit()`, which pushes a
-   snapshot onto `historyStore` unless it equals the newest one. Step keys open a gesture from
+5. History: the slider's `pointerdown` takes the focus from any other field, then calls
+   `beginGesture()`; the release (a `pointerup` or `pointercancel` on the window) calls
+   `endGesture()`, which calls `commit()`, which pushes a snapshot onto `historyStore` unless it
+   equals the newest one. The focus leaves first so that a field that records its edit on blur (a
+   number field, the name) records it as a step of its own before the gesture opens. Step keys open a gesture from
    `keydown` to `keyup`; the native `change` event also commits, which records a change made by
    assistive technology. Discrete controls call `commit()` after their action.
 6. Autosave: its subscription to `preset` writes to localStorage one second after the last change.
@@ -114,8 +116,10 @@ mesh change only when their jobs run.
 ## Dragging, visibility and lifecycle
 
 **Dragging.** Every view that has handles is a `DragSource` registered with the one
-`DragController`. On `pointerdown` it raycasts the handles that are visible with all their
-ancestors (three's raycaster ignores visibility) and takes the nearest hit. It drags the item on
+`DragController`. On `pointerdown` it takes the focus from any field (as the browser does a moment
+later), so a number field or the name records its edit before a drag's gesture opens. It then
+raycasts the handles that are visible with all their ancestors (three's raycaster ignores
+visibility) and takes the nearest hit. It drags the item on
 the plane through the hit point that faces the camera, keeping the grab offset; it disables
 OrbitControls, captures the pointer and calls `beginGesture()`. Each `pointermove` calls the item's
 `moveTo`, which calls a store action. `pointerup` (on the canvas or the window), `pointercancel`

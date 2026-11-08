@@ -40,6 +40,29 @@ test('dragging a sphere handle, released outside the canvas, is one undo step', 
   expect(await canvasPixels(page), 'Undo puts the sphere back').toEqual(before)
 })
 
+// The name records its edit when it loses focus. A press on a handle opened the drag's history
+// gesture before Chrome moved the focus, so the rename landed inside the gesture and one Undo
+// took back both.
+test('a rename stays its own undo step when a handle drag takes the focus', async ({ page }) => {
+  const { x, y } = await onScreen(page, new THREE.Vector3(1.6, 0.3, 0))
+  const name = page.getByRole('textbox', { name: 'Cloud name' })
+  await name.fill('Storm')
+  const before = await canvasPixels(page)
+
+  await page.mouse.move(x, y)
+  await page.mouse.down()
+  for (let i = 1; i <= 5; i++) await page.mouse.move(x + 8 * i, y)
+  await page.mouse.up()
+  expect(await canvasPixels(page), 'the sphere moved').not.toEqual(before)
+
+  await toolbarButton(page, 'Undo').click()
+  expect(await canvasPixels(page), 'Undo puts the sphere back').toEqual(before)
+  await expect(name, 'the rename is a step of its own').toHaveValue('Storm')
+  await toolbarButton(page, 'Undo').click()
+  await expect(name).toHaveValue('Default Cloud')
+  await expect(toolbarButton(page, 'Undo')).toBeDisabled()
+})
+
 test('after a drag the orbit controls work again', async ({ page }) => {
   const { x, y, box } = await onScreen(page, new THREE.Vector3(1.6, 0.3, 0))
   await page.mouse.move(x, y)

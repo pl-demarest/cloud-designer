@@ -105,6 +105,19 @@ describe('SliderRow', () => {
     expect(store().gestureActive).toBe(false)
     expect(history().past).toHaveLength(2)
   })
+
+  test('a press takes the focus before the gesture opens: the number field it leaves records its own step', () => {
+    const { container } = render(<BasePanel />)
+    const x = container.querySelector<HTMLInputElement>('.control-point-row input')!
+    x.focus()
+    fireEvent.change(x, { target: { value: '-2' } })
+    const width = slider(container, 'Width')
+    fireEvent.pointerDown(width, { pointerId: 1 })
+    step(width, '1.5')
+    fireEvent.pointerUp(window, { pointerId: 1 })
+    const steps = history().past.map((p) => [p.base.controlPoints[0][0], p.base.crossSectionWidth])
+    expect(steps, 'the opening preset, the typed X, then the drag').toEqual([[-2.5, 1.2], [-2, 1.2], [-2, 1.5]])
+  })
 })
 
 describe('whole-number sliders', () => {

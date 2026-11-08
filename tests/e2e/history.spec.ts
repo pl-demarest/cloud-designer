@@ -105,6 +105,31 @@ test('each keyboard step on a slider is one undo step', async ({ page }) => {
   await expect(toolbarButton(page, 'Undo')).toBeDisabled()
 })
 
+// A number field records its value when it loses focus. A press on a slider opened the slider's
+// history gesture before Chrome moved the focus, so the field's edit landed inside the gesture
+// and one Undo took back both.
+test('a typed coordinate stays its own undo step when a slider drag takes the focus', async ({ page }) => {
+  const body = await openPanel(page, 'Base')
+  const y = body.getByRole('spinbutton', { name: 'P0 Y' })
+  await y.fill('-0.2')
+  const row = sliderRow(body, 'Width')
+  const value = row.locator('.slider-value')
+  const box = (await row.locator('input[type=range]').boundingBox())!
+  await page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(box.x + box.width * 0.6, box.y + box.height / 2, { steps: 4 })
+  await page.mouse.up()
+  await expect(y).toHaveValue('-0.20')
+  await expect(value).not.toHaveText('1.20')
+
+  await toolbarButton(page, 'Undo').click()
+  await expect(value).toHaveText('1.20')
+  await expect(y, 'the coordinate is a step of its own').toHaveValue('-0.20')
+  await toolbarButton(page, 'Undo').click()
+  await expect(y).toHaveValue('-0.80')
+  await expect(toolbarButton(page, 'Undo')).toBeDisabled()
+})
+
 test('a pointer drag on a slider is one undo step', async ({ page }) => {
   const row = sliderRow(await openPanel(page, 'Base'), 'Width')
   const value = row.locator('.slider-value')

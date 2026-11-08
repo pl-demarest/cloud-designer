@@ -147,6 +147,30 @@ describe('history', () => {
     expect(history().past[1]).toEqual(store().preset)
   })
 
+  test('a press on a handle takes the focus before the gesture opens: the field it leaves records its own step', () => {
+    history().push(store().preset)
+    // A field that records its edit when it loses focus, as a number field and the name do.
+    const field = document.createElement('input')
+    field.addEventListener('blur', () => {
+      store().setPresetName('Storm')
+      store().commit()
+    })
+    document.body.append(field)
+    field.focus()
+    const at = over(sphereHandle('sphere-1'))
+    pointer('pointerdown', at)
+    pointer('pointermove', at.clone().add(new THREE.Vector2(0.05, 0)))
+    pointer('pointerup', at)
+    field.remove()
+    const steps = history().past.map((p) => [p.name, p.spheres[1].position[0]])
+    expect(steps, 'the opening preset, the rename, then the drag').toEqual([
+      ['Default Cloud', 1.6],
+      ['Storm', 1.6],
+      ['Storm', store().preset.spheres[1].position[0]],
+    ])
+    expect(store().preset.spheres[1].position[0]).not.toBe(1.6)
+  })
+
   test('a press and release without moving adds no undo step', () => {
     history().push(store().preset)
     const at = over(sphereHandle('sphere-1'))

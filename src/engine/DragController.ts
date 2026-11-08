@@ -103,6 +103,10 @@ export class DragController {
 
   private onPointerDown = (e: PointerEvent): void => {
     if (this.drag) return;
+    // The press takes the focus from any field now, as the browser does on the mousedown that
+    // follows, so a field that records its edit on blur (a number field, the name) records it
+    // before a drag's gesture opens, as a step of its own, and before the pick.
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
     const owners = new Map<THREE.Object3D, DragSource>();
     for (const source of this.sources) {
       for (const handle of source.dragHandles()) {

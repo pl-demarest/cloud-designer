@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, type KeyboardEvent, type PointerEvent } from 'react';
 import { useCloudStore } from '../../store/cloudStore';
 
 interface Props {
@@ -42,7 +42,12 @@ export function SliderRow({ label, ariaLabel, value, min, max, step = 0.01, inte
     return () => input.removeEventListener('change', commit);
   }, []);
 
-  function handlePointerDown() {
+  function handlePointerDown(e: PointerEvent<HTMLInputElement>) {
+    // The press takes the focus from any other field now (the browser moves it on the mousedown
+    // that follows), so a field that records its edit on blur (a number field, the name) records
+    // it before the gesture opens: a step of its own, not part of the drag's.
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && active !== e.currentTarget) active.blur();
     store().beginGesture();
     // On the window: the release can happen anywhere.
     const end = () => {
