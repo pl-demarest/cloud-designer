@@ -240,3 +240,30 @@ export async function showFlowCloud(fc: FlowCloud): Promise<void> {
   const run = await runWorker<FlowCloudResult>('marchingCubes', request)
   fc.show(run.message)
 }
+
+// ── Rebuild counts ───────────────────────────────────────────────────────────
+
+/** The groups whose geometries the primitive views build. */
+const VIEW_GROUPS = ['sphereGroup', 'baseGroup', 'tailGroup', 'spiralGroup'] as const
+export type ViewGroup = (typeof VIEW_GROUPS)[number]
+
+function geometriesIn(group: THREE.Object3D): Set<THREE.BufferGeometry> {
+  const out = new Set<THREE.BufferGeometry>()
+  group.traverse((obj) => {
+    if (obj instanceof THREE.Mesh || obj instanceof THREE.Line) out.add(obj.geometry as THREE.BufferGeometry)
+  })
+  return out
+}
+
+/**
+ * Counts, per view group, the geometries that `action` built: those in the group afterwards that
+ * were not there before. A view that leaves an item alone keeps its geometry object, so the count
+ * is the number of wireframes and handles the action made a view rebuild.
+ */
+export function countRebuilds(vp: Viewport, action: () => void): Record<ViewGroup, number> {
+  const before = Object.fromEntries(VIEW_GROUPS.map((g) => [g, geometriesIn(vp[g])])) as Record<ViewGroup, Set<THREE.BufferGeometry>>
+  action()
+  return Object.fromEntries(
+    VIEW_GROUPS.map((g) => [g, [...geometriesIn(vp[g])].filter((geo) => !before[g].has(geo)).length]),
+  ) as Record<ViewGroup, number>
+}

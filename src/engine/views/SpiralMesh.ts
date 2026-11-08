@@ -3,6 +3,7 @@ import type { SpiralDef } from '../../model/types';
 import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import { KeyedMeshSet } from '../KeyedMeshSet';
+import { sameValue } from '../sameValue';
 import type { DragSource, DragTarget } from '../DragController';
 
 /** Smooth curve samples per full 360° turn. 64 gives sub-pixel smoothness at normal zoom. */
@@ -12,6 +13,8 @@ interface SpiralEntry {
   wire: THREE.LineSegments;
   handle: THREE.Mesh;
   objects: readonly THREE.Object3D[];
+  /** The definition the objects show. */
+  def: SpiralDef;
 }
 
 export class SpiralMesh implements DragSource {
@@ -57,10 +60,13 @@ export class SpiralMesh implements DragSource {
     handle.userData.spiralId = def.id;
     handle.userData.editorOnly = true;
 
-    return { wire, handle, objects: [wire, handle] };
+    return { wire, handle, objects: [wire, handle], def };
   }
 
+  /** Rebuilds the wire when the definition changed: position and rotation are baked into it. */
   private updateMesh(entry: SpiralEntry, def: SpiralDef): void {
+    if (sameValue(entry.def, def)) return;
+    entry.def = def;
     entry.wire.geometry.dispose();
     entry.wire.geometry = this.buildGeo(def);
     entry.handle.position.set(...def.position);

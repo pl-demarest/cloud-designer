@@ -3,12 +3,20 @@ import type { SphereDef } from '../../model/types';
 import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import { KeyedMeshSet } from '../KeyedMeshSet';
+import { sameValue } from '../sameValue';
 import type { DragSource, DragTarget } from '../DragController';
 
 interface SphereEntry {
   wire: THREE.LineSegments;
   handle: THREE.Mesh;
   objects: readonly THREE.Object3D[];
+  /** The definition the objects show. */
+  def: SphereDef;
+}
+
+/** The fields the wire's geometry depends on; position and rotation are the object's transform. */
+function sameShape(a: SphereDef, b: SphereDef): boolean {
+  return a.radius === b.radius && a.half === b.half && a.shape === b.shape && sameValue(a.scale, b.scale);
 }
 
 export class SphereMesh implements DragSource {
@@ -52,15 +60,20 @@ export class SphereMesh implements DragSource {
 
     this.applyTransform(wire, handle, def);
     geo.dispose();
-    return { wire, handle, objects: [wire, handle] };
+    return { wire, handle, objects: [wire, handle], def };
   }
 
+  /** Rebuilds the wire only when the shape changed; a move or turn sets the transform. */
   private updateMesh(entry: SphereEntry, def: SphereDef): void {
-    entry.wire.geometry.dispose();
-    const geo = this.buildGeo(def);
-    entry.wire.geometry = new THREE.WireframeGeometry(geo);
+    if (sameValue(entry.def, def)) return;
+    if (!sameShape(entry.def, def)) {
+      entry.wire.geometry.dispose();
+      const geo = this.buildGeo(def);
+      entry.wire.geometry = new THREE.WireframeGeometry(geo);
+      geo.dispose();
+    }
     this.applyTransform(entry.wire, entry.handle, def);
-    geo.dispose();
+    entry.def = def;
   }
 
   private buildGeo(def: SphereDef): THREE.BufferGeometry {

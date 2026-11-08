@@ -5,12 +5,23 @@ import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import { resolveTailSetpoints, sampleTailPath } from '../../geometry/primitives/tail';
 import type { DragSource, DragTarget } from '../DragController';
+import { sameValue } from '../sameValue';
+
+/** What the tail's wire and handles are built from: the attachment folds into the setpoints. */
+interface TailInputs {
+  setpoints: TailSetpoint[];
+  radialSegments: number;
+  lengthSegments: number;
+  curlAmount: number;
+}
 
 export class TailMesh implements DragSource {
   private group: THREE.Group;
   private viewport: Viewport;
   private wire: THREE.LineSegments | null = null;
   private handles: THREE.Mesh[] = [];
+  /** The inputs the wire and handles show. */
+  private shown: TailInputs | null = null;
   private unsubscribe: () => void;
 
   constructor(viewport: Viewport) {
@@ -87,17 +98,36 @@ export class TailMesh implements DragSource {
     return geo;
   }
 
+  /** Rebuilds when the resolved setpoints or the tail's own settings changed by value, so a base
+   *  edit rebuilds the tail only if it moves the attachment point. Handles move, and are rebuilt
+   *  only if their number changed. */
   private sync(tail: TailDef, base: BaseDef): void {
     const resolved = resolveTailSetpoints(tail, base);
+    const inputs: TailInputs = {
+      setpoints: resolved,
+      radialSegments: tail.radialSegments,
+      lengthSegments: tail.lengthSegments,
+      curlAmount: tail.curlAmount,
+    };
+    if (this.shown && sameValue(this.shown, inputs)) return;
+    this.shown = inputs;
 
     // Rebuild wire
     if (this.wire) {
-      this.group.remove(this.wire);
       this.wire.geometry.dispose();
+      this.wire.geometry = this.buildWireframe(tail, resolved);
+    } else {
+      this.wire = new THREE.LineSegments(this.buildWireframe(tail, resolved), this.viewport.materials.line);
+      this.group.add(this.wire);
     }
-    const wireGeo = this.buildWireframe(tail, resolved);
-    this.wire = new THREE.LineSegments(wireGeo, this.viewport.materials.line);
-    this.group.add(this.wire);
+
+    if (this.handles.length === resolved.length) {
+      this.handles.forEach((h, i) => {
+        h.position.set(...resolved[i].position);
+        h.userData.spId = tail.setpoints[i]?.id ?? resolved[i].id;
+      });
+      return;
+    }
 
     // Rebuild handles
     for (const h of this.handles) {

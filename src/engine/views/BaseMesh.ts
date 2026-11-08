@@ -4,12 +4,15 @@ import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import { basePointAt, sampleBasePath } from '../../geometry/primitives/base';
 import type { DragSource, DragTarget } from '../DragController';
+import { sameValue } from '../sameValue';
 
 export class BaseMesh implements DragSource {
   private group: THREE.Group;
   private viewport: Viewport;
   private wire: THREE.LineSegments | null = null;
   private handles: THREE.Mesh[] = [];
+  /** The definition the wire and handles show. */
+  private shown: BaseDef | null = null;
   private unsubscribe: () => void;
 
   constructor(viewport: Viewport) {
@@ -100,15 +103,25 @@ export class BaseMesh implements DragSource {
     return geo;
   }
 
+  /** Rebuilds when the base changed by value: the wire, and the handles only if their number did
+   *  (otherwise they move). */
   private sync(def: BaseDef): void {
+    if (this.shown && sameValue(this.shown, def)) return;
+    this.shown = def;
+
     // Rebuild wire
     if (this.wire) {
-      this.group.remove(this.wire);
       this.wire.geometry.dispose();
+      this.wire.geometry = this.buildWireframe(def);
+    } else {
+      this.wire = new THREE.LineSegments(this.buildWireframe(def), this.viewport.materials.line);
+      this.group.add(this.wire);
     }
-    const wireGeo = this.buildWireframe(def);
-    this.wire = new THREE.LineSegments(wireGeo, this.viewport.materials.line);
-    this.group.add(this.wire);
+
+    if (this.handles.length === def.controlPoints.length) {
+      this.handles.forEach((h, i) => h.position.set(...def.controlPoints[i]));
+      return;
+    }
 
     // Rebuild handles
     for (const h of this.handles) {
