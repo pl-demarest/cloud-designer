@@ -160,6 +160,7 @@ export class EditorEngine {
     vp.baseGroup.visible = v.base;
     vp.tailGroup.visible = v.tail;
     vp.spiralGroup.visible = v.spirals;
+    vp.showThickSpirals(v.thickSpirals);
     this.spirals.setHandlesVisible(v.spiralHandles);
     vp.gizmoGroup.visible = v.gizmo;
     vp.flowCloudGroup.visible = v.flowCloud;

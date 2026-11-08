@@ -11,6 +11,13 @@ export const createWebGLRenderer: RendererFactory = (canvas) =>
 /** Above this the extra pixels cost fill rate on the dense wireframes and show no detail. */
 const MAX_PIXEL_RATIO = 2;
 
+/**
+ * The layer of the thick spirals' wires. The camera sees it in Edit; in Preview the surface mesh
+ * holds the thick spirals, and only the flat ones are drawn beside it. A layer, not `visible`, so
+ * the GLB exports, which copy visibility, keep every spiral.
+ */
+export const THICK_SPIRAL_LAYER = 1;
+
 /** After Fit the camera looks at the framed centre from above and in front, as it always has. */
 const FIT_DIRECTION = new THREE.Vector3(0, 0.4, 1.4).normalize();
 
@@ -155,6 +162,12 @@ export class Viewport {
     this.grid.visible = visible;
   }
 
+  /** Whether the camera draws the thick spirals' wires (THICK_SPIRAL_LAYER). */
+  showThickSpirals(visible: boolean): void {
+    if (visible) this.camera.layers.enable(THICK_SPIRAL_LAYER);
+    else this.camera.layers.disable(THICK_SPIRAL_LAYER);
+  }
+
   /**
    * Frames `box`, or else what the viewport shows: the visible objects under the active unit and
    * the Cut & Glue group (in Preview, the result), without handles or the gizmo. The bounding
@@ -173,7 +186,8 @@ export class Viewport {
     this.controls.update();
   }
 
-  /** The world box of every visible, not editor-only object with geometry. */
+  /** The world box of every visible, not editor-only object with geometry on a layer the camera
+   *  draws. */
   private visibleContentBox(): THREE.Box3 {
     const box = new THREE.Box3();
     const part = new THREE.Box3();
@@ -182,7 +196,7 @@ export class Viewport {
       // traverseVisible skips hidden subtrees; both roots hang off the always-visible scene.
       root.traverseVisible((obj) => {
         if (!(obj instanceof THREE.Mesh || obj instanceof THREE.Line || obj instanceof THREE.Points)) return;
-        if (isEditorOnly(obj)) return;
+        if (isEditorOnly(obj) || !obj.layers.test(this.camera.layers)) return;
         const geometry = obj.geometry as THREE.BufferGeometry;
         if (!geometry.getAttribute('position')) return;
         if (!geometry.boundingBox) geometry.computeBoundingBox();

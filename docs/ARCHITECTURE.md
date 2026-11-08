@@ -141,7 +141,10 @@ moved something is one undo step.
 flags in `uiStore` (mode, Axes, Grid, Show/Hide, Surface Mesh) and whether any spiral is flat, to
 the visibility of each scene group. `EditorEngine.applyVisibility()` applies it whenever a flag or
 the spiral list changes, and nothing else sets the visibility of the viewport's groups. Inside the
-flow cloud's group, Show Bands and Show Flow Lines hide or show the bands and the flow lines.
+flow cloud's group, Show Bands and Show Flow Lines hide or show the bands and the flow lines. The
+thick spirals' wires are on their own layer (`THICK_SPIRAL_LAYER`), which the camera draws in Edit
+only: beside the surface mesh, which holds the thick spirals, Preview draws the flat ones. A layer,
+not `visible`, because the GLB exports copy each object's visibility.
 
 **Lifecycle.** `useEditorEngine` builds one `EditorEngine` per canvas in a layout effect whose
 cleanup calls `dispose()`. A layout effect, because OrbitControls removes its keydown listener from

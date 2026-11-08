@@ -1,12 +1,18 @@
 import * as THREE from 'three';
 import type { SpiralDef } from '../../model/types';
-import { Viewport } from '../Viewport';
+import { THICK_SPIRAL_LAYER, Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import { KeyedMeshSet } from '../KeyedMeshSet';
 import { sameValue } from '../sameValue';
 import type { DragSource, DragTarget } from '../DragController';
 import { sampleSpiral, spiralWire } from '../../geometry/primitives/spiral';
 import { RANGES } from '../../model/ranges';
+
+/** A thick spiral's wire is on THICK_SPIRAL_LAYER, which Preview does not draw beside the
+ *  surface mesh; a flat one's on the default layer. */
+function setWireLayer(wire: THREE.LineSegments, def: SpiralDef): void {
+  wire.layers.set(def.thickness > 0 ? THICK_SPIRAL_LAYER : 0);
+}
 
 interface SpiralEntry {
   wire: THREE.LineSegments;
@@ -52,6 +58,7 @@ export class SpiralMesh implements DragSource {
     const { materials } = this.viewport;
     const wire = new THREE.LineSegments(this.buildGeo(def), materials.line);
     wire.userData.spiralId = def.id;
+    setWireLayer(wire, def);
 
     const handleGeo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
     const handle = new THREE.Mesh(handleGeo, materials.spiralHandle);
@@ -68,6 +75,7 @@ export class SpiralMesh implements DragSource {
     entry.def = def;
     entry.wire.geometry.dispose();
     entry.wire.geometry = this.buildGeo(def);
+    setWireLayer(entry.wire, def);
     entry.handle.position.set(...def.position);
   }
 

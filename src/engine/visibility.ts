@@ -23,6 +23,9 @@ export interface Visibility {
   base: boolean;
   tail: boolean;
   spirals: boolean;
+  /** Within the spirals: the thick ones' wires too (Edit), or the flat ones' only (Preview,
+   *  beside the surface mesh, which holds the thick ones). */
+  thickSpirals: boolean;
   spiralHandles: boolean;
   gizmo: boolean;
   flowCloud: boolean;
@@ -47,6 +50,7 @@ export function computeVisibility(v: VisibilityInputs): Visibility {
     base: edit,
     tail: edit,
     spirals: edit || (v.surfaceMeshVisible && v.hasFlatSpirals),
+    thickSpirals: edit,
     spiralHandles: edit,
     gizmo: edit,
     flowCloud: edit && v.showFlowCloud,
