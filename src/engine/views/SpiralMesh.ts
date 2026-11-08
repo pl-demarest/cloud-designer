@@ -7,6 +7,7 @@ import { sameValue } from '../../model/sameValue';
 import type { DragSource, DragTarget } from '../DragController';
 import { sampleSpiral, spiralWire } from '../../geometry/primitives/spiral';
 import { RANGES } from '../../model/ranges';
+import { worldWires } from './wires';
 
 /** A thick spiral's wire is on THICK_SPIRAL_LAYER, which Preview does not draw beside the
  *  surface mesh; a flat one's on the default layer. */
@@ -105,20 +106,7 @@ export class SpiralMesh implements DragSource {
   }
 
   getEdges(): Float32Array {
-    const verts: number[] = [];
-    const v = new THREE.Vector3();
-    this.group.traverse((obj) => {
-      if ((obj instanceof THREE.LineSegments || obj instanceof THREE.Line) && !obj.userData.editorOnly) {
-        obj.updateWorldMatrix(true, false);
-        const pos = obj.geometry.attributes.position;
-        if (!pos) return;
-        for (let i = 0; i < pos.count; i++) {
-          v.fromBufferAttribute(pos, i).applyMatrix4(obj.matrixWorld);
-          verts.push(v.x, v.y, v.z);
-        }
-      }
-    });
-    return new Float32Array(verts);
+    return worldWires(this.group);
   }
 
   dispose(): void {

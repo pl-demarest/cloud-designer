@@ -146,7 +146,8 @@ src/
 │       ├── SpiralMesh.ts        spiral wireframes and handles
 │       ├── FlowCloud.ts         the flow-cloud worker's result and its handle
 │       ├── CutGlueResult.ts     the clipped wireframe and the surface mesh
-│       └── AxisGizmo.ts         the F and B anchors of the flow-line axis
+│       ├── AxisGizmo.ts         the F and B anchors of the flow-line axis
+│       └── wires.ts             world-space wire vertices for Cut & Glue; the base and tail lattice
 ├── store/
 │   ├── cloudStore.ts            the preset, its actions, history (commit, gestures, undo, redo)
 │   ├── historyStore.ts          the snapshot stack (50 snapshots)

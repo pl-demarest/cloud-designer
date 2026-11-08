@@ -6,6 +6,7 @@ import { KeyedMeshSet } from '../KeyedMeshSet';
 import { sameValue } from '../../model/sameValue';
 import type { DragSource, DragTarget } from '../DragController';
 import { RANGES } from '../../model/ranges';
+import { pushWorldVertices } from './wires';
 
 interface SphereEntry {
   wire: THREE.LineSegments;
@@ -127,16 +128,10 @@ export class SphereMesh implements DragSource {
    *  during Cut & Glue (each sphere's edges clipped against everything except itself). */
   getEdgesGrouped(): Array<{ sphereId: string; edges: Float32Array }> {
     const groups: Array<{ sphereId: string; edges: Float32Array }> = [];
-    const v = new THREE.Vector3();
     for (const [id, { wire }] of this.meshes) {
-      wire.updateWorldMatrix(true, false);
-      const pos = wire.geometry.attributes.position;
-      if (!pos) continue;
+      if (!wire.geometry.attributes.position) continue;
       const verts: number[] = [];
-      for (let i = 0; i < pos.count; i++) {
-        v.fromBufferAttribute(pos, i).applyMatrix4(wire.matrixWorld);
-        verts.push(v.x, v.y, v.z);
-      }
+      pushWorldVertices(wire, verts);
       groups.push({ sphereId: id, edges: new Float32Array(verts) });
     }
     return groups;

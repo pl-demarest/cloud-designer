@@ -5,6 +5,7 @@ import type { FlowCloudResult } from '../../workers/protocol';
 import type { WireframeStyle } from '../../model/types';
 import type { DragSource, DragTarget } from '../DragController';
 import { RANGES } from '../../model/ranges';
+import { pushWorldVertices } from './wires';
 
 /**
  * The generated flow cloud: shows each result of the flow-cloud worker (EditorEngine runs the
@@ -186,26 +187,16 @@ export class FlowCloud implements DragSource {
    */
   getEdges(): Float32Array {
     const verts: number[] = [];
-    const v = new THREE.Vector3();
     const { showBands, showFlowLines } = useCloudStore.getState().preset.flowCloud.wireframe;
     const emit = (obj: THREE.Object3D) => {
       // LineSegments extends Line, so it is tested first.
       if (obj instanceof THREE.LineSegments) {
-        obj.updateWorldMatrix(true, false);
-        const pos = obj.geometry.attributes.position;
-        for (let i = 0; i < (pos?.count ?? 0); i++) {
-          v.fromBufferAttribute(pos, i).applyMatrix4(obj.matrixWorld);
-          verts.push(v.x, v.y, v.z);
-        }
+        pushWorldVertices(obj, verts);
       } else if (obj instanceof THREE.Line) {
-        obj.updateWorldMatrix(true, false);
         const pos = obj.geometry.attributes.position;
         if (!pos || pos.count < 2) return;
         const wp: number[] = [];
-        for (let i = 0; i < pos.count; i++) {
-          v.fromBufferAttribute(pos, i).applyMatrix4(obj.matrixWorld);
-          wp.push(v.x, v.y, v.z);
-        }
+        pushWorldVertices(obj, wp);
         for (let i = 0; i < pos.count - 1; i++) {
           const a = i * 3;
           const b = a + 3;

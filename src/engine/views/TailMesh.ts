@@ -7,6 +7,7 @@ import { resolveTailSetpoints, sampleTailPath } from '../../geometry/primitives/
 import type { DragSource, DragTarget } from '../DragController';
 import { sameValue } from '../../model/sameValue';
 import { RANGES } from '../../model/ranges';
+import { tubeLattice, worldWires } from './wires';
 
 /** What the tail's wire and handles are built from: the attachment folds into the setpoints. */
 interface TailInputs {
@@ -76,27 +77,7 @@ export class TailMesh implements DragSource {
       rings.push(ring);
     }
 
-    // Emit ring + longitudinal segments
-    const verts: number[] = [];
-    for (let i = 0; i <= lenSegs; i++) {
-      const ring = rings[i];
-      for (let j = 0; j < radSegs; j++) {
-        const a = ring[j];
-        const b = ring[(j + 1) % radSegs];
-        verts.push(a.x, a.y, a.z, b.x, b.y, b.z);
-      }
-    }
-    for (let j = 0; j < radSegs; j++) {
-      for (let i = 0; i < lenSegs; i++) {
-        const a = rings[i][j];
-        const b = rings[i + 1][j];
-        verts.push(a.x, a.y, a.z, b.x, b.y, b.z);
-      }
-    }
-
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-    return geo;
+    return tubeLattice(rings);
   }
 
   /** Rebuilds when the resolved setpoints or the tail's own settings changed by value, so a base
@@ -165,20 +146,7 @@ export class TailMesh implements DragSource {
   }
 
   getEdges(): Float32Array {
-    const verts: number[] = [];
-    const v = new THREE.Vector3();
-    this.group.traverse((obj) => {
-      if ((obj instanceof THREE.LineSegments || obj instanceof THREE.Line) && !obj.userData.editorOnly) {
-        obj.updateWorldMatrix(true, false);
-        const pos = obj.geometry.attributes.position;
-        if (!pos) return;
-        for (let i = 0; i < pos.count; i++) {
-          v.fromBufferAttribute(pos, i).applyMatrix4(obj.matrixWorld);
-          verts.push(v.x, v.y, v.z);
-        }
-      }
-    });
-    return new Float32Array(verts);
+    return worldWires(this.group);
   }
 
   dispose(): void {
