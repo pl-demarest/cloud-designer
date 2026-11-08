@@ -67,7 +67,9 @@ drag). The keyboard does not move the camera.
 
 Handles are drawn in Edit mode only. Press on a handle with the left button (or one finger) and
 drag: the item moves on the plane that faces the camera through the point you grabbed, and keeps
-the offset you grabbed it at. A right or middle press on a handle pans or zooms, as on empty
+the offset you grabbed it at. It stops at the range of the field it moves: a sphere's or a
+spiral's Pos ranges, the flow cloud's Position range, −50 to 50 for a base control point, a tail
+setpoint and the F and B anchors. A right or middle press on a handle pans or zooms, as on empty
 space. The drag ends when you release the button, also outside the canvas, when the browser
 cancels the pointer, or when the window loses the focus. Where handles overlap, the one nearest the camera under the pointer wins, except the
 teal flow-cloud handle, which gives way to any other handle under the pointer: on the default
@@ -116,14 +118,15 @@ it is.
 ## Spheres
 
 The section header shows the number of spheres. **+ Add** appends a sphere of radius 1 and
-falloff 0.5, 1.2 units right (+x) of the last sphere, or at the origin when there is none. Each
+falloff 0.5, 1.2 units right (+x) of the last sphere, up to x = 8, or at the origin when there is
+none. Each
 sphere has a header bar: its name ("Sphere 2 (ellipsoid)") is a button that shows or hides its
 controls, which start hidden, and × removes it.
 
 | Control | Range (step) | Effect |
 |---|---|---|
 | Shape | Sphere, Ellipsoid | Ellipsoid scales the sphere by Scale X, Y and Z. |
-| Pos X, Y, Z | X −8 to 8, Y and Z −4 to 4 (0.05) | The centre. Dragging the handle can move it past these ranges. |
+| Pos X, Y, Z | X −8 to 8, Y and Z −4 to 4 (0.05) | The centre. Dragging the handle moves it within the same ranges. |
 | Radius | 0.1 to 3 (0.05) | The radius of the drawn sphere, of its clip volume and of its part of the surface mesh. |
 | Falloff | 0.5 to 5 (0.1) | The sphere's weight in the flow cloud's field. It changes nothing else. |
 | Half | on, off | Keep only the upper dome, above the sphere's own y = 0 plane (which turns with Rotate), in the wireframe, the clip volume and the surface mesh. The flow cloud's field still counts the whole sphere. |
@@ -134,7 +137,7 @@ controls, which start hidden, and × removes it.
 
 The base is a tube along a smooth curve through its control points: a uniform Catmull-Rom curve
 (tension 0.5), the same curve in the editor and in the workers. **+ Point** appends a control
-point 1 unit along +x from the last one.
+point 1 unit along +x from the last one, up to x = 50.
 
 | Control | Range (step) | Effect |
 |---|---|---|
@@ -144,7 +147,7 @@ point 1 unit along +x from the last one.
 | Ring Density | 6 to 32 (1) | Vertices per cross-section ring of the wireframe. |
 | Length Density | 8 to 48 (1) | Equal arc-length steps along the curve; the wireframe has a ring at each end of each step. The clip volume and the surface mesh are built from the same rings. |
 | Closed | on, off | Close the curve into a loop through the first control point. An open base's clip volume and surface mesh end in flat caps in the planes of its first and last rings. |
-| P0, P1, … X, Y, Z | any number (0.1) | A control point's coordinates. Type a value, then press Enter or leave the field ([number fields](#keyboard)). |
+| P0, P1, … X, Y, Z | −50 to 50 (0.1) | A control point's coordinates. Type a value, then press Enter or leave the field ([number fields](#keyboard)). |
 | × beside a point | | Remove that point. Disabled while the base has two. |
 
 ## Tail
@@ -166,7 +169,7 @@ its width (at least 0.05).
 | Length Density | 8 to 64 (1) | Equal arc-length steps along the curve; the clip volume and the surface mesh use the same rings. |
 | Attach | None, Base Start, Base End | Put the tail's first setpoint on the base (below). |
 | Attach Offset | 0 to 1 (0.01) | Shown while the tail is attached. |
-| SP 0, SP 1, … X, Y, Z | any number (0.1) | A setpoint's position. |
+| SP 0, SP 1, … X, Y, Z | −50 to 50 (0.1) | A setpoint's position. |
 | w | 0.05 to 1.5 (0.05) | A setpoint's width. |
 | + beside a setpoint | | Insert a setpoint after it, halfway to the next one with the average width (after the last: as **+ Point** does). |
 | × beside a setpoint | | Remove it. Disabled while the tail has two. |
@@ -198,7 +201,7 @@ where version 1 drew it: on import its Base Start offset becomes 1 − offset.
 Spirals are decorative coils: two copies of a spiral curve, joined by rungs (flat), or a coil with
 a rectangular cross-section (thick). The section header shows the number of spirals. **+ Add**
 places a golden spiral of two turns, thickness 0.15 and corner radius 0.04 at
-(0.5 × the number of spirals, 3, 0). Each spiral has a header bar like a sphere's
+(0.5 × the number of spirals, 3, 0), x at most 8. Each spiral has a header bar like a sphere's
 ("Spiral 1 (golden)").
 
 | Control | Range (step) | Effect |
@@ -246,7 +249,7 @@ In Spiral mode these controls follow:
 | Bands | 4 to 20 (1), shown while Generate Bands is on. Bands + 1 contours, at u = 0, 1/Bands, …, 1. |
 | Flow Lines | 4 to 24 (1). The number of flow lines, evenly spaced in angle. |
 | Spiral Twist | 0 to 4π (0.05 rad, shown as a multiple of π). How far a flow line turns about the axis from u = 0 to u = 1. |
-| Front, Back | Any number (0.1) in each of X, Y and Z: the F and B anchors' coordinates. Type a value, then press Enter or leave the field ([number fields](#keyboard)), or drag the anchors in the viewport. |
+| Front, Back | −50 to 50 (0.1) in each of X, Y and Z: the F and B anchors' coordinates. Type a value, then press Enter or leave the field ([number fields](#keyboard)), or drag the anchors in the viewport. |
 | Snap Back → Tail | Move B to where the tail starts: its first setpoint, or for an attached tail the point on the base where it meets it, within −50 to 50. One undo step. |
 
 The F/B anchors, Resolution, Threshold, Mode, Generate Bands, Bands, Flow Lines and Spiral Twist,
@@ -370,7 +373,7 @@ run again. Reset, Import and Discard replace the whole cloud and clear them.
 - A number field shows its value with two decimals, a value that rounds to zero as 0.00 (never
   −0.00), and changes only when you press Enter or leave it. An empty or non-numeric entry is
   refused and the field shows the stored value again; a number outside the field's range is
-  clamped to it (setpoint width 0.05 to 1.5); Escape drops what you typed. A pasted number with
+  clamped to it (coordinates −50 to 50, setpoint width 0.05 to 1.5); Escape drops what you typed. A pasted number with
   a decimal comma ("1,5") is read as 1.5; pasted text that is not a number, such as "1,234.5", is
   refused.
 
