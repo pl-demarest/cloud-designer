@@ -47,3 +47,25 @@ describe('grid bounds at the slider limits', () => {
     })
   }
 })
+
+describe('the flow-cloud grid holds what is in the field', () => {
+  // With tailStrength 0 the tail adds nothing to the metaball field (audit
+  // mc-bbox-includes-disabled-tail), so it must not stretch the grid: the cells go to the body.
+  test('with tailStrength 0 the mesh does not depend on the tail: none, the default one, or one far away', () => {
+    const mesh = (edit: (p: CloudPreset) => void) => {
+      const p = fixture('default')
+      edit(p)
+      const { vertices, indices } = generateFlowCloud(marchingCubesMessage(p))
+      return { vertices, indices }
+    }
+    const noTail = mesh((p) => (p.tail.setpoints = []))
+    expect(noTail.indices.length).toBeGreaterThan(0)
+    expect(mesh(() => {})).toEqual(noTail)
+    expect(
+      mesh((p) => {
+        p.tail.attachToBase = 'none'
+        for (const sp of p.tail.setpoints) sp.position = [sp.position[0] + 20, sp.position[1], sp.position[2]]
+      }),
+    ).toEqual(noTail)
+  })
+})

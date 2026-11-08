@@ -28,9 +28,12 @@ function marchingCubes(
   const box = emptyBox();
   expandFlowCloudBounds(box, spheres, tailSamples, flowCloud, [0, 0, 0]);
 
-  // Extend bounding box to include tail setpoints
-  for (const sp of tail.setpoints) {
-    expandBox(box, sp.position[0], sp.position[1], sp.position[2], sp.width + 0.5);
+  // Extend bounding box to include tail setpoints, where the tail is part of the field: with
+  // tailStrength 0 it adds nothing, and the grid's cells go to the spheres.
+  if (tailSamples.length > 0) {
+    for (const sp of tail.setpoints) {
+      expandBox(box, sp.position[0], sp.position[1], sp.position[2], sp.width + 0.5);
+    }
   }
 
   if (!isFinite(box.minX)) {
