@@ -27,13 +27,15 @@ interface UiStore extends ViewFlags {
   /** Regenerate shows "Working..." while jobs.flowCloud runs; Cut & Glue shows "Generating..."
    *  while jobs.cutAndGlue or jobs.surfaceMesh runs. */
   jobs: Record<WorkerKind, JobState>;
-  /** A surface mesh exists, so the Surface Mesh checkbox can show it. */
+  /** A surface mesh exists, so the Surface Mesh checkbox can show it. Without one the box is
+   *  unchecked, so it is never left checked and disabled with Preview showing nothing. */
   hasSurfaceMesh: boolean;
 
   setJob: (kind: WorkerKind, job: JobState) => void;
   setHasSurfaceMesh: (hasSurfaceMesh: boolean) => void;
-  /** Back to the state of an editor with no engine: every job idle, no surface mesh. The view
-   *  flags and the notice stay: a remounted engine shows what the toolbar says. */
+  /** Back to the state of an editor with no engine: every job idle, no surface mesh (so the
+   *  Surface Mesh box unchecked). The other view flags and the notice stay: a remounted engine
+   *  shows what the toolbar says. */
   resetEngineState: () => void;
 
   /** The message the viewport shows, or null. A new notice replaces the one shown. */
@@ -61,8 +63,8 @@ export const useUiStore = create<UiStore>()((set) => ({
   hasSurfaceMesh: false,
 
   setJob: (kind, job) => set((s) => ({ jobs: { ...s.jobs, [kind]: job } })),
-  setHasSurfaceMesh: (hasSurfaceMesh) => set({ hasSurfaceMesh }),
-  resetEngineState: () => set({ jobs: IDLE_JOBS, hasSurfaceMesh: false }),
+  setHasSurfaceMesh: (hasSurfaceMesh) => set(hasSurfaceMesh ? { hasSurfaceMesh } : { hasSurfaceMesh, surfaceMeshVisible: false }),
+  resetEngineState: () => set({ jobs: IDLE_JOBS, hasSurfaceMesh: false, surfaceMeshVisible: false }),
 
   notice: null,
   showNotice: (notice) => set({ notice }),

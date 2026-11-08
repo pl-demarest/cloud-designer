@@ -336,3 +336,29 @@ describe('a flow cloud is drawn in the mode its Regenerate computed it for (cd:e
     expect(drawn().vertices).toBeGreaterThan(0)
   })
 })
+
+describe('the Surface Mesh box follows whether a surface mesh exists (cd:review CDR-08)', () => {
+  test('a Cut & Glue whose surface mesh comes back empty unchecks the box, and Preview shows the clipped wireframe', async () => {
+    void engine!.cutAndGlue()
+    await workers.cutAndGlue.answer()
+    await workers.surfaceMesh.answer()
+    useUiStore.getState().setSurfaceMeshVisible(true)
+    useUiStore.getState().setMode('preview')
+    void engine!.cutAndGlue()
+    await workers.cutAndGlue.answer()
+    workers.surfaceMesh.reply({ positions: new Float32Array(0), indices: new Uint32Array(0) })
+    const ui = useUiStore.getState()
+    expect(ui.hasSurfaceMesh).toBe(false)
+    expect(ui.surfaceMeshVisible, 'the box is not left checked and disabled').toBe(false)
+    const shown = engine!.viewport.cutGlueGroup.children.filter((c) => c.visible)
+    expect(shown, 'the clipped wireframe shows').toHaveLength(1)
+  })
+
+  test('the engine going away unchecks it too', () => {
+    useUiStore.getState().setHasSurfaceMesh(true)
+    useUiStore.getState().setSurfaceMeshVisible(true)
+    engine!.dispose()
+    expect(useUiStore.getState().surfaceMeshVisible).toBe(false)
+    engine = null
+  })
+})

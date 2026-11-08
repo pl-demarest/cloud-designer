@@ -229,7 +229,7 @@ Its controls, from the top of the section:
 | Regenerate | Compute the flow cloud from the current preset. The button reads "Working..." and is disabled while the job runs. If it fails, "Regenerate failed: <reason>" appears under the header until the next run. |
 | Reset to Default | The same as the toolbar's Reset. |
 | Cut & Glue | Compute the clipped wireframe and the surface mesh ([Cut & Glue](#cut--glue-the-clipped-wireframe)). The button reads "Generating..." and is disabled while either job runs. A failure shows "Cut & Glue failed: <reason>" under it. |
-| Surface Mesh | Show the surface mesh instead of the clipped wireframe in Preview. Disabled until a Cut & Glue run has produced a surface mesh. View state, like Hide. |
+| Surface Mesh | Show the surface mesh instead of the clipped wireframe in Preview. Disabled, and unchecked, while there is no surface mesh: before the first Cut & Glue run, after one whose surface mesh came out empty, and after Reset, Import or Discard. View state, like Hide. |
 | Mesh Density | The surface mesh's grid in cells per axis: "32 (fast)", "64 (balanced)", "96 (fine)", "128 (dense)", "192 ⚠ slow", "256 ⚠ very slow". Applies at the next Cut & Glue. |
 | Position X, Y, Z | −20 to 20 (0.1). Moves the shown flow cloud at once, as dragging the teal handle does. Cut & Glue, and so the Cloud GLB, takes the flow cloud at its position when it runs. |
 | Resolution | The flow cloud's grid in cells per axis: "32 (fast)", "64 (balanced)", "128 ⚠ slow". |
