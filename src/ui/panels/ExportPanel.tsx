@@ -1,13 +1,17 @@
+import type { Object3D } from 'three';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { useCloudStore } from '../../store/cloudStore';
 import { useEngine } from '../EngineContext';
-import * as THREE from 'three';
-import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+import { cloudScene, fullScene, scaffoldScene, wireframeScene, type ExportSources } from '../../export/scenes';
 
 export function ExportPanel() {
   const engine = useEngine();
-  const getFlowCloudGroup = () => engine.current?.viewport.flowCloudGroup ?? null;
-  const getScaffoldGroups = () => engine.current?.scaffoldGroups() ?? null;
-  const getCutGlueEdges = () => engine.current?.cutGlue.getEdges() ?? new Float32Array(0);
+
+  /** The editor's groups, or null before the engine is mounted. */
+  function sources(): ExportSources | null {
+    const e = engine.current;
+    return e ? { ...e.scaffoldGroups(), flowCloud: e.viewport.flowCloudGroup } : null;
+  }
 
   // Read when a button is pressed: the panel shows nothing of the preset.
   const preset = () => useCloudStore.getState().preset;
@@ -24,7 +28,7 @@ export function ExportPanel() {
     URL.revokeObjectURL(url);
   }
 
-  function exportGLB(exportGroup: THREE.Object3D, suffix: string) {
+  function exportGLB(exportGroup: Object3D, suffix: string, done?: () => void) {
     const exporter = new GLTFExporter();
     exporter.parse(
       exportGroup,
@@ -36,126 +40,55 @@ export function ExportPanel() {
         a.download = `${baseName()}${suffix}.glb`;
         a.click();
         URL.revokeObjectURL(url);
+        done?.();
       },
-      (err) => console.error('GLTFExporter error', err),
+      (err) => {
+        console.error('GLTFExporter error', err);
+        done?.();
+      },
       { binary: true }
     );
   }
 
-  function buildScaffoldGroup(): THREE.Group | null {
-    const groups = getScaffoldGroups();
-    if (!groups) return null;
-
-    const out = new THREE.Group();
-    out.name = 'scaffold';
-
-    const spheresClone = new THREE.Group();
-    spheresClone.name = 'spheres';
-    groups.spheres.children.forEach((c) => spheresClone.add(c.clone()));
-
-    const baseClone = new THREE.Group();
-    baseClone.name = 'base';
-    groups.base.children.forEach((c) => baseClone.add(c.clone()));
-
-    out.add(spheresClone, baseClone);
-    return out;
-  }
-
   function handleExportScaffold() {
-    const scaffold = buildScaffoldGroup();
-    if (!scaffold || scaffold.children.every((g) => (g as THREE.Group).children.length === 0)) {
+    const src = sources();
+    const scene = src && scaffoldScene(src);
+    if (!scene) {
       alert('No scaffold geometry visible.');
       return;
     }
-    exportGLB(scaffold, '-scaffold');
+    exportGLB(scene, '-scaffold');
   }
 
   function handleExportWireframe() {
-    const flowCloudGroup = getFlowCloudGroup();
-    const hasContent = flowCloudGroup?.children.some((c) => !c.userData.editorOnly);
-    if (!flowCloudGroup || !hasContent) {
+    const src = sources();
+    const scene = src && wireframeScene(src);
+    if (!scene) {
       alert('No flow cloud geometry. Click Regenerate first.');
       return;
     }
-
-    const combined = new THREE.Group();
-    combined.name = 'cloud-wireframe';
-
-    // Flow cloud isosurface — include position, exclude drag handle
-    const bodyClone = new THREE.Group();
-    bodyClone.name = 'body';
-    bodyClone.position.copy(flowCloudGroup.position);
-    flowCloudGroup.children
-      .filter((c) => !c.userData.editorOnly)
-      .forEach((c) => bodyClone.add(c.clone()));
-    combined.add(bodyClone);
-
-    // Tail and spirals are cloud output, not just scaffolding
-    const scaffoldGroups = getScaffoldGroups();
-    if (scaffoldGroups) {
-      if (scaffoldGroups.tail.children.length > 0) {
-        const tailClone = new THREE.Group();
-        tailClone.name = 'tail';
-        scaffoldGroups.tail.children.forEach((c) => tailClone.add(c.clone()));
-        combined.add(tailClone);
-      }
-      // Exclude orange handle boxes (userData.editorOnly)
-      const spiralWires = scaffoldGroups.spirals.children.filter(
-        (c) => !c.userData.editorOnly
-      );
-      if (spiralWires.length > 0) {
-        const spiralClone = new THREE.Group();
-        spiralClone.name = 'spirals';
-        spiralWires.forEach((c) => spiralClone.add(c.clone()));
-        combined.add(spiralClone);
-      }
-    }
-
-    exportGLB(combined, '-wireframe');
+    exportGLB(scene, '-wireframe');
   }
 
   function handleExportBoth() {
-    const flowCloudGroup = getFlowCloudGroup();
-    const scaffold       = buildScaffoldGroup();
-    const hasContent = flowCloudGroup?.children.some((c) => !c.userData.editorOnly);
-
-    if (!hasContent && (!scaffold || scaffold.children.every((g) => (g as THREE.Group).children.length === 0))) {
+    const src = sources();
+    const scene = src && fullScene(src);
+    if (!scene) {
       alert('Nothing to export.');
       return;
     }
-
-    const combined = new THREE.Group();
-    combined.name = 'cloud';
-
-    if (scaffold) combined.add(scaffold);
-
-    if (flowCloudGroup && hasContent) {
-      const flowCloudClone = new THREE.Group();
-      flowCloudClone.name = 'wireframe';
-      flowCloudClone.position.copy(flowCloudGroup.position);
-      flowCloudGroup.children
-        .filter((c) => !c.userData.editorOnly)
-        .forEach((c) => flowCloudClone.add(c.clone()));
-      combined.add(flowCloudClone);
-    }
-
-    exportGLB(combined, '-full');
+    exportGLB(scene, '-full');
   }
 
   function handleExportCloudGLB() {
-    const edges = getCutGlueEdges();
+    const edges = engine.current?.cutGlue.getEdges() ?? new Float32Array(0);
     if (edges.length === 0) {
       alert('Run Cut & Glue first to generate the unified cloud wireframe.');
       return;
     }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(edges, 3));
-    const mat = new THREE.LineBasicMaterial({ color: 0x000000 });
-    const lines = new THREE.LineSegments(geo, mat);
-    const group = new THREE.Group();
-    group.name = 'cloud';
-    group.add(lines);
-    exportGLB(group, '-cloud');
+    // githubLanding's input; the contract is at cloudScene (src/export/scenes.ts).
+    const cloud = cloudScene(edges);
+    exportGLB(cloud.scene, '-cloud', cloud.dispose);
   }
 
   function copySnippet() {

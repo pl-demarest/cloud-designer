@@ -1,5 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import type { Locator, Page } from '@playwright/test'
+import type * as THREE from 'three'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { cutAndGlue, expect, openApp, openPanel, regenerate, test } from './helpers'
 
 interface Download {
@@ -34,6 +36,7 @@ interface GltfJson {
 const GLB_MAGIC = 0x46546c67 // "glTF", little-endian
 const CHUNK_JSON = 0x4e4f534a // "JSON", little-endian
 const MODE_LINES = 1
+const MODE_LINE_STRIP = 3
 const MODE_TRIANGLES = 4
 
 /** Parse the header and JSON chunk of a binary glTF file. */
@@ -54,6 +57,23 @@ function triangleMeshCount(gltf: GltfJson): number {
 
 function nodeNames(gltf: GltfJson): string[] {
   return gltf.nodes.map((n) => n.name ?? '').filter((n) => n !== '')
+}
+
+/** Load a GLB the way githubLanding's loadCloudLayer does: GLTFLoader, in Node here. */
+async function loadGlb(bytes: Buffer): Promise<THREE.Group> {
+  const data = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer
+  return (await new GLTFLoader().parseAsync(data, '')).scene
+}
+
+/** Every object under `root` that draws something, by type, and every editor-only flag. */
+function drawn(root: THREE.Object3D): { types: string[]; editorOnly: string[] } {
+  const types: string[] = []
+  const editorOnly: string[] = []
+  root.traverse((o) => {
+    if ('geometry' in o) types.push(o.type)
+    if (o.userData.editorOnly !== undefined) editorOnly.push(o.name || o.type)
+  })
+  return { types, editorOnly }
 }
 
 test.beforeEach(async ({ page }) => {
@@ -144,15 +164,15 @@ test('Export Cloud GLB needs Cut & Glue and contains only line segments', async 
 
 // Audit findings "Scaffold and wireframe GLB exports include editor drag-handle meshes"
 // (src/components/ExportPanel.tsx:61) and "Base and tail handles use isBaseHandle/isTailHandle, so
-// ExportPanel exports them into GLBs" (src/three/BaseMesh.ts:150). Measured on the default preset:
-// scaffold 7 triangle meshes (3 sphere + 4 base handles), wireframe 3 (tail handles), full 7.
+// ExportPanel exports them into GLBs" (src/three/BaseMesh.ts:150). Measured on the default preset
+// before Stage C: scaffold 7 triangle meshes (3 sphere + 4 base handles), wireframe 3 (tail
+// handles), full 7. The exports now copy through cloneExportable (src/export/scenes.ts).
 for (const [button, file] of [
   ['Export Scaffold GLB', 'scaffold'],
   ['Export Wireframe GLB', 'wireframe'],
   ['Export Both (Full)', 'full'],
 ] as const) {
   test(`${file} GLB contains no editor handle meshes`, async ({ page }) => {
-    test.fail(true, 'export finding: GLB exports include editor drag handles')
     await regenerate(page)
     await openPanel(page, 'Export')
     const { bytes } = await download(page, exportButton(page, button))
@@ -168,4 +188,36 @@ test('Export Both (Full) includes the tail and spirals', async ({ page }) => {
   await openPanel(page, 'Export')
   const names = nodeNames(parseGlb((await download(page, exportButton(page, 'Export Both (Full)'))).bytes))
   expect(names).toContain('tail')
+})
+
+// The GLB contract with githubLanding (src/export/scenes.ts cloudScene): its loadCloudLayer loads
+// the Cloud GLB with GLTFLoader and merges the line primitives into one LineSegments buffer.
+test('Export Cloud GLB, the landing page input: GLTFLoader reads one LineSegments and nothing editor-only', async ({ page }) => {
+  await regenerate(page)
+  await cutAndGlue(page)
+  await openPanel(page, 'Export')
+  const { bytes } = await download(page, exportButton(page, 'Export Cloud GLB'))
+  const scene = await loadGlb(bytes)
+  expect(scene.children.map((c) => c.name)).toEqual(['cloud'])
+  const { types, editorOnly } = drawn(scene)
+  expect(types).toEqual(['LineSegments'])
+  expect(editorOnly).toEqual([])
+  const lines = scene.getObjectByProperty('type', 'LineSegments') as THREE.LineSegments
+  expect(lines.geometry.getAttribute('position').count % 2, 'whole segments').toBe(0)
+  expect(lines.geometry.getAttribute('position').count).toBeGreaterThan(1000)
+})
+
+test('the wireframe export carries the flow lines as line strips (THREE.Line), the rest as line segments', async ({ page }) => {
+  await regenerate(page)
+  await openPanel(page, 'Export')
+  const { bytes } = await download(page, exportButton(page, 'Export Wireframe GLB'))
+  const gltf = parseGlb(bytes)
+  const flowLines = gltf.nodes.find((n) => n.name === 'flowLines') as { children?: number[] } | undefined
+  expect(flowLines?.children?.length, 'flow-line nodes').toBeGreaterThan(0)
+  for (const i of flowLines!.children!) {
+    expect(gltf.meshes[gltf.nodes[i].mesh!].primitives.map((p) => p.mode)).toEqual([MODE_LINE_STRIP])
+  }
+  const { types, editorOnly } = drawn(await loadGlb(bytes))
+  expect(new Set(types)).toEqual(new Set(['Line', 'LineSegments']))
+  expect(editorOnly).toEqual([])
 })
