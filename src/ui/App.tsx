@@ -10,6 +10,7 @@ import { ExportPanel } from './panels/ExportPanel';
 import { useEditorEngine } from '../engine/useEditorEngine';
 import { useCloudStore } from '../store/cloudStore';
 import { useToggleSet } from './hooks/useToggleSet';
+import { useHistoryShortcuts } from './hooks/useHistoryShortcuts';
 import { Accordion } from './controls/Accordion';
 import { EngineContext } from './EngineContext';
 
@@ -29,22 +30,7 @@ export function App() {
     useCloudStore.getState().commit();
   }, []);
 
-  // The toolbar's Undo and Redo and these keys run the same store actions.
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      const { undo, redo } = useCloudStore.getState();
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'z') {
-        e.preventDefault();
-        undo();
-      }
-      if ((e.ctrlKey || e.metaKey) && ((e.shiftKey && e.key === 'z') || e.key === 'y')) {
-        e.preventDefault();
-        redo();
-      }
-    }
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, []);
+  useHistoryShortcuts();
 
   const panels: { id: PanelId; label: string; component: ReactNode }[] = [
     { id: 'spheres',   label: `Spheres (${sphereCount})`, component: <SpherePanel /> },

@@ -61,9 +61,8 @@ test('Ctrl+Y redo is accepted after Ctrl+Z', async ({ page }) => {
 })
 
 test('Ctrl+Shift+Z redoes an added sphere', async ({ page }) => {
-  // Fails for two reasons today: the stale snapshot above, and App.tsx compares e.key to lowercase
-  // 'z' although Shift makes it 'Z' (audit finding "Ctrl+Shift+Z redo compares e.key to lowercase 'z'").
-  test.fail(true, 'react-layer findings: stale commit() snapshot; Shift+Z key case')
+  // Failed for two reasons before Stage C: the stale snapshot above, and App.tsx compared e.key to
+  // lowercase 'z' although Shift makes it 'Z' (audit finding keyboard-undo-in-inputs).
   await addSphere(page)
   await page.keyboard.press('Control+z')
   await expect(accordionHeader(page, 'Spheres')).toContainText('Spheres (3)')
@@ -120,4 +119,42 @@ test('a pointer drag on a slider is one undo step', async ({ page }) => {
   await toolbarButton(page, 'Undo').click()
   await expect(value).toHaveText('1.20')
   await expect(toolbarButton(page, 'Undo')).toBeDisabled()
+})
+
+// Audit finding keyboard-undo-in-inputs: Ctrl+Z in the name or a number field undid the preset.
+test('Ctrl+Z in a text field undoes the text, not the preset', async ({ page }) => {
+  await addSphere(page)
+  const name = page.getByPlaceholder('Cloud name...')
+  await name.click()
+  await name.press('End')
+  await page.keyboard.type(' X')
+  await page.keyboard.press('ControlOrMeta+z')
+  await expect(accordionHeader(page, 'Spheres')).toContainText('Spheres (4)')
+
+  const x = (await openPanel(page, 'Base')).getByRole('spinbutton', { name: 'P0 X' })
+  await x.fill('1')
+  await page.keyboard.press('ControlOrMeta+z')
+  await expect(accordionHeader(page, 'Spheres')).toContainText('Spheres (4)')
+})
+
+test('Cmd+Shift+Z and Ctrl+Z with Caps Lock work too', async ({ page }) => {
+  await addSphere(page)
+  await page.keyboard.press('Meta+z')
+  await expect(accordionHeader(page, 'Spheres')).toContainText('Spheres (3)')
+  await page.keyboard.press('Meta+Shift+KeyZ')
+  await expect(accordionHeader(page, 'Spheres')).toContainText('Spheres (4)')
+  // Caps Lock: Playwright sends e.key 'Z' without Shift.
+  await page.evaluate(() =>
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Z', code: 'KeyZ', ctrlKey: true, bubbles: true, cancelable: true })),
+  )
+  await expect(accordionHeader(page, 'Spheres')).toContainText('Spheres (3)')
+})
+
+test('Ctrl+Z while a slider has focus undoes its step', async ({ page }) => {
+  const row = sliderRow(await openPanel(page, 'Base'), 'Width')
+  await row.locator('input[type=range]').focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(row.locator('.slider-value')).toHaveText('1.25')
+  await page.keyboard.press('Control+z')
+  await expect(row.locator('.slider-value')).toHaveText('1.20')
 })
