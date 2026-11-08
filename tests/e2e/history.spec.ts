@@ -162,6 +162,35 @@ test('Ctrl+Z in a text field undoes the text, not the preset', async ({ page }) 
   await expect(accordionHeader(page, 'Spheres')).toContainText('Spheres (4)')
 })
 
+// Chrome keeps one undo list for all of a page's text fields, and a number field's typing leaves
+// it once the field applies the value, so the browser's Ctrl+Z in a number field reached back to
+// the last rename: the name changed and the focus jumped to it.
+test('Ctrl+Z in a number field undoes the preset or drops the typing, never another field', async ({ page }) => {
+  const name = page.getByRole('textbox', { name: 'Cloud name' })
+  await name.click()
+  await name.press('End')
+  await page.keyboard.type(' X')
+  await name.press('Enter')
+  const y = (await openPanel(page, 'Base')).getByRole('spinbutton', { name: 'P0 Y' })
+  await y.press('ArrowUp')
+  await y.press('ArrowUp')
+  await y.press('Enter')
+  await expect(y).toHaveValue('-0.60')
+
+  await y.press('ControlOrMeta+z')
+  await expect(name).toHaveValue('Default Cloud X')
+  await expect(y, 'with nothing typed, Ctrl+Z undoes the applied value').toHaveValue('-0.80')
+  await expect(y).toBeFocused()
+  await y.press('ControlOrMeta+Shift+z')
+  await expect(y, 'and Ctrl+Shift+Z redoes it').toHaveValue('-0.60')
+
+  await y.fill('0.4')
+  await y.press('ControlOrMeta+z')
+  await expect(y, 'with a value typed, Ctrl+Z drops it').toHaveValue('-0.60')
+  await expect(name).toHaveValue('Default Cloud X')
+  await expect(y).toBeFocused()
+})
+
 test('Cmd+Shift+Z and Ctrl+Z with Caps Lock work too', async ({ page }) => {
   await addSphere(page)
   await page.keyboard.press('Meta+z')

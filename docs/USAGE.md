@@ -349,9 +349,10 @@ until their jobs run again.
 
 - The letter's case does not matter (Caps Lock), and on a non-Latin keyboard layout the physical Z
   and Y keys work. With Alt (AltGr) held the keys do nothing.
-- While focus is in a text field (the cloud name or a number field) or a drop-down list, the keys
-  are the browser's: in a text field they undo and redo the typing. On a slider, a checkbox or a
-  button they undo and redo the preset.
+- While focus is in the cloud name or a drop-down list, the keys are the browser's: in the name
+  they undo and redo the typing. In a number field, Ctrl+Z drops what you have typed; with nothing
+  typed, the keys undo and redo the preset (the browser's own undo there could change another
+  field). On a slider, a checkbox or a button they undo and redo the preset.
 - Tab and Shift+Tab move between controls; the control with keyboard focus has an outline. Every
   control is a button, a slider, a checkbox, a drop-down list or a text field, and has a name for
   screen readers.

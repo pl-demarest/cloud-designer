@@ -189,6 +189,28 @@ describe('NumberField', () => {
     expect(store().preset.tail.setpoints[1].width).toBe(0.05)
   })
 
+  test('the history keys stay in the field: without a draft they undo and redo the preset, with one Ctrl+Z drops it', () => {
+    const { container } = render(<BasePanel />)
+    const x = pointInput(container, 0, 0)
+    fireEvent.change(x, { target: { value: '-2' } })
+    fireEvent.keyDown(x, { key: 'Enter' })
+    expect(store().preset.base.controlPoints[0][0]).toBe(-2)
+
+    // fireEvent returns false when the handler called preventDefault: the browser does not undo.
+    expect(fireEvent.keyDown(x, { key: 'z', ctrlKey: true }), 'Ctrl+Z handled').toBe(false)
+    expect(store().preset.base.controlPoints[0][0]).toBe(-2.5)
+    expect(fireEvent.keyDown(x, { key: 'Z', metaKey: true, shiftKey: true }), 'Cmd+Shift+Z handled').toBe(false)
+    expect(store().preset.base.controlPoints[0][0]).toBe(-2)
+
+    fireEvent.change(x, { target: { value: '7' } })
+    expect(fireEvent.keyDown(x, { key: 'y', ctrlKey: true }), 'Ctrl+Y with a draft handled').toBe(false)
+    expect(x.value, 'redo keeps the draft').toBe('7')
+    expect(fireEvent.keyDown(x, { key: 'z', ctrlKey: true }), 'Ctrl+Z with a draft handled').toBe(false)
+    expect(x.value).toBe('-2.00')
+    expect(store().preset.base.controlPoints[0][0], 'the draft is dropped, the preset kept').toBe(-2)
+    expect(history().past, 'dropping the draft undoes nothing').toHaveLength(2)
+  })
+
   test('re-entering the value the field holds records nothing', () => {
     const { container } = render(<BasePanel />)
     const x = pointInput(container, 3, 0)
