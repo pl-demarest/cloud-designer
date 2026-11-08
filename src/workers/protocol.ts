@@ -31,8 +31,8 @@ export interface FlowCloudResult {
   /** Constant-u band contours, one array of segment pairs per contour level (spiral mode with
    *  generateBands only). */
   bands: Float32Array[];
-  /** Flow lines, one polyline per connected piece of each line, from low to high u (spiral mode
-   *  with showFlowLines only). */
+  /** Flow lines, one polyline per connected piece of each line, from low to high u (spiral mode;
+   *  showFlowLines only shows or hides them). */
   flowLines: Float32Array[];
 }
 

@@ -12,6 +12,7 @@ export class FlowCloud implements DragSource {
   private viewport: Viewport;
   private group: THREE.Group;
   private currentObjects: THREE.Object3D[] = [];
+  private spiralGroup: THREE.Group | null = null;
   private bandsGroup: THREE.Group | null = null;
   private flowLinesGroup: THREE.Group | null = null;
   private unsubscribeWireframe: () => void;
@@ -111,6 +112,7 @@ export class FlowCloud implements DragSource {
       this.group.add(spiralGroup);
       this.currentObjects.push(spiralGroup);
 
+      this.spiralGroup    = spiralGroup;
       this.bandsGroup     = bandsGrp;
       this.flowLinesGroup = flowGrp;
     }
@@ -156,6 +158,7 @@ export class FlowCloud implements DragSource {
       });
     }
     this.currentObjects = [];
+    this.spiralGroup    = null;
     this.bandsGroup     = null;
     this.flowLinesGroup = null;
   }
@@ -170,48 +173,51 @@ export class FlowCloud implements DragSource {
     this.handle.visible = false;
   }
 
+  /**
+   * The shown result's wires in world space, as x,y,z,x,y,z segment pairs, for Cut & Glue: the
+   * crease edges in Edges mode; in Spiral mode the bands while Show Bands is on and the flow lines
+   * while Show Flow Lines is on. It reads those toggles, not the objects' visibility, so the mode
+   * changes nothing (Preview hides the flow cloud's group). Show/Hide is the caller's to apply
+   * (EditorEngine.cutAndGlue). A THREE.Line polyline [P0, P1, ..., PN] becomes the pairs
+   * [P0, P1, P1, P2, ..., PN-1, PN].
+   */
   getEdges(): Float32Array {
     const verts: number[] = [];
     const v = new THREE.Vector3();
-    // Use visibility-aware traversal: skip subtrees where any ancestor is invisible.
-    // CutGlue consumes a flat segment-pair Float32Array (every 6 floats = one segment).
-    // LineSegments vertices are already in pair format → dump as-is.
-    // THREE.Line vertices are a connected polyline [P0,P1,P2,...,PN] → expand into
-    //   pairs [P0,P1, P1,P2, P2,P3, ..., P(N-1),PN] so connections survive.
-    // (LineSegments extends Line in three.js, so the LineSegments check must come first.)
-    const traverseVisible = (obj: THREE.Object3D) => {
-      if (!obj.visible) return;
-      if (!obj.userData.editorOnly) {
-        if (obj instanceof THREE.LineSegments) {
-          obj.updateWorldMatrix(true, false);
-          const pos = obj.geometry.attributes.position;
-          if (pos) {
-            for (let i = 0; i < pos.count; i++) {
-              v.fromBufferAttribute(pos, i).applyMatrix4(obj.matrixWorld);
-              verts.push(v.x, v.y, v.z);
-            }
-          }
-        } else if (obj instanceof THREE.Line) {
-          obj.updateWorldMatrix(true, false);
-          const pos = obj.geometry.attributes.position;
-          if (pos && pos.count >= 2) {
-            // Pre-compute world-space positions, then emit consecutive pairs
-            const wp: number[] = [];
-            for (let i = 0; i < pos.count; i++) {
-              v.fromBufferAttribute(pos, i).applyMatrix4(obj.matrixWorld);
-              wp.push(v.x, v.y, v.z);
-            }
-            for (let i = 0; i < pos.count - 1; i++) {
-              const a = i * 3;
-              const b = a + 3;
-              verts.push(wp[a], wp[a+1], wp[a+2], wp[b], wp[b+1], wp[b+2]);
-            }
-          }
+    const { showBands, showFlowLines } = useCloudStore.getState().preset.flowCloud.wireframe;
+    const emit = (obj: THREE.Object3D) => {
+      // LineSegments extends Line, so it is tested first.
+      if (obj instanceof THREE.LineSegments) {
+        obj.updateWorldMatrix(true, false);
+        const pos = obj.geometry.attributes.position;
+        for (let i = 0; i < (pos?.count ?? 0); i++) {
+          v.fromBufferAttribute(pos, i).applyMatrix4(obj.matrixWorld);
+          verts.push(v.x, v.y, v.z);
+        }
+      } else if (obj instanceof THREE.Line) {
+        obj.updateWorldMatrix(true, false);
+        const pos = obj.geometry.attributes.position;
+        if (!pos || pos.count < 2) return;
+        const wp: number[] = [];
+        for (let i = 0; i < pos.count; i++) {
+          v.fromBufferAttribute(pos, i).applyMatrix4(obj.matrixWorld);
+          wp.push(v.x, v.y, v.z);
+        }
+        for (let i = 0; i < pos.count - 1; i++) {
+          const a = i * 3;
+          const b = a + 3;
+          verts.push(wp[a], wp[a + 1], wp[a + 2], wp[b], wp[b + 1], wp[b + 2]);
         }
       }
-      for (const child of obj.children) traverseVisible(child);
     };
-    traverseVisible(this.group);
+    for (const obj of this.currentObjects) {
+      if (obj === this.spiralGroup) {
+        if (showBands) this.bandsGroup?.children.forEach(emit);
+        if (showFlowLines) this.flowLinesGroup?.children.forEach(emit);
+      } else {
+        emit(obj);
+      }
+    }
     return new Float32Array(verts);
   }
 

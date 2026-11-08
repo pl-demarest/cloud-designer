@@ -204,8 +204,9 @@ function wrapAngle(a: number): number {
  * the front of the frontmost sphere, 1 at the first tail setpoint, or one axis length past the
  * front when the tail starts less than 1e-3 past it) and an angle around the front-to-back
  * axis. Bands (only when generateBands is set) are contours of constant u, one
- * array of segment pairs per contour. Flow lines (only when showFlowLines is set) follow constant
- * angle + spiralTwist * u, one polyline per connected piece, running from low to high u. Both are
+ * array of segment pairs per contour. Flow lines follow constant angle + spiralTwist * u, one
+ * polyline per connected piece, running from low to high u; showFlowLines only shows or hides them
+ * in the editor, so they are computed whatever it says. Both are
  * traced over the mesh by levelSetPolylines, so every point lies on a mesh edge and consecutive
  * points on two sides of one triangle.
  */
@@ -314,32 +315,30 @@ export function extractSpiral(
   }
 
   // --- FLOW LINES (constant spiralV) ---
-  if (wf.showFlowLines) {
-    const offset = new Float64Array(nVerts);
-    for (let fi = 0; fi < wf.numFlowLines; fi++) {
-      const targetSV = (fi / wf.numFlowLines) * TWO_PI - Math.PI;
-      // spiralV relative to the target, wrapped once per vertex, so that a vertex is on the same
-      // side of the level in every edge it ends.
-      for (let i = 0; i < nVerts; i++) offset[i] = wrapAngle(svArr[i] - targetSV);
-      const lines = levelSetPolylines(vertices, uArr, mesh, (lo, hi, out) => {
-        const a = offset[lo];
-        const b = offset[hi];
-        // Ends more than half a turn apart meet at the opposite angle, not at the target.
-        out[0] = a;
-        out[1] = Math.abs(b - a) > Math.PI ? a : b;
-      });
-      for (const line of lines) {
-        const pts = new Float32Array((line.length / 4) * 3);
-        // From low to high u.
-        const reverse = line[3] > line[line.length - 1];
-        for (let k = 0; k < line.length / 4; k++) {
-          const m = reverse ? line.length / 4 - 1 - k : k;
-          pts[k * 3] = line[m * 4];
-          pts[k * 3 + 1] = line[m * 4 + 1];
-          pts[k * 3 + 2] = line[m * 4 + 2];
-        }
-        flowLines.push(pts);
+  const offset = new Float64Array(nVerts);
+  for (let fi = 0; fi < wf.numFlowLines; fi++) {
+    const targetSV = (fi / wf.numFlowLines) * TWO_PI - Math.PI;
+    // spiralV relative to the target, wrapped once per vertex, so that a vertex is on the same
+    // side of the level in every edge it ends.
+    for (let i = 0; i < nVerts; i++) offset[i] = wrapAngle(svArr[i] - targetSV);
+    const lines = levelSetPolylines(vertices, uArr, mesh, (lo, hi, out) => {
+      const a = offset[lo];
+      const b = offset[hi];
+      // Ends more than half a turn apart meet at the opposite angle, not at the target.
+      out[0] = a;
+      out[1] = Math.abs(b - a) > Math.PI ? a : b;
+    });
+    for (const line of lines) {
+      const pts = new Float32Array((line.length / 4) * 3);
+      // From low to high u.
+      const reverse = line[3] > line[line.length - 1];
+      for (let k = 0; k < line.length / 4; k++) {
+        const m = reverse ? line.length / 4 - 1 - k : k;
+        pts[k * 3] = line[m * 4];
+        pts[k * 3 + 1] = line[m * 4 + 1];
+        pts[k * 3 + 2] = line[m * 4 + 2];
       }
+      flowLines.push(pts);
     }
   }
 

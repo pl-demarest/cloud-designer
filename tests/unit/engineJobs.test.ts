@@ -4,7 +4,7 @@ import { EditorEngine } from '../../src/engine/EditorEngine'
 import { FlowCloud } from '../../src/engine/views/FlowCloud'
 import { useCloudStore } from '../../src/store/cloudStore'
 import { useUiStore } from '../../src/store/uiStore'
-import type { FlowCloudRequest, FlowCloudResult, SurfaceMeshRequest, SurfaceMeshResult } from '../../src/workers/protocol'
+import type { CutGlueRequest, FlowCloudRequest, FlowCloudResult, SurfaceMeshRequest, SurfaceMeshResult } from '../../src/workers/protocol'
 import { createRendererStub, installCanvas2dStub, manualWorkers, mountCanvas, type ManualWorker } from '../helpers/engine'
 import { createViewportStub } from '../helpers/scene'
 import { fixture } from '../fixtures/presets'
@@ -238,5 +238,71 @@ describe("the surface mesh's flow cloud", () => {
     const shown = await surfaceMesh()
     expect(above4(shown.positions).count).toBeGreaterThan(100)
     expect(shown.request.includeFlowCloud).toBe(true)
+  })
+})
+
+describe('Cut & Glue and the flow cloud follow the toggles, not what the viewport shows', () => {
+  async function regenerate(): Promise<void> {
+    void engine!.regenerate()
+    await pastDebounce()
+    await workers.flowCloud.answer()
+  }
+
+  /** The flow-cloud edges of the Cut & Glue request the engine posts now. */
+  async function cutGlueFlowCloudEdges(): Promise<Float32Array> {
+    void engine!.cutAndGlue()
+    const cg = workers.cutAndGlue
+    const request = cg.posted.at(-1) as CutGlueRequest
+    await cg.answer()
+    await workers.surfaceMesh.answer()
+    return request.flowCloudEdges
+  }
+
+  const wireframe = () => store().preset.flowCloud.wireframe
+  const setWireframe = (patch: Partial<ReturnType<typeof wireframe>>) => store().setFlowCloud({ wireframe: { ...wireframe(), ...patch } })
+
+  test('cut-glue-in-preview: Cut & Glue started in Preview gets the flow-cloud edges it gets in Edit', async () => {
+    setWireframe({ generateBands: true })
+    await regenerate()
+    const edit = await cutGlueFlowCloudEdges()
+    expect(edit.length, 'bands and flow lines').toBeGreaterThan(0)
+    useUiStore.getState().setMode('preview')
+    const preview = await cutGlueFlowCloudEdges()
+    expect(digestArray(preview)).toEqual(digestArray(edit))
+  })
+
+  test('Show/Hide, Show Bands and Show Flow Lines decide which flow-cloud edges Cut & Glue gets, in either mode', async () => {
+    setWireframe({ generateBands: true })
+    await regenerate()
+    const all = (await cutGlueFlowCloudEdges()).length
+    setWireframe({ showFlowLines: false })
+    const bands = (await cutGlueFlowCloudEdges()).length
+    setWireframe({ showFlowLines: true, showBands: false })
+    useUiStore.getState().setMode('preview')
+    const lines = (await cutGlueFlowCloudEdges()).length
+    expect(bands).toBeGreaterThan(0)
+    expect(lines).toBeGreaterThan(0)
+    expect(bands + lines).toBe(all)
+    useUiStore.getState().toggleFlowCloud() // Hide
+    expect((await cutGlueFlowCloudEdges()).length, 'a hidden flow cloud gives none').toBe(0)
+  })
+
+  test('mc-flowlines-gated-on-visibility: after a Regenerate with Show Flow Lines off, turning it on shows the flow lines', async () => {
+    setWireframe({ showFlowLines: false })
+    await regenerate()
+    const result = workers.flowCloud.replies.at(-1) as FlowCloudResult
+    expect(result.flowLines.length, 'the Regenerate computed them').toBeGreaterThan(0)
+    const flowLines = engine!.viewport.flowCloudGroup.getObjectByName('flowLines')!
+    expect(flowLines.visible).toBe(false)
+    setWireframe({ showFlowLines: true })
+    expect(flowLines.visible).toBe(true)
+    expect(flowLines.children.length).toBe(result.flowLines.length)
+    expect(workers.flowCloud.posted, 'no new Regenerate').toHaveLength(1)
+  })
+
+  test('Generate Bands stays a generation option: off, the Regenerate computes no bands', async () => {
+    setWireframe({ generateBands: false })
+    await regenerate()
+    expect((workers.flowCloud.replies.at(-1) as FlowCloudResult).bands).toHaveLength(0)
   })
 })

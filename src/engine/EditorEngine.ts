@@ -185,17 +185,19 @@ export class EditorEngine {
 
   /**
    * Clips every wireframe against the other primitives' volumes and meshes the union: two jobs,
-   * run in parallel. Resolves with both outcomes. The union includes the flow cloud the viewport
-   * shows, if any: the one the last Regenerate produced, unless Show/Hide hides it.
+   * run in parallel. Resolves with both outcomes. Both include the flow cloud the last Regenerate
+   * produced, unless Show/Hide hides it, in Edit and in Preview alike: the clipped wireframe its
+   * bands and flow lines as Show Bands and Show Flow Lines say, the union its volume.
    */
   cutAndGlue(): Promise<[JobOutcome<CutGlueWorkerResult>, JobOutcome<SurfaceMeshResult>]> {
     const preset = useCloudStore.getState().preset;
+    const showFlowCloud = useUiStore.getState().showFlowCloud;
 
     const sphereEdgeGroups = this.spheres.getEdgesGrouped();
     const baseEdges = this.base.getEdges();
     const tailEdges = this.tail.getEdges();
     const spiralEdges = this.spirals.getEdges();
-    const flowCloudEdges = this.flowCloud.getEdges();
+    const flowCloudEdges = showFlowCloud ? this.flowCloud.getEdges() : new Float32Array(0);
 
     const cut = this.cutGlueJob.request({
       spheres: preset.spheres,
@@ -215,7 +217,7 @@ export class EditorEngine {
       flowCloud: preset.flowCloud,
       spirals: preset.spirals,
       resolution: preset.surfaceMeshResolution,
-      includeFlowCloud: useUiStore.getState().showFlowCloud && this.shownFlowCloud !== null,
+      includeFlowCloud: showFlowCloud && this.shownFlowCloud !== null,
       flowCloudInput: this.shownFlowCloud,
     });
 

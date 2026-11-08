@@ -241,7 +241,7 @@ In Spiral mode these controls follow:
 |---|---|
 | Generate Bands | Compute bands at the next Regenerate. Off, no bands exist in the result. |
 | Show Bands | Shown while Generate Bands is on. Shows or hides the bands of the shown result at once. |
-| Show Flow Lines | Shows or hides the flow lines of the shown result at once. A Regenerate with it off computes no flow lines. |
+| Show Flow Lines | Shows or hides the flow lines of the shown result at once. A Regenerate computes them either way, so turning it on shows them without one. |
 | Bands | 4 to 20 (1), shown while Generate Bands is on. Bands + 1 contours, at u = 0, 1/Bands, …, 1. |
 | Flow Lines | 4 to 24 (1). The number of flow lines, evenly spaced in angle. |
 | Spiral Twist | 0 to 4π (0.05 rad, shown as a multiple of π). How far a flow line turns about the axis from u = 0 to u = 1. |
@@ -303,9 +303,10 @@ tail tube between its rings, circular, with flat end caps. Spirals and the flow 
 solid. A primitive never cuts its own wires: where two primitives overlap, the wires of each run up
 to the other's surface.
 
-The flow-cloud wires that take part are the ones shown: none when the flow cloud is hidden or the
-editor is in Preview, and no bands or flow lines that Show Bands or Show Flow Lines hides. The
-result is what Preview shows and what Export Cloud GLB writes.
+The flow-cloud wires that take part are those Show/Hide, Show Bands and Show Flow Lines show, in
+Edit and in Preview alike: none while the flow cloud is hidden, and no bands or flow lines that
+Show Bands or Show Flow Lines hides. The result is what Preview shows and what Export Cloud GLB
+writes.
 
 ### The surface mesh
 
@@ -432,11 +433,6 @@ Glue again.
 
 - `flowCloud.tailStrength`, the tail's weight in the flow cloud's field, has no control. It can be
   set only in a preset file, then imported.
-- Show Flow Lines off during a Regenerate means no flow lines are computed: turning it on later
-  shows none until the next Regenerate. Generate Bands works the same way, as its tooltip says.
-- In Preview the flow cloud is hidden, so a Cut & Glue run started there leaves the flow-cloud
-  wires out of the clipped wireframe, although the surface mesh includes the flow cloud. Run Cut &
-  Glue in Edit mode.
 - Undo, Reset, Import and Discard leave the generated flow cloud and Cut & Glue result on screen;
   they show the old preset until the next Regenerate or Cut & Glue. Export Cloud GLB writes that
   last result.

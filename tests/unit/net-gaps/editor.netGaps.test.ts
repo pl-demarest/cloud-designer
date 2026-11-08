@@ -264,7 +264,7 @@ describe('repeated generation', () => {
   })
 })
 
-describe('FlowCloud.getEdges is visibility-aware', () => {
+describe('FlowCloud.getEdges follows Show Bands and Show Flow Lines', () => {
   test('hiding flow lines (with no bands generated) leaves nothing for Cut & Glue', async () => {
     const vp = viewport(fixture('default'))
     const fc = new FlowCloud(vp)

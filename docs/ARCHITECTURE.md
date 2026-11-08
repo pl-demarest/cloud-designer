@@ -106,8 +106,10 @@ mesh change only when their jobs run.
 
 1. `engine.cutAndGlue()` collects the views' wires in world coordinates:
    `spheres.getEdgesGrouped()` (one buffer per sphere, for self-exclusion), `base.getEdges()`,
-   `tail.getEdges()`, `spirals.getEdges()`, and `flowCloud.getEdges()`, which takes only visible
-   objects and expands each `THREE.Line` polyline into segment pairs.
+   `tail.getEdges()`, `spirals.getEdges()`, and, unless Show/Hide hides the flow cloud,
+   `flowCloud.getEdges()`: the crease edges, or the bands and flow lines as Show Bands and Show
+   Flow Lines say (the toggles, not the objects' visibility, so Preview, which hides the flow
+   cloud's group, changes nothing), each `THREE.Line` polyline expanded into segment pairs.
 2. It sends two requests at once: a `CutGlueRequest` to the Cut & Glue worker and a
    `SurfaceMeshRequest` to the surface-mesh worker, with `includeFlowCloud` (Show/Hide shows the
    flow cloud and one has been generated) and `flowCloudInput` (`shownFlowCloud`).
