@@ -127,7 +127,7 @@ describe('known worker defects (expected to fail until Stage B)', () => {
     expect(rowsWithWrongEdges(Array.from({ length: 256 }, (_, i) => threeRow(i)))).toEqual([])
   })
 
-  it.fails('mc-no-cross-cell-welding: the surface mesh shares vertices between adjacent cells', async () => {
+  it('mc-no-cross-cell-welding: the surface mesh shares vertices between adjacent cells', async () => {
     const p = fixture('default')
     p.surfaceMeshResolution = 24
     const { message } = await runWorker<{ positions: Float32Array }>('surfaceMesh', surfaceMeshMessage(p))
@@ -135,7 +135,7 @@ describe('known worker defects (expected to fail until Stage B)', () => {
     expect(uniquePositionCount(message.positions)).toBe(message.positions.length / 3)
   })
 
-  it.fails('mc-edge-cache-per-cube: the flow-cloud mesh shares vertices between adjacent cells', async () => {
+  it('mc-edge-cache-per-cube: the flow-cloud mesh shares vertices between adjacent cells', async () => {
     const p = fixture('default')
     p.flowCloud.resolution = 24
     const { message } = await runWorker<{ vertices: Float32Array }>('marchingCubes', marchingCubesMessage(p))

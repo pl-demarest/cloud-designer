@@ -6,14 +6,14 @@
     ],
     "positions": {
       "type": "Float32Array",
-      "length": 15192,
+      "length": 3798,
       "nan": 0,
       "inf": 0,
       "min": -2.505479574203491,
       "max": 4.20470666885376,
-      "sum": 1869.2177271973342,
-      "sumSq": 22409.576532525905,
-      "sha256": "c4a5f8dc264fa97b3cba614dda98f383324a074969caf82213fd05ce6082bb7f"
+      "sum": 467.30443179933354,
+      "sumSq": 5602.394133131407,
+      "sha256": "a8c7bde66f13aa722cf8a1784b1d5a2d8d9d03170d5f1535f7fd2c34f52af0d3"
     },
     "indices": {
       "type": "Uint32Array",
@@ -21,10 +21,10 @@
       "nan": 0,
       "inf": 0,
       "min": 0,
-      "max": 5063,
-      "sum": 19245958,
-      "sumSq": 64803749506,
-      "sha256": "08bc69acba1413c6f5561afd319fcaf0a276ce8ff9172fd36505f58f189bce54"
+      "max": 1265,
+      "sum": 4806871,
+      "sumSq": 4049763603,
+      "sha256": "38ec05272f5eb338043acd720ad9ce72372b7d30dccc8b8743ca7ca29154b1fb"
     },
     "transfer": [
       "positions",
@@ -40,14 +40,14 @@
     ],
     "positions": {
       "type": "Float32Array",
-      "length": 62712,
+      "length": 15678,
       "nan": 0,
       "inf": 0,
       "min": -2.5784382820129395,
       "max": 4.282443046569824,
-      "sum": 8096.867444891017,
-      "sumSq": 93363.12295681135,
-      "sha256": "4bbae3036713ff3b082e566a39fe54cc69caaadd224802dda7b46e458b8fec92"
+      "sum": 2024.2168612227542,
+      "sumSq": 23340.78073919741,
+      "sha256": "1ff2de025c01cabef5132a40090a4e47f7b0b50cde10b0813c168e811c321a43"
     },
     "indices": {
       "type": "Uint32Array",
@@ -55,10 +55,10 @@
       "nan": 0,
       "inf": 0,
       "min": 0,
-      "max": 20903,
-      "sum": 327789584,
-      "sumSq": 4564547195230,
-      "sha256": "e5d76492f6c3d6184e15ee1880889b31036f8ac71a7c21780703cf6f4bae9a2e"
+      "max": 5225,
+      "sum": 81910497,
+      "sumSq": 285225372671,
+      "sha256": "67643b5446cafb954573cd0d787ac7b17e68b30e9ad7e2d358abf4d1edc691a9"
     },
     "transfer": [
       "positions",
@@ -74,14 +74,14 @@
     ],
     "positions": {
       "type": "Float32Array",
-      "length": 13488,
+      "length": 3372,
       "nan": 0,
       "inf": 0,
       "min": -2.498385190963745,
       "max": 4.20470666885376,
-      "sum": 2862.493546044454,
-      "sumSq": 20112.657870413972,
-      "sha256": "9e1814757cbce54fc00f87700099a5ca9fa1ae66ed4164576b16b6e357435dd7"
+      "sum": 715.6233865111135,
+      "sumSq": 5028.164467603465,
+      "sha256": "0df50ca3e285fc16c21225a24dac14c245f088be23eaab1b99735fa9dad49a63"
     },
     "indices": {
       "type": "Uint32Array",
@@ -89,10 +89,10 @@
       "nan": 0,
       "inf": 0,
       "min": 0,
-      "max": 4495,
-      "sum": 15123516,
-      "sumSq": 45242136814,
-      "sha256": "676b4ed499d5bc43aee5798d58ca624906a0c10e3f238e970715dd62f217dd90"
+      "max": 1123,
+      "sum": 3776257,
+      "sumSq": 2826456059,
+      "sha256": "f9793ea641c32894804144b564fdc26e4251be404cb62f6a01e89a69bff1f9d2"
     },
     "transfer": [
       "positions",
@@ -108,14 +108,14 @@
     ],
     "positions": {
       "type": "Float32Array",
-      "length": 13296,
+      "length": 3324,
       "nan": 0,
       "inf": 0,
       "min": -2.505479574203491,
       "max": 4.20470666885376,
-      "sum": 1757.0979598853737,
-      "sumSq": 21210.51088515607,
-      "sha256": "e0337c191074d728788dc444843db571d87bbd70744e5adaeeffa27aa1381dd4"
+      "sum": 439.2744899713434,
+      "sumSq": 5302.6277212889945,
+      "sha256": "f9ac05a3733b952ff9bb68a4edbdba4dcab2ea4667f189fb242efdaf686234a9"
     },
     "indices": {
       "type": "Uint32Array",
@@ -123,10 +123,10 @@
       "nan": 0,
       "inf": 0,
       "min": 0,
-      "max": 4431,
-      "sum": 14692805,
-      "sumSq": 43264242677,
-      "sha256": "6eb0f09ae5fb88c5888ca250a746bd3f3a6ec4f225aaa1cf6458baefe3fcac42"
+      "max": 1107,
+      "sum": 3667666,
+      "sumSq": 2703581152,
+      "sha256": "0380910aab171ceb1960e533f7ff1412b38809057559cbede998414654081402"
     },
     "transfer": [
       "positions",
@@ -142,14 +142,14 @@
     ],
     "positions": {
       "type": "Float32Array",
-      "length": 15192,
+      "length": 3798,
       "nan": 0,
       "inf": 0,
       "min": -2.505479574203491,
       "max": 4.20470666885376,
-      "sum": 1869.2177271973342,
-      "sumSq": 22409.576532525905,
-      "sha256": "c4a5f8dc264fa97b3cba614dda98f383324a074969caf82213fd05ce6082bb7f"
+      "sum": 467.30443179933354,
+      "sumSq": 5602.394133131407,
+      "sha256": "a8c7bde66f13aa722cf8a1784b1d5a2d8d9d03170d5f1535f7fd2c34f52af0d3"
     },
     "indices": {
       "type": "Uint32Array",
@@ -157,10 +157,10 @@
       "nan": 0,
       "inf": 0,
       "min": 0,
-      "max": 5063,
-      "sum": 19245958,
-      "sumSq": 64803749506,
-      "sha256": "08bc69acba1413c6f5561afd319fcaf0a276ce8ff9172fd36505f58f189bce54"
+      "max": 1265,
+      "sum": 4806871,
+      "sumSq": 4049763603,
+      "sha256": "38ec05272f5eb338043acd720ad9ce72372b7d30dccc8b8743ca7ca29154b1fb"
     },
     "transfer": [
       "positions",
@@ -176,14 +176,14 @@
     ],
     "positions": {
       "type": "Float32Array",
-      "length": 15192,
+      "length": 3798,
       "nan": 0,
       "inf": 0,
       "min": -2.505479574203491,
       "max": 4.20470666885376,
-      "sum": 1869.2177271973342,
-      "sumSq": 22409.576532525905,
-      "sha256": "c4a5f8dc264fa97b3cba614dda98f383324a074969caf82213fd05ce6082bb7f"
+      "sum": 467.30443179933354,
+      "sumSq": 5602.394133131407,
+      "sha256": "a8c7bde66f13aa722cf8a1784b1d5a2d8d9d03170d5f1535f7fd2c34f52af0d3"
     },
     "indices": {
       "type": "Uint32Array",
@@ -191,10 +191,10 @@
       "nan": 0,
       "inf": 0,
       "min": 0,
-      "max": 5063,
-      "sum": 19245958,
-      "sumSq": 64803749506,
-      "sha256": "08bc69acba1413c6f5561afd319fcaf0a276ce8ff9172fd36505f58f189bce54"
+      "max": 1265,
+      "sum": 4806871,
+      "sumSq": 4049763603,
+      "sha256": "38ec05272f5eb338043acd720ad9ce72372b7d30dccc8b8743ca7ca29154b1fb"
     },
     "transfer": [
       "positions",
@@ -210,14 +210,14 @@
     ],
     "positions": {
       "type": "Float32Array",
-      "length": 16344,
+      "length": 4086,
       "nan": 0,
       "inf": 0,
       "min": -3.3972127437591553,
       "max": 4.439397811889648,
-      "sum": -327.4664873406291,
-      "sumSq": 28472.7660075488,
-      "sha256": "6056b2c343ecedc91af0216e995e020e176078f4e93a1d2be281df309b18c708"
+      "sum": -81.86662183515728,
+      "sumSq": 7118.191501887072,
+      "sha256": "309a44896ee8f1b828e737da01307196d9fe5e738eaaf2b6125178730623b11d"
     },
     "indices": {
       "type": "Uint32Array",
@@ -225,10 +225,10 @@
       "nan": 0,
       "inf": 0,
       "min": 0,
-      "max": 5447,
-      "sum": 22214420,
-      "sumSq": 80585426286,
-      "sha256": "d55da526d14b106dfeacf4d9feeccff99566f69bcd27abf5865a76ee1477e131"
+      "max": 1361,
+      "sum": 5553320,
+      "sumSq": 5041500152,
+      "sha256": "d63bcc41826414a1e9d61d111aa12abd8169cd1faf4d8c398e3e0c8ba16cbe62"
     },
     "transfer": [
       "positions",
@@ -244,14 +244,14 @@
     ],
     "positions": {
       "type": "Float32Array",
-      "length": 14112,
+      "length": 3528,
       "nan": 0,
       "inf": 0,
       "min": -2.526949882507324,
       "max": 4.171858310699463,
-      "sum": 2256.596530865878,
-      "sumSq": 21545.443878164082,
-      "sha256": "18efe2b80fdedc7ff047b3f9579cdeb2c493454365713e0d20adaae579f1c193"
+      "sum": 564.1491327164695,
+      "sumSq": 5386.360969540862,
+      "sha256": "8fc90cb4142427d64ed9251f160e74c42868f0e1771403737db405dce72573aa"
     },
     "indices": {
       "type": "Uint32Array",
@@ -259,10 +259,10 @@
       "nan": 0,
       "inf": 0,
       "min": 0,
-      "max": 4703,
-      "sum": 16579525,
-      "sumSq": 51842550701,
-      "sha256": "19a6826f1e0ca048b4b91b15ad2791be9fc7e1edb7a68348f4d10b521ade6fbb"
+      "max": 1175,
+      "sum": 4141728,
+      "sumSq": 3241319070,
+      "sha256": "9e7557db206ee742fbec9309497116098392b3d465362287aa86143807e30162"
     },
     "transfer": [
       "positions",
@@ -278,14 +278,14 @@
     ],
     "positions": {
       "type": "Float32Array",
-      "length": 15576,
+      "length": 3894,
       "nan": 0,
       "inf": 0,
       "min": -2.500800371170044,
       "max": 4.317742824554443,
-      "sum": 2259.858528668061,
-      "sumSq": 24209.515197235298,
-      "sha256": "46fd628d2a81c67698164aa94dcbc1d9c8e81dc1613d37076b827526e83e4e87"
+      "sum": 564.9646321670152,
+      "sumSq": 6052.37879930869,
+      "sha256": "1ee03ad2119ca165d71c1667519f8fc0cfb00ddc9e958ec34acae63d38bb0928"
     },
     "indices": {
       "type": "Uint32Array",
@@ -293,10 +293,10 @@
       "nan": 0,
       "inf": 0,
       "min": 0,
-      "max": 5191,
-      "sum": 20238318,
-      "sumSq": 69879414998,
-      "sha256": "3f3a5d40d86c17ec0a7b8f533ccab1e27fa1c064cb654dbbbea3be268c132f31"
+      "max": 1297,
+      "sum": 5054667,
+      "sumSq": 4366972237,
+      "sha256": "f18c7baa68e1c5340f7534f07dd63471cb7ea60083c479508ccaff0511688bd7"
     },
     "transfer": [
       "positions",
@@ -312,14 +312,14 @@
     ],
     "positions": {
       "type": "Float32Array",
-      "length": 15432,
+      "length": 3858,
       "nan": 0,
       "inf": 0,
       "min": -2.500800371170044,
       "max": 4.314064025878906,
-      "sum": 1847.9754332005978,
-      "sumSq": 24100.03067066309,
-      "sha256": "fc29584fa8a793074843ea9e7f4625d259486ab1aa70c0fd804a760bb0fe578d"
+      "sum": 461.99385830014944,
+      "sumSq": 6025.007667665644,
+      "sha256": "74731a861ce35e4200d0398d002df3b6b73685d4584eaf4886dc8b4cf54066ae"
     },
     "indices": {
       "type": "Uint32Array",
@@ -327,10 +327,10 @@
       "nan": 0,
       "inf": 0,
       "min": 0,
-      "max": 5143,
-      "sum": 19835416,
-      "sumSq": 67892038038,
-      "sha256": "de7f37fbd5d2fe7a24a63c3c1688c1b88133e0b5648bf61ee0a1361210d271b9"
+      "max": 1285,
+      "sum": 4954660,
+      "sumSq": 4242788280,
+      "sha256": "af555ad9f77902a2d178e1ddc53f724ee7429cb2fbad5c02e66c6ffba6d0a44e"
     },
     "transfer": [
       "positions",
@@ -346,14 +346,14 @@
     ],
     "positions": {
       "type": "Float32Array",
-      "length": 15288,
+      "length": 3822,
       "nan": 0,
       "inf": 0,
       "min": -2.568781852722168,
       "max": 4.658077239990234,
-      "sum": 2680.6594095062464,
-      "sumSq": 26014.717879165586,
-      "sha256": "e14d1df07f4160f4396316c2e050c118297b7c875ffe95c05231ed7707a3a64e"
+      "sum": 670.1648523765616,
+      "sumSq": 6503.679469791391,
+      "sha256": "2c1351d1837cc4bdfd858a624dbca9b366466422ed77238c9ca7463ea24ddddc"
     },
     "indices": {
       "type": "Uint32Array",
@@ -361,10 +361,10 @@
       "nan": 0,
       "inf": 0,
       "min": 0,
-      "max": 5095,
-      "sum": 19494729,
-      "sumSq": 66065590401,
-      "sha256": "64db2a5bb2ddf7ec30a25cca7fc9ffe1f20d4facf74c0dc6f46d4657d4b73a6f"
+      "max": 1273,
+      "sum": 4872201,
+      "sumSq": 4132899079,
+      "sha256": "1d77cd0a281aaae6c3d5e50acea6383d43b87c32c0fa1609aca35cb8b75c9da4"
     },
     "transfer": [
       "positions",
@@ -380,14 +380,14 @@
     ],
     "positions": {
       "type": "Float32Array",
-      "length": 14832,
+      "length": 3708,
       "nan": 0,
       "inf": 0,
       "min": -2.5217838287353516,
       "max": 4.208269119262695,
-      "sum": 2589.174546001479,
-      "sumSq": 23108.528946884482,
-      "sha256": "5f1bb5105e25bab4ad88c54b4be31106c47a5f82d00416cae9ec9e60a66637fc"
+      "sum": 647.2936365003698,
+      "sumSq": 5777.132236721104,
+      "sha256": "9fe587b996f55881b459c7e4af642e868f57f0e6a004ffd58245ad159762240b"
     },
     "indices": {
       "type": "Uint32Array",
@@ -395,10 +395,10 @@
       "nan": 0,
       "inf": 0,
       "min": 0,
-      "max": 4943,
-      "sum": 18067147,
-      "sumSq": 59524117701,
-      "sha256": "f7c8bcaa8286e7b02e50677767c0b4be39a0d4e9fea4ed80c587228cd95e0c53"
+      "max": 1235,
+      "sum": 4510407,
+      "sumSq": 3716872573,
+      "sha256": "39f92103023050269fb982b9518884189545e0d65a9487790bd696f78a4530b8"
     },
     "transfer": [
       "positions",
