@@ -6,6 +6,7 @@
 import { CatmullRomCurve3, Vector3 } from 'three';
 import type { BaseDef } from '../../model/types';
 import { samplePath, type PathSamples } from '../path';
+import { BOUND_SLACK } from '../bounds';
 
 /** The base's centre line: uniform Catmull-Rom (tension 0.5) through the control points,
  *  closed when the base is. */
@@ -162,11 +163,32 @@ function pieceSDF(x: number, y: number, z: number, v: BaseVolume, k: number): nu
   return d;
 }
 
-/** Signed distance to the base solid: negative inside, Infinity only without a base. Continuous
- *  everywhere, the end caps included. */
-export function baseSDF(x: number, y: number, z: number, v: BaseVolume): number {
+/**
+ * Signed distance to the base solid: negative inside, Infinity only without a base. Continuous
+ * everywhere, the end caps included.
+ *
+ * A caller that only needs the value where it is below `cap` passes that cap, and pieces that
+ * cannot come below both the cap and the minimum so far are skipped. A piece's value is at least
+ * max(behind, beyond) - min(halfH, halfW), behind and beyond being the signed distances past its
+ * two ring planes (as pieceSDF computes them): the cross-section distance is at least
+ * -min(halfH, halfW), its value at the centre for the oval and the rectangle alike; past a shared
+ * ring the depth adds the distance past the plane, and a cap intersects with the half-space
+ * behind or beyond the end plane. The result is exact wherever the exact value is below `cap`, and
+ * above `cap` elsewhere; min(cap, result) is always min(cap, exact value).
+ */
+export function baseSDF(x: number, y: number, z: number, v: BaseVolume, cap = Infinity): number {
+  const { p, t } = v;
+  // No bound for a cross-section that is not a valid shape.
+  const depth = v.halfH > 0 && v.halfW > 0 ? Math.min(v.halfH, v.halfW) : Infinity;
   let d = Infinity;
-  for (let k = 0; k < v.count - 1; k++) d = Math.min(d, pieceSDF(x, y, z, v, k));
+  for (let k = 0; k < v.count - 1; k++) {
+    const i = k * 3;
+    const j = i + 3;
+    const behind = -((x - p[i]) * t[i] + (y - p[i + 1]) * t[i + 1] + (z - p[i + 2]) * t[i + 2]);
+    const beyond = (x - p[j]) * t[j] + (y - p[j + 1]) * t[j + 1] + (z - p[j + 2]) * t[j + 2];
+    if (Math.max(behind, beyond) - depth > Math.min(cap, d) + BOUND_SLACK) continue;
+    d = Math.min(d, pieceSDF(x, y, z, v, k));
+  }
   return d;
 }
 

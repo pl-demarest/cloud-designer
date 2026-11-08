@@ -4,6 +4,7 @@
  */
 
 import type { SpiralDef } from '../../model/types';
+import { BOUND_SLACK, boxDistance, emptyBox, expandBox, type Box } from '../bounds';
 
 export interface SpiralSample {
   cx: number; cy: number; cz: number;   // center (world space)
@@ -99,8 +100,9 @@ function sdRoundedRect2D(px: number, py: number, hx: number, hy: number, r: numb
 
 /**
  * A thick spiral prepared for evaluation at many points: its samples in typed arrays (three per
- * vector), the smoothed tangent at each sample, and each segment's vector, length and direction.
- * Everything here depends on the spiral alone, so it is computed once per job.
+ * vector), the smoothed tangent at each sample, each segment's vector, length and direction, and
+ * the bounds spiralSDF uses to skip segments. Everything here depends on the spiral alone, so it
+ * is computed once per job.
  */
 export interface SpiralVolume {
   /** Number of samples. */
@@ -117,6 +119,20 @@ export interface SpiralVolume {
   seg: Float64Array;
   segLen: Float64Array;
   dir: Float64Array;
+  /**
+   * Per segment: a radius R such that the segment's value at any point p is at least
+   * |p - c| - R, c being the point of the segment nearest p. The value is the exact distance to
+   * a convex box in an orthonormal frame at c: the rounded rectangle (inside the disc of radius
+   * sqrt(halfThick^2 + halfSep^2), whose largest value along the segment is at an end) times the
+   * interval [lo, hi] around 0 (inside [-1.5 segLen, 1.5 segLen]). A box inside the ball of
+   * radius R about c has distance at least |p - c| - R. Infinity, so never skipped, for a
+   * segment whose rectangle is not a valid shape (a negative half-size or corner radius, or a
+   * corner radius above a half-size).
+   */
+  reach: Float64Array;
+  maxReach: number;
+  /** The sample centres' box. It holds every segment, so dist(p, box) <= |p - c|. */
+  box: Box;
 }
 
 export function buildSpiralVolume(samples: SpiralSample[]): SpiralVolume {
@@ -169,7 +185,30 @@ export function buildSpiralVolume(samples: SpiralSample[]): SpiralVolume {
     segLen[i] = len;
     dir.set([segX / len, segY / len, segZ / len], 3 * i);
   }
-  return { n, centre, radial, halfThick, halfSep, cornerRadius, tangent, seg, segLen, dir };
+
+  const valid = (i: number) =>
+    halfThick[i] >= 0 && halfSep[i] >= 0 && cornerRadius[i] >= 0 &&
+    cornerRadius[i] <= Math.min(halfThick[i], halfSep[i]);
+  const reach = new Float64Array(segments);
+  let maxReach = 0;
+  for (let i = 0; i < segments; i++) {
+    if (segLen[i] === 0) continue;
+    if (!valid(i) || !valid(i + 1)) {
+      reach[i] = Infinity;
+    } else {
+      const h2 = Math.max(
+        halfThick[i] * halfThick[i] + halfSep[i] * halfSep[i],
+        halfThick[i + 1] * halfThick[i + 1] + halfSep[i + 1] * halfSep[i + 1],
+      );
+      const l = 1.5 * segLen[i];
+      reach[i] = Math.sqrt(h2 + l * l);
+    }
+    maxReach = Math.max(maxReach, reach[i]);
+  }
+  const box = emptyBox();
+  for (const s of samples) expandBox(box, s.cx, s.cy, s.cz);
+
+  return { n, centre, radial, halfThick, halfSep, cornerRadius, tangent, seg, segLen, dir, reach, maxReach, box };
 }
 
 /** Signed distance to the swept rounded-rectangle spiral volume.
@@ -180,11 +219,18 @@ export function buildSpiralVolume(samples: SpiralSample[]): SpiralVolume {
  *  Decompose (query − footpoint) into (localR, localS, localT), compute the
  *  2D rounded-rect SDF d2 in the cross-section plane, the 1D signed distance
  *  dT to the segment's tangent-direction extent, and combine via the IQ 3D
- *  extrude formula. Final value is min over all segments. Allocates nothing. */
-export function spiralSDF(x: number, y: number, z: number, v: SpiralVolume): number {
+ *  extrude formula. Final value is min over all segments. Allocates nothing.
+ *
+ *  A caller that only needs the value where it is below `cap` passes that cap: segments
+ *  whose bound (SpiralVolume.reach) puts them above both the cap and the minimum so far are
+ *  skipped, and so is the whole spiral when its box is that far. The result is then exact
+ *  wherever the exact value is below `cap`, and above `cap` elsewhere; min(cap, result) is
+ *  always min(cap, exact value). */
+export function spiralSDF(x: number, y: number, z: number, v: SpiralVolume, cap = Infinity): number {
   const N = v.n;
   if (N < 2) return Infinity;
-  const { centre, radial, tangent, seg, segLen: lengths, dir, halfThick: hT, halfSep: hS, cornerRadius: cR } = v;
+  if (boxDistance(v.box, x, y, z) - v.maxReach > cap + BOUND_SLACK) return Infinity;
+  const { centre, radial, tangent, seg, segLen: lengths, dir, halfThick: hT, halfSep: hS, cornerRadius: cR, reach } = v;
 
   let minD = Infinity;
 
@@ -207,6 +253,14 @@ export function spiralSDF(x: number, y: number, z: number, v: SpiralVolume): num
     const cx = centre[a] + tParam * segX;
     const cy = centre[a + 1] + tParam * segY;
     const cz = centre[a + 2] + tParam * segZ;
+    const dx = x - cx;
+    const dy = y - cy;
+    const dz = z - cz;
+
+    // Skip a segment that cannot come below the cap or the minimum so far: its value is at
+    // least |p - footpoint| - reach.
+    const limit = Math.min(cap, minD) + reach[i] + BOUND_SLACK;
+    if (limit < 0 || dx * dx + dy * dy + dz * dz > limit * limit) continue;
 
     // Smoothly interpolated tangent at footpoint (lerp per-sample tangents)
     let tx = tangent[a] + tParam * (tangent[b] - tangent[a]);
@@ -245,9 +299,6 @@ export function spiralSDF(x: number, y: number, z: number, v: SpiralVolume): num
     const cr = cR[i] + tParam * (cR[i + 1] - cR[i]);
 
     // Decompose (query − footpoint) into local (R, S, T) frame
-    const dx = x - cx;
-    const dy = y - cy;
-    const dz = z - cz;
     const localR = dx * nrx + dy * nry + dz * nrz;
     const localS = dx * nsx + dy * nsy + dz * nsz;
     const localT = dx * tx + dy * ty + dz * tz;

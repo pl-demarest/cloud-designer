@@ -8,6 +8,7 @@ import { CatmullRomCurve3, Vector3 } from 'three';
 import type { BaseDef, TailDef, TailSetpoint } from '../../model/types';
 import { samplePath, type PathSamples } from '../path';
 import { basePointAt } from './base';
+import { emptyBox, expandBox, type Box } from '../bounds';
 
 /**
  * The setpoints the tail is drawn and modelled through. An attached tail starts on the base:
@@ -83,6 +84,21 @@ export function sampleTailSpine(tail: TailDef): TailSample[] {
   if (tail.setpoints.length < 2) return [];
   const { points, widths } = sampleTailPath(tail.setpoints, tail.lengthSegments);
   return points.map((p, i) => ({ px: p.x, py: p.y, pz: p.z, width: widths[i] }));
+}
+
+/**
+ * The box of the spine's samples and their largest width. tailSDF at p is at least
+ * boxDistance(box, p) - maxWidth: each capsule's axis lies in the box, and its radius
+ * interpolates two sample widths.
+ */
+export function tailSpineBounds(tailSamples: TailSample[]): { box: Box; maxWidth: number } {
+  const box = emptyBox();
+  let maxWidth = -Infinity;
+  for (const s of tailSamples) {
+    expandBox(box, s.px, s.py, s.pz);
+    maxWidth = Math.max(maxWidth, s.width);
+  }
+  return { box, maxWidth };
 }
 
 /** Signed distance to the tail capsule chain. */
