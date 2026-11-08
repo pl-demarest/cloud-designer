@@ -1,0 +1,139 @@
+{
+  "name": "Default Cloud",
+  "version": 1,
+  "swirls": [
+    {
+      "id": "swirl-0",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "radius": 1.2,
+      "falloff": 2,
+      "shape": "sphere",
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "swirl-1",
+      "position": [
+        1.6,
+        0.3,
+        0
+      ],
+      "radius": 1,
+      "falloff": 2,
+      "shape": "sphere",
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "swirl-2",
+      "position": [
+        -1.6,
+        0.2,
+        0
+      ],
+      "radius": 0.9,
+      "falloff": 2,
+      "shape": "sphere",
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    }
+  ],
+  "base": {
+    "controlPoints": [
+      [
+        -2.5,
+        -0.8,
+        0
+      ],
+      [
+        -1,
+        -1,
+        0.3
+      ],
+      [
+        1,
+        -1,
+        -0.3
+      ],
+      [
+        2.5,
+        -0.8,
+        0
+      ]
+    ],
+    "crossSectionWidth": 1.2,
+    "crossSectionHeight": 0.4,
+    "crossSectionShape": "oval",
+    "closed": false
+  },
+  "tail": {
+    "setpoints": [
+      {
+        "id": "tail-0",
+        "position": [
+          2.5,
+          -0.8,
+          0
+        ],
+        "width": 0.8
+      },
+      {
+        "id": "tail-1",
+        "position": [
+          3.5,
+          -0.4,
+          0.5
+        ],
+        "width": 0.4
+      },
+      {
+        "id": "tail-2",
+        "position": [
+          4.2,
+          0.2,
+          0.8
+        ],
+        "width": 0.1
+      }
+    ],
+    "curlAmount": 1.5707963267948966,
+    "attachToBase": "end",
+    "attachOffset": 1
+  },
+  "merge": {
+    "resolution": 64,
+    "threshold": 1,
+    "smooth": true,
+    "wireframe": {
+      "mode": "spiral",
+      "frontPoint": [
+        0,
+        0,
+        2
+      ],
+      "backPoint": [
+        0,
+        0,
+        -2
+      ],
+      "numBands": 8,
+      "numFlowLines": 8,
+      "spiralTwist": 3.141592653589793,
+      "showBands": true,
+      "showFlowLines": true
+    }
+  }
+}

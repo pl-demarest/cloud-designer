@@ -1,0 +1,169 @@
+{
+  "name": "Default Cloud",
+  "version": 1,
+  "spheres": [
+    {
+      "id": "sphere-0",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "radius": 1.2,
+      "falloff": 0.5,
+      "shape": "sphere",
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "half": false
+    },
+    {
+      "id": "sphere-1",
+      "position": [
+        1.6,
+        0.3,
+        0
+      ],
+      "radius": 1,
+      "falloff": 0.5,
+      "shape": "sphere",
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "half": false
+    },
+    {
+      "id": "sphere-2",
+      "position": [
+        -1.6,
+        0.2,
+        0
+      ],
+      "radius": 0.9,
+      "falloff": 0.5,
+      "shape": "sphere",
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "half": false
+    }
+  ],
+  "base": {
+    "controlPoints": [
+      [
+        -2.5,
+        -0.8,
+        0
+      ],
+      [
+        -1,
+        -1,
+        0.3
+      ],
+      [
+        1,
+        -1,
+        -0.3
+      ],
+      [
+        2.5,
+        -0.8,
+        0
+      ]
+    ],
+    "crossSectionWidth": 1.2,
+    "crossSectionHeight": 0.4,
+    "crossSectionShape": "oval",
+    "closed": false,
+    "ringSegments": 16,
+    "lengthSegments": 24
+  },
+  "tail": {
+    "setpoints": [
+      {
+        "id": "tail-0",
+        "position": [
+          2.5,
+          -0.8,
+          0
+        ],
+        "width": 0.8
+      },
+      {
+        "id": "tail-1",
+        "position": [
+          3.5,
+          -0.4,
+          0.5
+        ],
+        "width": 0.4
+      },
+      {
+        "id": "tail-2",
+        "position": [
+          4.2,
+          0.2,
+          0.8
+        ],
+        "width": 0.1
+      }
+    ],
+    "curlAmount": 1.5707963267948966,
+    "attachToBase": "end",
+    "attachOffset": 1,
+    "radialSegments": 12,
+    "lengthSegments": 32
+  },
+  "spirals": [],
+  "flowCloud": {
+    "resolution": 64,
+    "threshold": 1,
+    "smooth": true,
+    "tailStrength": 0,
+    "position": [
+      0,
+      0,
+      0
+    ],
+    "wireframe": {
+      "mode": "spiral",
+      "frontPoint": [
+        -2,
+        0,
+        0
+      ],
+      "backPoint": [
+        2.5,
+        0,
+        0
+      ],
+      "numBands": 8,
+      "numFlowLines": 16,
+      "spiralTwist": 3.141592653589793,
+      "generateBands": false,
+      "showBands": true,
+      "showFlowLines": true
+    }
+  }
+}
