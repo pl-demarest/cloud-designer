@@ -405,6 +405,18 @@ button:disabled {
   background: #1d4ed8;
 }
 
+/* Why a worker job failed (FlowCloudPanel) */
+.job-error {
+  padding: 4px 12px;
+  font-size: 11px;
+  color: #c00;
+  overflow-wrap: anywhere;
+}
+
+.btn-regen + .job-error {
+  padding: 4px 0 0;
+}
+
 .axis-coords {
   padding: 6px 12px;
   font-size: 10px;

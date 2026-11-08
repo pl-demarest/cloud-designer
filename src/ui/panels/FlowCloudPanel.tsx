@@ -22,6 +22,15 @@ export function FlowCloudPanel() {
     (s) => s.jobs.cutAndGlue.status === 'running' || s.jobs.surfaceMesh.status === 'running',
   );
   const hasSurfaceMesh = useUiStore((s) => s.hasSurfaceMesh);
+  // Why the latest job failed, until the next run (WorkerClient's state).
+  const regenerateError = useUiStore((s) => (s.jobs.flowCloud.status === 'failed' ? s.jobs.flowCloud.error : null));
+  const cutGlueError = useUiStore((s) =>
+    s.jobs.cutAndGlue.status === 'failed'
+      ? s.jobs.cutAndGlue.error
+      : s.jobs.surfaceMesh.status === 'failed'
+        ? s.jobs.surfaceMesh.error
+        : null,
+  );
   const showFlowCloud = useUiStore((s) => s.showFlowCloud);
   const surfaceMeshVisible = useUiStore((s) => s.surfaceMeshVisible);
   const toggleFlowCloud = useUiStore((s) => s.toggleFlowCloud);
@@ -53,6 +62,7 @@ export function FlowCloudPanel() {
           </button>
         </div>
       </div>
+      {regenerateError && <p className="job-error" role="alert">Regenerate failed: {regenerateError}</p>}
       <div style={{ padding: '6px 12px', borderBottom: '1px solid #eee' }}>
         <button onClick={confirmAndResetPreset} className="btn-reset" style={{ width: '100%' }}>
           Reset to Default
@@ -65,6 +75,7 @@ export function FlowCloudPanel() {
         >
           {cutGlueGenerating ? 'Generating...' : 'Cut & Glue'}
         </button>
+        {cutGlueError && <p className="job-error" role="alert">Cut & Glue failed: {cutGlueError}</p>}
         <FieldRow label="Surface Mesh" style={{ marginTop: '6px' }}>
           {(id) => (
             <input
