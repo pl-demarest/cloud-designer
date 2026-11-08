@@ -27,8 +27,10 @@ export function App() {
   );
   const [surfaceMeshVisible, setSurfaceMeshVisible] = useState(false);
 
-  const generating        = useUiStore((s) => s.running.flowCloud);
-  const cutGlueGenerating = useUiStore((s) => s.running.cutAndGlue || s.running.surfaceMesh);
+  const generating        = useUiStore((s) => s.jobs.flowCloud.status === 'running');
+  const cutGlueGenerating = useUiStore(
+    (s) => s.jobs.cutAndGlue.status === 'running' || s.jobs.surfaceMesh.status === 'running'
+  );
   const hasSurfaceMesh    = useUiStore((s) => s.hasSurfaceMesh);
 
   const preset = useCloudStore((s) => s.preset);
@@ -59,9 +61,9 @@ export function App() {
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
-  function handleRegenerate() { engineRef.current?.regenerate(); }
+  function handleRegenerate() { void engineRef.current?.regenerate(); }
 
-  function handleCutAndGlue() { engineRef.current?.cutAndGlue(); }
+  function handleCutAndGlue() { void engineRef.current?.cutAndGlue(); }
 
   function handleToggleSurfaceMesh(v: boolean) {
     setSurfaceMeshVisible(v);

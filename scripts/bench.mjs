@@ -14,8 +14,8 @@
  * Each core runs once untimed (warm-up), then --runs times (default 7) back to back; the table
  * gives the median, minimum and maximum wall time of the core call alone, measured with
  * performance.now(). The modules load through Vite's SSR loader, so the TypeScript sources run as
- * the dev server would serve them. No DOM: the editor modules get a viewport stub, an EventTarget
- * for the canvas and the window, and a Worker stand-in that runs the flow-cloud core in-process.
+ * the dev server would serve them. No DOM: the editor modules get a viewport stub and an EventTarget
+ * for the canvas and the window; FlowCloud shows the flow-cloud core's result, run in-process.
  */
 
 import { writeFileSync } from 'node:fs'
@@ -58,18 +58,6 @@ try {
   const { TailMesh } = await load('/src/engine/views/TailMesh.ts')
   const { SpiralMesh } = await load('/src/engine/views/SpiralMesh.ts')
   const { FlowCloud } = await load('/src/engine/views/FlowCloud.ts')
-
-  /** FlowCloud's worker: runs the flow-cloud core on a later task, as a real worker replies. */
-  class InProcessWorker {
-    onmessage = null
-    onerror = null
-    postMessage(data) {
-      const request = structuredClone(data)
-      setTimeout(() => this.onmessage?.({ data: generateFlowCloud(request) }), 0)
-    }
-    terminate() {}
-  }
-  globalThis.Worker = InProcessWorker
 
   /** The groups and fields of Viewport that the editor modules touch (tests/helpers/scene.ts). */
   function viewportStub() {
@@ -114,11 +102,10 @@ try {
     const base = new BaseMesh(vp)
     const tail = new TailMesh(vp)
     const spiral = new SpiralMesh(vp)
-    const flowCloud = new FlowCloud(vp, new InProcessWorker())
-    await new Promise((done) => {
-      flowCloud.onGenerateDone = done
-      flowCloud.regenerate()
-    })
+    // Regenerate: the flow-cloud core's result for the request EditorEngine.regenerate builds.
+    const p = useCloudStore.getState().preset
+    const flowCloud = new FlowCloud(vp)
+    flowCloud.show(generateFlowCloud(structuredClone({ spheres: p.spheres, base: p.base, tail: p.tail, flowCloud: p.flowCloud })))
     const edges = {
       sphereEdgeGroups: sphere.getEdgesGrouped(),
       baseEdges: base.getEdges(),

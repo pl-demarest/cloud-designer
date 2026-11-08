@@ -4,8 +4,10 @@ import { digestArray } from '../helpers/digest'
 import { goldenSuite } from '../helpers/golden'
 import { runWorker } from '../helpers/workerHarness'
 import { buildEditorScene, installFakeWorker, regenerateFlowCloud, serializeGroup, type EditorScene } from '../helpers/scene'
+import { installCanvas2dStub } from '../helpers/engine'
 import { FIXTURE_NAMES, cutAndGlueMessage, fixture, surfaceMeshMessage, type PrimitiveEdges } from '../fixtures/presets'
 import { useCloudStore } from '../../src/store/cloudStore'
+import { useUiStore } from '../../src/store/uiStore'
 
 /**
  * Characterization goldens for the editor side: each primitive module's wireframe
@@ -22,6 +24,7 @@ const cutGlueScene = goldenSuite('cutGlueResult-scene')
 
 beforeAll(() => {
   installFakeWorker()
+  installCanvas2dStub()
 })
 
 let scene: EditorScene | null = null
@@ -72,9 +75,9 @@ describe('editor goldens per fixture', () => {
         edges: digestArray(s.flowCloud.getEdges()),
         group: serializeGroup(vp.flowCloudGroup),
       })
-      await regenerateFlowCloud(s.flowCloud)
+      await regenerateFlowCloud(s)
       flowCloudScene.check(`${name}/after-regenerate`, {
-        generating: s.flowCloud.isGenerating(),
+        generating: useUiStore.getState().jobs.flowCloud.status === 'running',
         edges: digestArray(s.flowCloud.getEdges()),
         group: serializeGroup(vp.flowCloudGroup),
       })
@@ -133,7 +136,7 @@ describe('editor visibility toggles', () => {
     const hiddenBeforeGenerate = visibility()
     s.flowCloud.setHandlesVisible(true)
     const shownBeforeGenerate = visibility()
-    await regenerateFlowCloud(s.flowCloud)
+    await regenerateFlowCloud(s)
     const shownAfterGenerate = visibility()
     s.flowCloud.clear()
     const afterClear = { ...visibility(), edges: digestArray(s.flowCloud.getEdges()) }

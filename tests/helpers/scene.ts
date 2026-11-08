@@ -1,17 +1,19 @@
 import * as THREE from 'three'
 import { vi } from 'vitest'
 import type { Viewport } from '../../src/engine/Viewport'
-import { SphereMesh } from '../../src/engine/views/SphereMesh'
-import { BaseMesh } from '../../src/engine/views/BaseMesh'
-import { TailMesh } from '../../src/engine/views/TailMesh'
-import { SpiralMesh } from '../../src/engine/views/SpiralMesh'
-import { FlowCloud } from '../../src/engine/views/FlowCloud'
-import { CutGlueResult } from '../../src/engine/views/CutGlueResult'
-import { createModuleWorker } from '../../src/engine/workers'
+import { EditorEngine } from '../../src/engine/EditorEngine'
+import type { SphereMesh } from '../../src/engine/views/SphereMesh'
+import type { BaseMesh } from '../../src/engine/views/BaseMesh'
+import type { TailMesh } from '../../src/engine/views/TailMesh'
+import type { SpiralMesh } from '../../src/engine/views/SpiralMesh'
+import type { FlowCloud } from '../../src/engine/views/FlowCloud'
+import type { CutGlueResult } from '../../src/engine/views/CutGlueResult'
 import { useCloudStore } from '../../src/store/cloudStore'
 import type { CloudPreset } from '../../src/model/types'
+import type { FlowCloudRequest, FlowCloudResult } from '../../src/workers/protocol'
 import { digestArray } from './digest'
 import { runWorker, type WorkerName } from './workerHarness'
+import { createRendererStub, mountCanvas } from './engine'
 
 /**
  * Editor-side test scaffolding. Requires the happy-dom environment
@@ -182,6 +184,7 @@ export function serializeGroup(group: THREE.Group): SerializedObject[] {
 // ── Editor scene ─────────────────────────────────────────────────────────────
 
 export interface EditorScene {
+  engine: EditorEngine
   vp: Viewport
   sphere: SphereMesh
   base: BaseMesh
@@ -193,43 +196,43 @@ export interface EditorScene {
 }
 
 /**
- * Loads `preset` into the store, then builds every editor module in EditorEngine's order.
- * FlowCloud gets a FakeWorker (installFakeWorker() must have been called).
+ * Loads `preset` into the store, then builds the editor as the app does: an EditorEngine on a
+ * canvas, with the renderer stub (tests/helpers/engine.ts) and FakeWorkers. installFakeWorker()
+ * and installCanvas2dStub() must have been called.
  */
 export function buildEditorScene(preset: CloudPreset): EditorScene {
   useCloudStore.getState().loadPreset(preset)
-  const vp = createViewportStub()
-  const sphere = new SphereMesh(vp)
-  const base = new BaseMesh(vp)
-  const tail = new TailMesh(vp)
-  const spiral = new SpiralMesh(vp)
-  const flowCloud = new FlowCloud(vp, createModuleWorker('flowCloud'))
-  const cutGlue = new CutGlueResult(vp)
+  const canvas = mountCanvas()
+  const engine = new EditorEngine(canvas, { createRenderer: createRendererStub })
   return {
-    vp,
-    sphere,
-    base,
-    tail,
-    spiral,
-    flowCloud,
-    cutGlue,
+    engine,
+    vp: engine.viewport,
+    sphere: engine.spheres,
+    base: engine.base,
+    tail: engine.tail,
+    spiral: engine.spirals,
+    flowCloud: engine.flowCloud,
+    cutGlue: engine.cutGlue,
     dispose() {
-      sphere.dispose()
-      base.dispose()
-      tail.dispose()
-      spiral.dispose()
-      flowCloud.dispose()
-      cutGlue.dispose()
+      engine.dispose()
+      canvas.parentElement?.remove()
     },
   }
 }
 
-/** Runs FlowCloud.regenerate() to completion (50 ms debounce, then the worker). */
-export async function regenerateFlowCloud(fc: FlowCloud): Promise<void> {
-  const done = new Promise<void>((resolve) => {
-    fc.onGenerateDone = () => resolve()
-  })
-  fc.regenerate()
-  await done
-  fc.onGenerateDone = undefined
+/** Runs the engine's Regenerate to completion (50 ms debounce, then the worker). */
+export async function regenerateFlowCloud(scene: EditorScene): Promise<void> {
+  const outcome = await scene.engine.regenerate()
+  if (outcome.status !== 'done') throw new Error(`Regenerate ended ${outcome.status}`)
+}
+
+/**
+ * Shows in `fc` what Regenerate would: the flow-cloud worker's reply to the request EditorEngine
+ * builds from the store's preset. For a FlowCloud view built on its own.
+ */
+export async function showFlowCloud(fc: FlowCloud): Promise<void> {
+  const { spheres, base, tail, flowCloud } = useCloudStore.getState().preset
+  const request: FlowCloudRequest = { spheres, base, tail, flowCloud }
+  const run = await runWorker<FlowCloudResult>('marchingCubes', request)
+  fc.show(run.message)
 }

@@ -1,26 +1,19 @@
 import * as THREE from 'three';
 import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
-import type { FlowCloudRequest } from '../../workers/protocol';
+import type { FlowCloudResult } from '../../workers/protocol';
 import { disposeMaterial } from '../dispose';
 
 const BLACK       = new THREE.LineBasicMaterial({ color: 0x000000 });
 const HANDLE_MAT  = new THREE.MeshBasicMaterial({ color: 0x06b6d4 }); // teal
 
-interface WorkerResult {
-  vertices: Float32Array;
-  indices: Uint32Array;
-  bands: Float32Array[];
-  flowLines: Float32Array[];
-  error?: string;
-}
-
+/**
+ * The generated flow cloud: shows each result of the flow-cloud worker (EditorEngine runs the
+ * job), moves with flowCloud.position, and offers a drag handle once something is shown.
+ */
 export class FlowCloud {
   private viewport: Viewport;
   private group: THREE.Group;
-  private worker: Worker;
-  private pending = false;
-  private debounceTimer: ReturnType<typeof setTimeout> | null = null;
   private currentObjects: THREE.Object3D[] = [];
   private bandsGroup: THREE.Group | null = null;
   private flowLinesGroup: THREE.Group | null = null;
@@ -39,12 +32,7 @@ export class FlowCloud {
   private pointer = new THREE.Vector2();
   private dragOffset = new THREE.Vector3();
 
-  onGenerateStart?: () => void;
-  onGenerateDone?: () => void;
-
-  /** `worker` runs the flow-cloud core (marchingCubes.worker.ts); EditorEngine owns and
-   *  terminates it. */
-  constructor(viewport: Viewport, worker: Worker) {
+  constructor(viewport: Viewport) {
     this.viewport = viewport;
     this.group = viewport.flowCloudGroup;
 
@@ -54,14 +42,6 @@ export class FlowCloud {
     this.handle.userData.isHandle = true;
     this.handle.visible = false; // shown only after first Regenerate
     this.group.add(this.handle);
-
-    this.worker = worker;
-    this.worker.onmessage = this.onWorkerMessage;
-    this.worker.onerror = (e) => {
-      console.error('Marching cubes worker error', e);
-      this.pending = false;
-      this.onGenerateDone?.();
-    };
 
     // Apply initial flow cloud position from store
     const initPos = useCloudStore.getState().preset.flowCloud.position;
@@ -97,35 +77,9 @@ export class FlowCloud {
     this.handle.visible = visible && this.hasGeometry;
   }
 
-  /** Trigger full regeneration (marching cubes + spiral extraction). */
-  regenerate(): void {
-    if (this.debounceTimer) clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => this.dispatch(), 50);
-  }
-
-  private dispatch(): void {
-    if (this.pending) return;
-    this.pending = true;
-    this.onGenerateStart?.();
-
-    const preset = useCloudStore.getState().preset;
-    this.worker.postMessage({
-      spheres: preset.spheres,
-      base:    preset.base,
-      tail:    preset.tail,
-      flowCloud: preset.flowCloud,
-    } satisfies FlowCloudRequest);
-  }
-
-  private onWorkerMessage = (e: MessageEvent<WorkerResult>): void => {
-    this.pending = false;
-    this.onGenerateDone?.();
-
-    const { vertices, indices, bands, flowLines, error } = e.data;
-    if (error) {
-      console.error('FlowCloud worker error:', error);
-      return;
-    }
+  /** Replaces what is shown with a flow-cloud worker result, in the current wireframe mode. */
+  show(result: FlowCloudResult): void {
+    const { vertices, indices, bands, flowLines } = result;
 
     this.clearScene();
 
@@ -181,7 +135,7 @@ export class FlowCloud {
       this.hasGeometry    = true;
       this.handle.visible = this.handlesVisible;
     }
-  };
+  }
 
   // ── Pointer / drag interaction ──────────────────────────────────────────────
 
@@ -257,14 +211,10 @@ export class FlowCloud {
   }
 
   /**
-   * Clear all rendered geometry and cancel pending debounced regeneration.
+   * Clear all rendered geometry.
    * The handle is hidden and hasGeometry is reset.
    */
   clear(): void {
-    if (this.debounceTimer) {
-      clearTimeout(this.debounceTimer);
-      this.debounceTimer = null;
-    }
     this.clearScene();
     this.hasGeometry    = false;
     this.handle.visible = false;
@@ -315,17 +265,9 @@ export class FlowCloud {
     return new Float32Array(verts);
   }
 
-  isGenerating(): boolean {
-    return this.pending;
-  }
-
   dispose(): void {
     this.unsubscribeWireframe();
     this.unsubscribePosition();
-    // The engine terminates the worker; a reply still on its way must not reach this view.
-    this.worker.onmessage = null;
-    this.worker.onerror = null;
-    if (this.debounceTimer) clearTimeout(this.debounceTimer);
     // Each line object's material is its own clone, as is the handle's.
     this.clearScene(true);
     this.group.remove(this.handle);

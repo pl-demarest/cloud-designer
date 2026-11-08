@@ -1,7 +1,9 @@
 import type * as THREE from 'three'
 import { vi } from 'vitest'
 import type { EditorEngineOptions } from '../../src/engine/EditorEngine'
+import type { WorkerFactory, WorkerKind } from '../../src/engine/workers'
 import { FakeWorker } from './scene'
+import { runWorker, type WorkerName } from './workerHarness'
 
 /**
  * A stand-in for THREE.WebGLRenderer with the members Viewport uses and no WebGL: it records the
@@ -75,4 +77,64 @@ export function installCanvas2dStub(): void {
     if (contextId === '2d') return { fillText() {} } as unknown as CanvasRenderingContext2D
     return (getContext as (id: string, o?: unknown) => RenderingContext | null).call(this, contextId, options)
   } as typeof HTMLCanvasElement.prototype.getContext)
+}
+
+const WORKER_NAMES: Record<WorkerKind, WorkerName> = {
+  flowCloud: 'marchingCubes',
+  cutAndGlue: 'cutAndGlue',
+  surfaceMesh: 'surfaceMesh',
+}
+
+/**
+ * A worker that answers only when the test says so: answer() runs the real worker module
+ * (workerHarness) on the oldest unanswered request and delivers its reply.
+ */
+export class ManualWorker {
+  readonly name: WorkerName
+  /** Every request posted, structured-cloned as postMessage would. */
+  readonly posted: unknown[] = []
+  onmessage: ((e: MessageEvent) => void) | null = null
+  onerror: ((e: ErrorEvent) => void) | null = null
+  terminated = false
+  private answered = 0
+
+  constructor(name: WorkerName) {
+    this.name = name
+  }
+
+  postMessage(data: unknown): void {
+    this.posted.push(structuredClone(data))
+  }
+
+  /** Requests posted and not answered yet. */
+  get unanswered(): number {
+    return this.posted.length - this.answered
+  }
+
+  async answer(): Promise<void> {
+    if (this.unanswered === 0) throw new Error(`${this.name}: no request to answer`)
+    const run = await runWorker(this.name, this.posted[this.answered++])
+    if (!this.terminated) this.onmessage?.({ data: run.message } as MessageEvent)
+  }
+
+  /** Replies with `data` instead of running the worker. */
+  reply(data: unknown): void {
+    if (this.unanswered === 0) throw new Error(`${this.name}: no request to answer`)
+    this.answered++
+    if (!this.terminated) this.onmessage?.({ data } as MessageEvent)
+  }
+
+  terminate(): void {
+    this.terminated = true
+  }
+}
+
+/** A worker factory that hands out ManualWorkers, kept by kind. */
+export function manualWorkers(): { workers: Record<WorkerKind, ManualWorker>; createWorker: WorkerFactory } {
+  const workers = {} as Record<WorkerKind, ManualWorker>
+  const createWorker: WorkerFactory = (kind) => {
+    workers[kind] = new ManualWorker(WORKER_NAMES[kind])
+    return workers[kind] as unknown as Worker
+  }
+  return { workers, createWorker }
 }

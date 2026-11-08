@@ -1,9 +1,10 @@
 /**
  * Messages between the main thread and the three geometry workers.
  *
- * A request is what EditorEngine or FlowCloud posts. A result is what the worker's core
- * (./core/*.ts) returns; the worker posts it with every typed-array buffer in the transfer
- * list. When the computation throws, the worker replies with WorkerError instead.
+ * A request is what EditorEngine posts, through a WorkerClient (src/engine/WorkerClient.ts) that
+ * keeps one request in flight per worker. A result is what the worker's core (./core/*.ts)
+ * returns; the worker posts it with every typed-array buffer in the transfer list. When the
+ * computation throws, the worker replies with WorkerError instead.
  */
 
 import type { SphereDef, BaseDef, TailDef, FlowCloudSettings, SpiralDef } from '../model/types';

@@ -7,10 +7,18 @@ import { SpiralMesh } from './views/SpiralMesh';
 import { AxisGizmo } from './views/AxisGizmo';
 import { FlowCloud } from './views/FlowCloud';
 import { CutGlueResult } from './views/CutGlueResult';
+import { WorkerClient, type JobOutcome } from './WorkerClient';
 import { createModuleWorker, type WorkerFactory } from './workers';
 import { useCloudStore } from '../store/cloudStore';
 import { useUiStore } from '../store/uiStore';
-import type { CutGlueRequest, CutGlueResponse, SurfaceMeshRequest, SurfaceMeshResponse } from '../workers/protocol';
+import type {
+  CutGlueRequest,
+  CutGlueResult as CutGlueWorkerResult,
+  FlowCloudRequest,
+  FlowCloudResult,
+  SurfaceMeshRequest,
+  SurfaceMeshResult,
+} from '../workers/protocol';
 
 export interface EditorEngineOptions {
   /** Creates the renderer; the default is a WebGLRenderer. */
@@ -31,6 +39,9 @@ export interface ScaffoldGroups {
 
 const ui = () => useUiStore.getState();
 
+/** Regenerate waits this long for further clicks before it sends the request. */
+const REGENERATE_DEBOUNCE_MS = 50;
+
 /**
  * The editor's three.js side: the viewport, a view per primitive, the axis gizmo, the Cut & Glue
  * result and the three geometry workers, wired to the stores. React mounts one per canvas
@@ -47,10 +58,12 @@ export class EditorEngine {
   readonly flowCloud: FlowCloud;
   readonly cutGlue: CutGlueResult;
 
-  private readonly workers: Worker[];
-  private readonly cutGlueWorker: Worker;
-  private readonly surfaceMeshWorker: Worker;
+  private readonly flowCloudJob: WorkerClient<FlowCloudRequest, FlowCloudResult>;
+  private readonly cutGlueJob: WorkerClient<CutGlueRequest, CutGlueWorkerResult>;
+  private readonly surfaceMeshJob: WorkerClient<SurfaceMeshRequest, SurfaceMeshResult>;
   private readonly resizeObserver: ResizeObserver | null = null;
+  private regenerateTimer: ReturnType<typeof setTimeout> | null = null;
+  private settleDebounced: ((outcome: JobOutcome<FlowCloudResult>) => void) | null = null;
   private disposed = false;
 
   constructor(canvas: HTMLCanvasElement, options: EditorEngineOptions = {}) {
@@ -70,44 +83,29 @@ export class EditorEngine {
     this.spirals = new SpiralMesh(vp);
     this.gizmo = new AxisGizmo(vp);
 
-    const flowCloudWorker = createWorker('flowCloud');
-    this.flowCloud = new FlowCloud(vp, flowCloudWorker);
-    this.flowCloud.onGenerateStart = () => ui().setRunning('flowCloud', true);
-    this.flowCloud.onGenerateDone = () => ui().setRunning('flowCloud', false);
-
+    this.flowCloud = new FlowCloud(vp);
     this.cutGlue = new CutGlueResult(vp);
 
-    this.cutGlueWorker = createWorker('cutAndGlue');
-    this.cutGlueWorker.onmessage = (ev: MessageEvent<CutGlueResponse>) => {
-      if ('error' in ev.data) {
-        console.error('cutAndGlue worker error:', ev.data.error);
-      } else {
-        this.cutGlue.update(ev.data.clippedEdges);
-      }
-      ui().setRunning('cutAndGlue', false);
-    };
-    this.cutGlueWorker.onerror = (err) => {
-      console.error('cutAndGlue worker error', err);
-      ui().setRunning('cutAndGlue', false);
-    };
-
-    // The surface mesh worker (marching cubes on the union SDF)
-    this.surfaceMeshWorker = createWorker('surfaceMesh');
-    this.surfaceMeshWorker.onmessage = (ev: MessageEvent<SurfaceMeshResponse>) => {
-      if ('error' in ev.data) {
-        console.error('surfaceMesh worker error:', ev.data.error);
-      } else {
-        this.cutGlue.updateSurfaceMesh(ev.data.positions, ev.data.indices);
+    // Each job's state in the uiStore follows its latest request (WorkerClient).
+    this.flowCloudJob = new WorkerClient(createWorker('flowCloud'), {
+      name: 'flowCloud',
+      onResult: (result) => this.flowCloud.show(result),
+      onState: (state) => ui().setJob('flowCloud', state),
+    });
+    this.cutGlueJob = new WorkerClient(createWorker('cutAndGlue'), {
+      name: 'cutAndGlue',
+      onResult: (result) => this.cutGlue.update(result.clippedEdges),
+      onState: (state) => ui().setJob('cutAndGlue', state),
+    });
+    // Marching cubes on the union SDF
+    this.surfaceMeshJob = new WorkerClient(createWorker('surfaceMesh'), {
+      name: 'surfaceMesh',
+      onResult: (result) => {
+        this.cutGlue.updateSurfaceMesh(result.positions, result.indices);
         ui().setHasSurfaceMesh(this.cutGlue.hasSurfaceMesh());
-      }
-      ui().setRunning('surfaceMesh', false);
-    };
-    this.surfaceMeshWorker.onerror = (err) => {
-      console.error('surfaceMesh worker error', err);
-      ui().setRunning('surfaceMesh', false);
-    };
-
-    this.workers = [flowCloudWorker, this.cutGlueWorker, this.surfaceMeshWorker];
+      },
+      onState: (state) => ui().setJob('surfaceMesh', state),
+    });
 
     if (parent && typeof ResizeObserver !== 'undefined') {
       this.resizeObserver = new ResizeObserver(() => vp.resize(parent.clientWidth, parent.clientHeight));
@@ -115,15 +113,32 @@ export class EditorEngine {
     }
   }
 
-  /** Regenerates the flow cloud from the current preset (debounced by the view). */
-  regenerate(): void {
-    this.flowCloud.regenerate();
+  /**
+   * Regenerates the flow cloud from the preset as it is when the request goes out, 50 ms after
+   * the last call. A call while a job runs is not lost: its request runs when the job finishes
+   * (WorkerClient). Resolves with the outcome; a call that a later one replaced within the 50 ms,
+   * or whose request a later one superseded, resolves 'superseded'.
+   */
+  regenerate(): Promise<JobOutcome<FlowCloudResult>> {
+    if (this.regenerateTimer) clearTimeout(this.regenerateTimer);
+    this.settleDebounced?.({ status: 'superseded' });
+    return new Promise((settle) => {
+      this.settleDebounced = settle;
+      this.regenerateTimer = setTimeout(() => {
+        this.regenerateTimer = null;
+        this.settleDebounced = null;
+        const { spheres, base, tail, flowCloud } = useCloudStore.getState().preset;
+        void this.flowCloudJob.request({ spheres, base, tail, flowCloud }).then(settle);
+      }, REGENERATE_DEBOUNCE_MS);
+    });
   }
 
-  /** Clips every wireframe against the other primitives' volumes and meshes the union. */
-  cutAndGlue(): void {
+  /**
+   * Clips every wireframe against the other primitives' volumes and meshes the union: two jobs,
+   * run in parallel. Resolves with both outcomes.
+   */
+  cutAndGlue(): Promise<[JobOutcome<CutGlueWorkerResult>, JobOutcome<SurfaceMeshResult>]> {
     const preset = useCloudStore.getState().preset;
-    ui().setRunning('cutAndGlue', true);
 
     const sphereEdgeGroups = this.spheres.getEdgesGrouped();
     const baseEdges = this.base.getEdges();
@@ -131,7 +146,7 @@ export class EditorEngine {
     const spiralEdges = this.spirals.getEdges();
     const flowCloudEdges = this.flowCloud.getEdges();
 
-    this.cutGlueWorker.postMessage({
+    const cut = this.cutGlueJob.request({
       spheres: preset.spheres,
       base: preset.base,
       tail: preset.tail,
@@ -140,18 +155,18 @@ export class EditorEngine {
       tailEdges,
       spiralEdges,
       flowCloudEdges,
-    } satisfies CutGlueRequest);
+    });
 
-    // Surface mesh generation runs in parallel
-    ui().setRunning('surfaceMesh', true);
-    this.surfaceMeshWorker.postMessage({
+    const surface = this.surfaceMeshJob.request({
       spheres: preset.spheres,
       base: preset.base,
       tail: preset.tail,
       flowCloud: preset.flowCloud,
       spirals: preset.spirals,
       resolution: preset.surfaceMeshResolution,
-    } satisfies SurfaceMeshRequest);
+    });
+
+    return Promise.all([cut, surface]);
   }
 
   /** Edit shows the scaffold and its handles; Preview shows the Cut & Glue result. */
@@ -213,6 +228,8 @@ export class EditorEngine {
     if (this.disposed) return;
     this.disposed = true;
     this.resizeObserver?.disconnect();
+    if (this.regenerateTimer) clearTimeout(this.regenerateTimer);
+    this.settleDebounced?.({ status: 'superseded' });
     this.cutGlue.dispose();
     this.flowCloud.dispose();
     this.gizmo.dispose();
@@ -220,11 +237,9 @@ export class EditorEngine {
     this.tail.dispose();
     this.base.dispose();
     this.spheres.dispose();
-    for (const worker of this.workers) {
-      worker.onmessage = null;
-      worker.onerror = null;
-      worker.terminate();
-    }
+    this.flowCloudJob.dispose();
+    this.cutGlueJob.dispose();
+    this.surfaceMeshJob.dispose();
     this.viewport.dispose();
     ui().resetEngineState();
   }

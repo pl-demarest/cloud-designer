@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import * as THREE from 'three'
-import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { Viewport } from '../../../src/engine/Viewport'
 import { SphereMesh } from '../../../src/engine/views/SphereMesh'
 import { BaseMesh } from '../../../src/engine/views/BaseMesh'
@@ -8,9 +8,8 @@ import { TailMesh } from '../../../src/engine/views/TailMesh'
 import { SpiralMesh } from '../../../src/engine/views/SpiralMesh'
 import { FlowCloud } from '../../../src/engine/views/FlowCloud'
 import { CutGlueResult } from '../../../src/engine/views/CutGlueResult'
-import { createModuleWorker } from '../../../src/engine/workers'
 import { useCloudStore } from '../../../src/store/cloudStore'
-import { createViewportStub, installFakeWorker, isHandle, regenerateFlowCloud, serializeGroup } from '../../helpers/scene'
+import { createViewportStub, isHandle, serializeGroup, showFlowCloud } from '../../helpers/scene'
 import { THICK_SPIRAL, fixture } from '../../fixtures/presets'
 import { digestArray } from '../../helpers/digest'
 import type { CloudPreset } from '../../../src/model/types'
@@ -26,7 +25,6 @@ import type { CloudPreset } from '../../../src/model/types'
 const store = () => useCloudStore.getState()
 const disposers: Array<() => void> = []
 
-beforeAll(() => installFakeWorker())
 beforeEach(() => store().resetToDefault())
 afterEach(() => {
   while (disposers.length > 0) disposers.pop()!()
@@ -189,9 +187,9 @@ describe('viewport dragging', () => {
 
   test('FlowCloud: after Regenerate the handle drags flowCloud.position', async () => {
     const vp = viewport(fixture('default'))
-    const fc = new FlowCloud(vp, createModuleWorker('flowCloud'))
+    const fc = new FlowCloud(vp)
     disposers.push(() => fc.dispose())
-    await regenerateFlowCloud(fc)
+    await showFlowCloud(fc)
     const handle = vp.flowCloudGroup.children.find(isHandle)!
     expect(handle.visible).toBe(true)
     const before = [...store().preset.flowCloud.position]
@@ -225,11 +223,11 @@ describe('SpiralMesh wireframe variants outside the fixture set', () => {
 describe('repeated generation', () => {
   test('a second Regenerate replaces the flow-cloud scene instead of adding to it', async () => {
     const vp = viewport(fixture('bands'))
-    const fc = new FlowCloud(vp, createModuleWorker('flowCloud'))
+    const fc = new FlowCloud(vp)
     disposers.push(() => fc.dispose())
-    await regenerateFlowCloud(fc)
+    await showFlowCloud(fc)
     const once = { group: serializeGroup(vp.flowCloudGroup), edges: fc.getEdges().length }
-    await regenerateFlowCloud(fc)
+    await showFlowCloud(fc)
     expect(vp.flowCloudGroup.children).toHaveLength(2) // handle + spiral wireframe group
     expect({ group: serializeGroup(vp.flowCloudGroup), edges: fc.getEdges().length }).toEqual(once)
   })
@@ -253,9 +251,9 @@ describe('repeated generation', () => {
 describe('FlowCloud.getEdges is visibility-aware', () => {
   test('hiding flow lines (with no bands generated) leaves nothing for Cut & Glue', async () => {
     const vp = viewport(fixture('default'))
-    const fc = new FlowCloud(vp, createModuleWorker('flowCloud'))
+    const fc = new FlowCloud(vp)
     disposers.push(() => fc.dispose())
-    await regenerateFlowCloud(fc)
+    await showFlowCloud(fc)
     const shown = fc.getEdges().length
     expect(shown).toBeGreaterThan(0)
     const wf = store().preset.flowCloud.wireframe
@@ -267,9 +265,9 @@ describe('FlowCloud.getEdges is visibility-aware', () => {
 
   test('hiding bands drops exactly the band segments', async () => {
     const vp = viewport(fixture('bands'))
-    const fc = new FlowCloud(vp, createModuleWorker('flowCloud'))
+    const fc = new FlowCloud(vp)
     disposers.push(() => fc.dispose())
-    await regenerateFlowCloud(fc)
+    await showFlowCloud(fc)
     const all = fc.getEdges().length
     const wf = store().preset.flowCloud.wireframe
     store().setFlowCloud({ wireframe: { ...wf, showFlowLines: false } })
