@@ -8,7 +8,7 @@
  * at 64, and the default preset at 128. "Resolution" sets both flowCloud.resolution and
  * surfaceMeshResolution. Each core gets its request exactly as the app builds it (the fixture
  * message builders). The cut-and-glue request carries the edges the editor modules (SphereMesh,
- * BaseMesh, TailMesh, SpiralMesh, FlowCloud after Regenerate) hand to App.handleCutAndGlue, so its
+ * BaseMesh, TailMesh, SpiralMesh, FlowCloud after Regenerate) hand to EditorEngine.cutAndGlue, so its
  * flow-cloud edges come from the flow cloud at the case's resolution.
  *
  * Each core runs once untimed (warm-up), then --runs times (default 7) back to back; the table
@@ -106,7 +106,7 @@ try {
     }
   }
 
-  /** The Cut & Glue request App.handleCutAndGlue posts after a Regenerate. */
+  /** The Cut & Glue request EditorEngine.cutAndGlue posts after a Regenerate. */
   async function cutAndGlueRequest(preset) {
     useCloudStore.getState().loadPreset(preset)
     const vp = viewportStub()
@@ -114,7 +114,7 @@ try {
     const base = new BaseMesh(vp)
     const tail = new TailMesh(vp)
     const spiral = new SpiralMesh(vp)
-    const flowCloud = new FlowCloud(vp)
+    const flowCloud = new FlowCloud(vp, new InProcessWorker())
     await new Promise((done) => {
       flowCloud.onGenerateDone = done
       flowCloud.regenerate()

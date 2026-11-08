@@ -167,6 +167,17 @@ export class AxisGizmo {
 
   dispose(): void {
     this.unsubscribe();
+    this.group.remove(this.frontHandle, this.backHandle, this.arrow);
+    for (const handle of [this.frontHandle, this.backHandle]) {
+      handle.geometry.dispose();
+      for (const child of handle.children) {
+        if (child instanceof THREE.Sprite) {
+          child.material.map?.dispose();
+          child.material.dispose();
+        }
+      }
+    }
+    this.arrow.dispose();
     const canvas = this.viewport.renderer.domElement;
     canvas.removeEventListener('pointerdown', this.onPointerDown);
     canvas.removeEventListener('pointermove', this.onPointerMove);

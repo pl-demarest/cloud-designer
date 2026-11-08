@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import type { FlowCloudRequest } from '../../workers/protocol';
+import { disposeMaterial } from '../dispose';
 
 const BLACK       = new THREE.LineBasicMaterial({ color: 0x000000 });
 const HANDLE_MAT  = new THREE.MeshBasicMaterial({ color: 0x06b6d4 }); // teal
@@ -41,7 +42,9 @@ export class FlowCloud {
   onGenerateStart?: () => void;
   onGenerateDone?: () => void;
 
-  constructor(viewport: Viewport) {
+  /** `worker` runs the flow-cloud core (marchingCubes.worker.ts); EditorEngine owns and
+   *  terminates it. */
+  constructor(viewport: Viewport, worker: Worker) {
     this.viewport = viewport;
     this.group = viewport.flowCloudGroup;
 
@@ -52,10 +55,7 @@ export class FlowCloud {
     this.handle.visible = false; // shown only after first Regenerate
     this.group.add(this.handle);
 
-    this.worker = new Worker(
-      new URL('../../workers/marchingCubes.worker.ts', import.meta.url),
-      { type: 'module' }
-    );
+    this.worker = worker;
     this.worker.onmessage = this.onWorkerMessage;
     this.worker.onerror = (e) => {
       console.error('Marching cubes worker error', e);
@@ -241,12 +241,13 @@ export class FlowCloud {
 
   // ── Internal helpers ────────────────────────────────────────────────────────
 
-  private clearScene(): void {
+  private clearScene(disposeMaterials = false): void {
     for (const obj of this.currentObjects) {
       this.group.remove(obj);
       obj.traverse((child) => {
         if (child instanceof THREE.Line || child instanceof THREE.LineSegments) {
           child.geometry.dispose();
+          if (disposeMaterials) disposeMaterial(child.material);
         }
       });
     }
@@ -321,10 +322,15 @@ export class FlowCloud {
   dispose(): void {
     this.unsubscribeWireframe();
     this.unsubscribePosition();
-    this.worker.terminate();
+    // The engine terminates the worker; a reply still on its way must not reach this view.
+    this.worker.onmessage = null;
+    this.worker.onerror = null;
     if (this.debounceTimer) clearTimeout(this.debounceTimer);
-    this.clearScene();
+    // Each line object's material is its own clone, as is the handle's.
+    this.clearScene(true);
+    this.group.remove(this.handle);
     this.handle.geometry.dispose();
+    disposeMaterial(this.handle.material);
 
     const canvas = this.viewport.renderer.domElement;
     canvas.removeEventListener('pointerdown', this.onPointerDown);

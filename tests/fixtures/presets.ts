@@ -155,7 +155,7 @@ export function marchingCubesMessage(raw: CloudPreset) {
   return { spheres: p.spheres, base: p.base, tail: p.tail, flowCloud: p.flowCloud }
 }
 
-/** App.handleCutAndGlue, surface-mesh half (src/components/App.tsx). */
+/** EditorEngine.cutAndGlue, surface-mesh half (src/engine/EditorEngine.ts). */
 export function surfaceMeshMessage(raw: CloudPreset) {
   const p = normalizePreset(raw)
   return {
@@ -176,7 +176,7 @@ export interface PrimitiveEdges {
   flowCloudEdges: Float32Array
 }
 
-/** App.handleCutAndGlue, cut-and-glue half (src/components/App.tsx). */
+/** EditorEngine.cutAndGlue, cut-and-glue half (src/engine/EditorEngine.ts). */
 export function cutAndGlueMessage(raw: CloudPreset, edges: PrimitiveEdges) {
   const p = normalizePreset(raw)
   return { spheres: p.spheres, base: p.base, tail: p.tail, ...edges }

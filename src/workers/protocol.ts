@@ -1,7 +1,7 @@
 /**
  * Messages between the main thread and the three geometry workers.
  *
- * A request is what App.tsx or FlowCloud.ts posts. A result is what the worker's core
+ * A request is what EditorEngine or FlowCloud posts. A result is what the worker's core
  * (./core/*.ts) returns; the worker posts it with every typed-array buffer in the transfer
  * list. When the computation throws, the worker replies with WorkerError instead.
  */

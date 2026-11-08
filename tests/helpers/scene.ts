@@ -7,6 +7,7 @@ import { TailMesh } from '../../src/engine/views/TailMesh'
 import { SpiralMesh } from '../../src/engine/views/SpiralMesh'
 import { FlowCloud } from '../../src/engine/views/FlowCloud'
 import { CutGlueResult } from '../../src/engine/views/CutGlueResult'
+import { createModuleWorker } from '../../src/engine/workers'
 import { useCloudStore } from '../../src/store/cloudStore'
 import type { CloudPreset } from '../../src/model/types'
 import { digestArray } from './digest'
@@ -192,9 +193,8 @@ export interface EditorScene {
 }
 
 /**
- * Loads `preset` into the store, then builds every editor module in App's order
- * (App.handleViewportReady). FlowCloud gets a FakeWorker (installFakeWorker()
- * must have been called).
+ * Loads `preset` into the store, then builds every editor module in EditorEngine's order.
+ * FlowCloud gets a FakeWorker (installFakeWorker() must have been called).
  */
 export function buildEditorScene(preset: CloudPreset): EditorScene {
   useCloudStore.getState().loadPreset(preset)
@@ -203,7 +203,7 @@ export function buildEditorScene(preset: CloudPreset): EditorScene {
   const base = new BaseMesh(vp)
   const tail = new TailMesh(vp)
   const spiral = new SpiralMesh(vp)
-  const flowCloud = new FlowCloud(vp)
+  const flowCloud = new FlowCloud(vp, createModuleWorker('flowCloud'))
   const cutGlue = new CutGlueResult(vp)
   return {
     vp,

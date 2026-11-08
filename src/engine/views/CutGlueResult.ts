@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Viewport } from '../Viewport';
+import { disposeMaterial } from '../dispose';
 
 const MAT = new THREE.LineBasicMaterial({ color: 0x000000 });
 
@@ -69,11 +70,15 @@ export class CutGlueResult {
   }
 
   dispose(): void {
-    if (this.lines) {
-      this.lines.geometry.dispose();
+    for (const obj of [this.lines, this.surfaceWire]) {
+      if (!obj) continue;
+      this.group.remove(obj);
+      obj.geometry.dispose();
+      // Each result's material is its own clone.
+      disposeMaterial(obj.material);
     }
-    if (this.surfaceWire) {
-      this.surfaceWire.geometry.dispose();
-    }
+    this.lines = null;
+    this.surfaceWire = null;
+    this.edgesBuffer = new Float32Array(0);
   }
 }

@@ -8,6 +8,7 @@ import { TailMesh } from '../../../src/engine/views/TailMesh'
 import { SpiralMesh } from '../../../src/engine/views/SpiralMesh'
 import { FlowCloud } from '../../../src/engine/views/FlowCloud'
 import { CutGlueResult } from '../../../src/engine/views/CutGlueResult'
+import { createModuleWorker } from '../../../src/engine/workers'
 import { useCloudStore } from '../../../src/store/cloudStore'
 import { createViewportStub, installFakeWorker, isHandle, regenerateFlowCloud, serializeGroup } from '../../helpers/scene'
 import { THICK_SPIRAL, fixture } from '../../fixtures/presets'
@@ -188,7 +189,7 @@ describe('viewport dragging', () => {
 
   test('FlowCloud: after Regenerate the handle drags flowCloud.position', async () => {
     const vp = viewport(fixture('default'))
-    const fc = new FlowCloud(vp)
+    const fc = new FlowCloud(vp, createModuleWorker('flowCloud'))
     disposers.push(() => fc.dispose())
     await regenerateFlowCloud(fc)
     const handle = vp.flowCloudGroup.children.find(isHandle)!
@@ -224,7 +225,7 @@ describe('SpiralMesh wireframe variants outside the fixture set', () => {
 describe('repeated generation', () => {
   test('a second Regenerate replaces the flow-cloud scene instead of adding to it', async () => {
     const vp = viewport(fixture('bands'))
-    const fc = new FlowCloud(vp)
+    const fc = new FlowCloud(vp, createModuleWorker('flowCloud'))
     disposers.push(() => fc.dispose())
     await regenerateFlowCloud(fc)
     const once = { group: serializeGroup(vp.flowCloudGroup), edges: fc.getEdges().length }
@@ -252,7 +253,7 @@ describe('repeated generation', () => {
 describe('FlowCloud.getEdges is visibility-aware', () => {
   test('hiding flow lines (with no bands generated) leaves nothing for Cut & Glue', async () => {
     const vp = viewport(fixture('default'))
-    const fc = new FlowCloud(vp)
+    const fc = new FlowCloud(vp, createModuleWorker('flowCloud'))
     disposers.push(() => fc.dispose())
     await regenerateFlowCloud(fc)
     const shown = fc.getEdges().length
@@ -266,7 +267,7 @@ describe('FlowCloud.getEdges is visibility-aware', () => {
 
   test('hiding bands drops exactly the band segments', async () => {
     const vp = viewport(fixture('bands'))
-    const fc = new FlowCloud(vp)
+    const fc = new FlowCloud(vp, createModuleWorker('flowCloud'))
     disposers.push(() => fc.dispose())
     await regenerateFlowCloud(fc)
     const all = fc.getEdges().length

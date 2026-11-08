@@ -1,7 +1,7 @@
 import { canvasPixels, cutAndGlue, expect, fieldRow, openApp, openPanel, regenerate, sliderRow, test, toolbarButton } from '../helpers'
 
 // Mode and visibility paths the main suite does not reach, found by mutation testing (Stage A net
-// check, 2026-11-07). App.handleModeChange and App.handleToggleSurfaceMesh each decide whether the
+// check, 2026-11-07). EditorEngine.setMode and EditorEngine.setSurfaceMeshVisible each decide whether the
 // spiral group shows in Preview; the main suite only enters Preview before the Surface Mesh box is
 // checked, so the handleModeChange branch for "surface mesh already on, flat spiral present" was
 // never run.

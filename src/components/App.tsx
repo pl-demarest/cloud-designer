@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { ViewportCanvas } from './ViewportCanvas';
 import { Toolbar } from './Toolbar';
 import { SpherePanel } from './SpherePanel';
@@ -7,32 +7,16 @@ import { TailPanel } from './TailPanel';
 import { SpiralPanel } from './SpiralPanel';
 import { FlowCloudPanel } from './FlowCloudPanel';
 import { ExportPanel } from './ExportPanel';
-import { Viewport } from '../engine/Viewport';
-import { SphereMesh } from '../engine/views/SphereMesh';
-import { BaseMesh } from '../engine/views/BaseMesh';
-import { TailMesh } from '../engine/views/TailMesh';
-import { SpiralMesh } from '../engine/views/SpiralMesh';
-import { FlowCloud } from '../engine/views/FlowCloud';
-import { CutGlueResult } from '../engine/views/CutGlueResult';
-import { AxisGizmo } from '../engine/views/AxisGizmo';
+import { useEditorEngine } from '../engine/useEditorEngine';
 import { useCloudStore } from '../store/cloudStore';
 import { useHistoryStore } from '../store/historyStore';
-import type { CutGlueRequest, CutGlueResponse, SurfaceMeshRequest } from '../workers/protocol';
-import * as THREE from 'three';
+import { useUiStore } from '../store/uiStore';
 
 type PanelId = 'spheres' | 'base' | 'tail' | 'spirals' | 'flowCloud' | 'export';
 
 export function App() {
-  const vpRef              = useRef<Viewport | null>(null);
-  const flowCloudGroupRef  = useRef<THREE.Group | null>(null);
-  const flowCloudRef       = useRef<FlowCloud | null>(null);
-  const spiralMeshRef      = useRef<SpiralMesh | null>(null);
-  const sphereMeshRef      = useRef<SphereMesh | null>(null);
-  const baseMeshRef        = useRef<BaseMesh | null>(null);
-  const tailMeshRef        = useRef<TailMesh | null>(null);
-  const cutGlueRef            = useRef<CutGlueResult | null>(null);
-  const cutGlueWorkerRef      = useRef<Worker | null>(null);
-  const surfaceMeshWorkerRef  = useRef<Worker | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const engineRef = useEditorEngine(canvasRef);
 
   const [mode, setMode]                     = useState<'edit' | 'preview'>('edit');
   const [showAxes, setShowAxes]             = useState(true);
@@ -41,203 +25,69 @@ export function App() {
   const [openPanels, setOpenPanels]         = useState<Set<PanelId>>(
     new Set(['spheres', 'flowCloud'])
   );
-  const [generating, setGenerating]         = useState(false);
-  const [cutGlueGenerating, setCutGlueGenerating] = useState(false);
-  const [surfaceMeshGenerating, setSurfaceMeshGenerating] = useState(false);
   const [surfaceMeshVisible, setSurfaceMeshVisible] = useState(false);
 
-  const preset     = useCloudStore((s) => s.preset);
-  const loadPreset = useCloudStore((s) => s.loadPreset);
-  const push       = useHistoryStore((s) => s.push);
-  const undo       = useHistoryStore((s) => s.undo);
-  const redo       = useHistoryStore((s) => s.redo);
-  const canUndo    = useHistoryStore((s) => s.canUndo());
-  const canRedo    = useHistoryStore((s) => s.canRedo());
+  const generating        = useUiStore((s) => s.running.flowCloud);
+  const cutGlueGenerating = useUiStore((s) => s.running.cutAndGlue || s.running.surfaceMesh);
+  const hasSurfaceMesh    = useUiStore((s) => s.hasSurfaceMesh);
+
+  const preset = useCloudStore((s) => s.preset);
 
   useEffect(() => {
-    push(preset);
+    useHistoryStore.getState().push(useCloudStore.getState().preset);
   }, []);
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
+      const history = useHistoryStore.getState();
+      const { loadPreset } = useCloudStore.getState();
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'z') {
         e.preventDefault();
-        if (canUndo) { const prev = undo(); if (prev) loadPreset(prev); }
+        if (history.canUndo()) { const prev = history.undo(); if (prev) loadPreset(prev); }
       }
       if ((e.ctrlKey || e.metaKey) && ((e.shiftKey && e.key === 'z') || e.key === 'y')) {
         e.preventDefault();
-        if (canRedo) { const next = redo(); if (next) loadPreset(next); }
+        if (history.canRedo()) { const next = history.redo(); if (next) loadPreset(next); }
       }
     }
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [canUndo, canRedo]);
-
-  // ── Viewport init ──────────────────────────────────────────────────────────
-
-  const handleViewportReady = useCallback((vp: Viewport) => {
-    vpRef.current          = vp;
-    flowCloudGroupRef.current = vp.flowCloudGroup;
-
-    const sm = new SphereMesh(vp);
-    sphereMeshRef.current = sm;
-    const bm = new BaseMesh(vp);
-    baseMeshRef.current = bm;
-    const tm = new TailMesh(vp);
-    tailMeshRef.current = tm;
-    spiralMeshRef.current = new SpiralMesh(vp);
-    new AxisGizmo(vp);
-
-    const fc = new FlowCloud(vp);
-    fc.onGenerateStart = () => setGenerating(true);
-    fc.onGenerateDone  = () => setGenerating(false);
-    flowCloudRef.current = fc;
-
-    cutGlueRef.current = new CutGlueResult(vp);
-
-    // Set up the cut & glue worker
-    const worker = new Worker(
-      new URL('../workers/cutAndGlue.worker.ts', import.meta.url),
-      { type: 'module' }
-    );
-    worker.onmessage = (ev: MessageEvent<CutGlueResponse>) => {
-      if ('error' in ev.data) {
-        console.error('cutAndGlue worker error:', ev.data.error);
-      } else {
-        cutGlueRef.current?.update(ev.data.clippedEdges);
-      }
-      setCutGlueGenerating(false);
-    };
-    worker.onerror = (err) => {
-      console.error('cutAndGlue worker error', err);
-      setCutGlueGenerating(false);
-    };
-    cutGlueWorkerRef.current = worker;
-
-    // Set up the surface mesh worker (SDF-based marching cubes)
-    const smWorker = new Worker(
-      new URL('../workers/surfaceMesh.worker.ts', import.meta.url),
-      { type: 'module' }
-    );
-    smWorker.onmessage = (ev: MessageEvent) => {
-      const { positions, indices, error } = ev.data as {
-        positions?: Float32Array;
-        indices?: Uint32Array;
-        error?: string;
-      };
-      if (error) {
-        console.error('surfaceMesh worker error:', error);
-      } else if (positions && indices) {
-        cutGlueRef.current?.updateSurfaceMesh(positions, indices);
-      }
-      setSurfaceMeshGenerating(false);
-    };
-    smWorker.onerror = (err) => {
-      console.error('surfaceMesh worker error', err);
-      setSurfaceMeshGenerating(false);
-    };
-    surfaceMeshWorkerRef.current = smWorker;
-
-    vp.showAxes(showAxes);
-    vp.showGrid(showGrid);
   }, []);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
-  function handleRegenerate() { flowCloudRef.current?.regenerate(); }
+  function handleRegenerate() { engineRef.current?.regenerate(); }
 
-  function handleCutAndGlue() {
-    const worker = cutGlueWorkerRef.current;
-    if (!worker) return;
-    const preset = useCloudStore.getState().preset;
-    setCutGlueGenerating(true);
-
-    const sphereEdgeGroups = sphereMeshRef.current?.getEdgesGrouped() ?? [];
-    const baseEdges        = baseMeshRef.current?.getEdges()        ?? new Float32Array(0);
-    const tailEdges        = tailMeshRef.current?.getEdges()        ?? new Float32Array(0);
-    const spiralEdges      = spiralMeshRef.current?.getEdges()       ?? new Float32Array(0);
-    const flowCloudEdges   = flowCloudRef.current?.getEdges()       ?? new Float32Array(0);
-
-    // Do NOT transfer the buffers — the arrays are shared with live Three.js geometry.
-    worker.postMessage({
-      spheres:    preset.spheres,
-      base:       preset.base,
-      tail:       preset.tail,
-      sphereEdgeGroups,
-      baseEdges,
-      tailEdges,
-      spiralEdges,
-      flowCloudEdges,
-    } satisfies CutGlueRequest);
-
-    // Dispatch surface mesh generation in parallel (SDF-based MC)
-    const smWorker = surfaceMeshWorkerRef.current;
-    if (smWorker) {
-      setSurfaceMeshGenerating(true);
-      smWorker.postMessage({
-        spheres:    preset.spheres,
-        base:       preset.base,
-        tail:       preset.tail,
-        flowCloud:  preset.flowCloud,
-        spirals:    preset.spirals,
-        resolution: preset.surfaceMeshResolution,
-      } satisfies SurfaceMeshRequest);
-    }
-  }
+  function handleCutAndGlue() { engineRef.current?.cutAndGlue(); }
 
   function handleToggleSurfaceMesh(v: boolean) {
     setSurfaceMeshVisible(v);
-    cutGlueRef.current?.setSurfaceMeshVisible(v);
-    // Thick spirals are now included in the SDF surface mesh.
-    // Flat spirals (thickness=0) still need the spiralGroup workaround.
-    if (vpRef.current && mode === 'preview') {
-      const hasFlatSpirals = preset.spirals.some(s => s.thickness === 0);
-      vpRef.current.spiralGroup.visible = v && hasFlatSpirals;
-      spiralMeshRef.current?.setHandlesVisible(false);
-    }
+    engineRef.current?.setSurfaceMeshVisible(v, mode);
   }
 
   function handleToggleFlowCloud() {
     const next = !showFlowCloud;
     setShowFlowCloud(next);
-    if (vpRef.current) vpRef.current.flowCloudGroup.visible = next;
-  }
-
-  function getScaffoldGroups() {
-    const vp = vpRef.current;
-    if (!vp) return null;
-    return { spheres: vp.sphereGroup, base: vp.baseGroup, tail: vp.tailGroup, spirals: vp.spiralGroup };
+    engineRef.current?.setFlowCloudVisible(next);
   }
 
   function togglePanel(id: PanelId) {
     setOpenPanels((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   }
 
   function handleModeChange(m: 'edit' | 'preview') {
     setMode(m);
-    if (vpRef.current) {
-      vpRef.current.sphereGroup.visible     = m === 'edit';
-      vpRef.current.baseGroup.visible      = m === 'edit';
-      vpRef.current.tailGroup.visible      = m === 'edit';
-      // Spirals: visible in edit mode. In preview with surface mesh, only show
-      // spiralGroup if there are flat spirals (thick ones are in the SDF mesh).
-      const hasFlatSpirals = preset.spirals.some(s => s.thickness === 0);
-      vpRef.current.spiralGroup.visible    = m === 'edit' || (m === 'preview' && surfaceMeshVisible && hasFlatSpirals);
-      vpRef.current.gizmoGroup.visible     = m === 'edit';
-      vpRef.current.flowCloudGroup.visible = m === 'edit';
-      vpRef.current.cutGlueGroup.visible = m === 'preview';
-    }
-    spiralMeshRef.current?.setHandlesVisible(m === 'edit');
-    flowCloudRef.current?.setHandlesVisible(m === 'edit');
+    engineRef.current?.setMode(m, surfaceMeshVisible);
   }
 
-  function handleToggleAxes() { const n = !showAxes; setShowAxes(n); vpRef.current?.showAxes(n); }
-  function handleToggleGrid()  { const n = !showGrid; setShowGrid(n); vpRef.current?.showGrid(n); }
-  function handleZoomFit()     { vpRef.current?.zoomToFit(); }
+  function handleToggleAxes() { const n = !showAxes; setShowAxes(n); engineRef.current?.showAxes(n); }
+  function handleToggleGrid()  { const n = !showGrid; setShowGrid(n); engineRef.current?.showGrid(n); }
+  function handleZoomFit()     { engineRef.current?.zoomToFit(); }
 
   // ── Panel list ─────────────────────────────────────────────────────────────
 
@@ -256,10 +106,10 @@ export function App() {
           showFlowCloud={showFlowCloud}
           onToggleFlowCloud={handleToggleFlowCloud}
           onCutAndGlue={handleCutAndGlue}
-          cutGlueGenerating={cutGlueGenerating || surfaceMeshGenerating}
+          cutGlueGenerating={cutGlueGenerating}
           surfaceMeshVisible={surfaceMeshVisible}
           onToggleSurfaceMesh={handleToggleSurfaceMesh}
-          hasSurfaceMesh={cutGlueRef.current?.hasSurfaceMesh() ?? false}
+          hasSurfaceMesh={hasSurfaceMesh}
         />
       ),
     },
@@ -268,9 +118,9 @@ export function App() {
       label: 'Export',
       component: (
         <ExportPanel
-          getFlowCloudGroup={() => flowCloudGroupRef.current}
-          getScaffoldGroups={getScaffoldGroups}
-          getCutGlueEdges={() => cutGlueRef.current?.getEdges() ?? new Float32Array(0)}
+          getFlowCloudGroup={() => engineRef.current?.viewport.flowCloudGroup ?? null}
+          getScaffoldGroups={() => engineRef.current?.scaffoldGroups() ?? null}
+          getCutGlueEdges={() => engineRef.current?.cutGlue.getEdges() ?? new Float32Array(0)}
         />
       ),
     },
@@ -291,7 +141,7 @@ export function App() {
       />
       <div className="app-body">
         <div className="viewport-wrap">
-          <ViewportCanvas onViewportReady={handleViewportReady} />
+          <ViewportCanvas canvasRef={canvasRef} />
         </div>
         <div className="sidebar">
           {panels.map(({ id, label, component }) => (

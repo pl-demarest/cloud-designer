@@ -1,6 +1,12 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+/** Creates the renderer for a canvas; tests pass one that needs no WebGL. */
+export type RendererFactory = (canvas: HTMLCanvasElement) => THREE.WebGLRenderer;
+
+export const createWebGLRenderer: RendererFactory = (canvas) =>
+  new THREE.WebGLRenderer({ canvas, antialias: true });
+
 export class Viewport {
   renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
@@ -21,9 +27,12 @@ export class Viewport {
   private tickCallbacks: Array<(dt: number) => void> = [];
   private timer = new THREE.Timer();
   private _claimedDrag = false;
+  private grid: THREE.GridHelper;
+  private axes: THREE.AxesHelper;
+  private lights: THREE.Light[];
 
-  constructor(canvas: HTMLCanvasElement) {
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  constructor(canvas: HTMLCanvasElement, createRenderer: RendererFactory = createWebGLRenderer) {
+    this.renderer = createRenderer(canvas);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setClearColor(0xffffff);
 
@@ -39,20 +48,24 @@ export class Viewport {
     this.controls.dampingFactor = 0.05;
 
     // Lighting (subtle for wireframe look)
-    this.scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+    const ambient = new THREE.AmbientLight(0xffffff, 0.8);
+    this.scene.add(ambient);
     const dir = new THREE.DirectionalLight(0xffffff, 0.4);
     dir.position.set(5, 10, 7);
     this.scene.add(dir);
+    this.lights = [ambient, dir];
 
     // Grid helper
     const grid = new THREE.GridHelper(20, 20, 0xcccccc, 0xeeeeee);
     grid.position.y = -1;
     this.scene.add(grid);
+    this.grid = grid;
 
     // Axes helper (small, toggleable via showAxes)
     const axes = new THREE.AxesHelper(1);
     axes.name = 'axesHelper';
     this.scene.add(axes);
+    this.axes = axes;
 
     // Active-unit parent — all editing groups live here so a single transform
     // moves/scales the whole unit without touching preset values.
@@ -136,14 +149,11 @@ export class Viewport {
   }
 
   showAxes(visible: boolean): void {
-    const axes = this.scene.getObjectByName('axesHelper');
-    if (axes) axes.visible = visible;
+    this.axes.visible = visible;
   }
 
   showGrid(visible: boolean): void {
-    this.scene.children.forEach((child) => {
-      if (child instanceof THREE.GridHelper) child.visible = visible;
-    });
+    this.grid.visible = visible;
   }
 
   zoomToFit(box?: THREE.Box3): void {
@@ -165,11 +175,21 @@ export class Viewport {
     this.resize(parent.clientWidth, parent.clientHeight);
   };
 
+  /**
+   * Stops the loop and releases what the constructor created: listeners, the grid and axes
+   * helpers, the lights and the renderer. The views dispose their own objects first
+   * (EditorEngine.dispose).
+   */
   dispose(): void {
     this.stop();
     this.timer.dispose();
+    this.tickCallbacks = [];
     window.removeEventListener('resize', this.handleResize);
     this.controls.dispose();
+    this.grid.dispose();
+    this.axes.dispose();
+    for (const light of this.lights) light.dispose();
+    this.scene.clear();
     this.renderer.dispose();
   }
 }

@@ -31,7 +31,7 @@ afterEach(() => {
 })
 
 function collectEdges(s: EditorScene): PrimitiveEdges {
-  // Same calls, same order as App.handleCutAndGlue.
+  // Same calls, same order as EditorEngine.cutAndGlue.
   return {
     sphereEdgeGroups: s.sphere.getEdgesGrouped(),
     baseEdges: s.base.getEdges(),

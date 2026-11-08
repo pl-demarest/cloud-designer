@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { SphereDef } from '../../model/types';
 import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
+import { disposeMaterial } from '../dispose';
 
 const HANDLE_MAT = new THREE.MeshBasicMaterial({ color: 0x2563eb });
 const WIRE_MAT = new THREE.LineBasicMaterial({ color: 0x000000 });
@@ -204,8 +205,12 @@ export class SphereMesh {
   dispose(): void {
     this.unsubscribe();
     for (const { wire, handle } of this.meshMap.values()) {
+      this.group.remove(wire, handle);
       wire.geometry.dispose();
       handle.geometry.dispose();
+      // Each sphere's materials are its own clones.
+      disposeMaterial(wire.material);
+      disposeMaterial(handle.material);
     }
     this.meshMap.clear();
 
