@@ -83,7 +83,8 @@ Generated geometry does not follow edits, undo or redo. The flow cloud, the clip
 the surface mesh change only when their jobs run, or when another cloud replaces the whole preset:
 `replacePreset` (Import, the autosave restore) and `resetToDefault` (Reset, Discard) count
 `cloudStore.replacements`, and the engine's subscription to it clears all three and the flow-cloud
-request the surface mesh would union (`shownFlowCloud`).
+request the surface mesh would union (`shownFlowCloud`), and cancels the jobs still computing
+(`WorkerClient.cancel()`), so their replies are not shown.
 
 ## From a button to a worker job
 
@@ -181,7 +182,9 @@ Conventions:
 - **Latest wins.** At most one request is in flight and one waiting per worker. A new request
   replaces the waiting one, which resolves `superseded`; a reply that arrives while a newer request
   waits is dropped. Each `request()` resolves with `{ status: 'done', result }`,
-  `{ status: 'failed', error }` or `{ status: 'superseded' }`.
+  `{ status: 'failed', error }` or `{ status: 'superseded' }`. `cancel()`, which the engine calls
+  when another cloud replaces the preset, ends every open request as superseded and drops the
+  in-flight request's reply when it comes; a request made after it waits for that reply.
 - **Errors.** Each shell catches what its core throws and replies `{ error: String(err) }`. The
   client also turns the worker's `error` event into a failed job: the flow-cloud shell reads the
   message's fields outside its `try`, so a `null` or `undefined` message reaches that path. An

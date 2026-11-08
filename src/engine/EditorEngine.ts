@@ -170,10 +170,13 @@ export class EditorEngine {
   /**
    * Drops what was generated from a cloud the preset no longer holds (Reset, Import, Discard, the
    * autosave restore): the flow cloud and the inputs the surface mesh would union, the clipped
-   * wireframe and the surface mesh. The exports that need them then refuse as before the first
-   * Regenerate.
+   * wireframe and the surface mesh, and the replies of jobs still computing for it. The exports
+   * that need them then refuse as before the first Regenerate.
    */
   private clearGenerated(): void {
+    this.flowCloudJob.cancel();
+    this.cutGlueJob.cancel();
+    this.surfaceMeshJob.cancel();
     this.flowCloud.clear();
     this.shownFlowCloud = null;
     this.cutGlue.clear();

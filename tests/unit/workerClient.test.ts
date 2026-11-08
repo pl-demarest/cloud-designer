@@ -118,6 +118,34 @@ describe('WorkerClient', () => {
     expect(await third).toEqual({ status: 'done', result: { doubled: 6 } })
   })
 
+  test('cancel() ends the open requests as superseded and drops the reply of the one in flight', async () => {
+    const { c, worker, results } = client()
+    const first = c.request({ n: 1 })
+    const waiting = c.request({ n: 2 })
+    c.cancel()
+    expect(await first).toEqual({ status: 'superseded' })
+    expect(await waiting).toEqual({ status: 'superseded' })
+    expect(c.state).toEqual({ status: 'idle', requestId: 2, error: null })
+    // A request after the cancel waits for the worker to answer the cancelled one.
+    const next = c.request({ n: 3 })
+    expect(worker.posted).toEqual([{ n: 1 }])
+    worker.reply({ doubled: 2 }) // the cancelled request's reply: dropped
+    expect(results).toEqual([])
+    expect(worker.posted).toEqual([{ n: 1 }, { n: 3 }])
+    worker.reply({ doubled: 6 })
+    expect(await next).toEqual({ status: 'done', result: { doubled: 6 } })
+    expect(results).toEqual([[{ doubled: 6 }, { n: 3 }, 3]])
+  })
+
+  test('a reply to a cancelled request with nothing waiting is dropped, and the state stays idle', () => {
+    const { c, worker, results, states } = client()
+    void c.request({ n: 1 })
+    c.cancel()
+    worker.reply({ doubled: 2 })
+    expect(results).toEqual([])
+    expect(states.map((s) => s.status)).toEqual(['running', 'idle'])
+  })
+
   test('dispose() terminates the worker, detaches from it and ends open requests as superseded', async () => {
     const { c, worker, results } = client()
     const first = c.request({ n: 1 })

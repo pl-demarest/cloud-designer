@@ -31,6 +31,8 @@ interface Pending<Req, Res> {
   id: number;
   request: Req;
   settle: (outcome: JobOutcome<Res>) => void;
+  /** cancel() ended it: its reply, when it comes, is dropped. */
+  cancelled?: boolean;
 }
 
 /**
@@ -42,6 +44,8 @@ interface Pending<Req, Res> {
  * when that one's reply arrives; a newer request replaces a waiting one, so the latest wins. A
  * reply to a request that a newer one has superseded is dropped. An { error } reply, or the
  * worker's error event, fails the job with its message. request() resolves with the outcome.
+ * cancel() ends every open request at once (the editor's preset was replaced): the reply of the
+ * one in flight is dropped when it comes, and a request made after waits for it.
  */
 export class WorkerClient<Req, Res extends object> {
   private readonly worker: Worker;
@@ -78,6 +82,21 @@ export class WorkerClient<Req, Res extends object> {
     });
   }
 
+  /**
+   * Ends every request not yet answered as superseded, and drops the reply of the one in flight
+   * when it comes (the worker cannot be stopped mid-computation; a later request waits for that
+   * reply as usual). The job goes back to idle.
+   */
+  cancel(): void {
+    this.waiting?.settle({ status: 'superseded' });
+    this.waiting = null;
+    if (this.inFlight) {
+      this.inFlight.cancelled = true;
+      this.inFlight.settle({ status: 'superseded' });
+    }
+    this.setState({ status: 'idle', requestId: this.current.requestId, error: null });
+  }
+
   /** Detaches from the worker and terminates it; requests not yet answered end superseded. */
   dispose(): void {
     this.worker.onmessage = null;
@@ -107,6 +126,7 @@ export class WorkerClient<Req, Res extends object> {
       this.post(next);
       return;
     }
+    if (answered.cancelled) return;
 
     if ('error' in reply) {
       console.error(`${this.options.name} worker error:`, reply.error);

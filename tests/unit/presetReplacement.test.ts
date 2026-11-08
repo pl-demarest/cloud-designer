@@ -178,3 +178,33 @@ describe('single edits, undo and redo keep what was generated', () => {
     expect(generated().flowCloud).toBe(true)
   })
 })
+
+describe('a job started before a replacement shows nothing after it', () => {
+  test('a Regenerate in flight when an Import replaces the preset: its reply is dropped', async () => {
+    void engine.regenerate()
+    await pastDebounce() // posted, not answered
+    expect(workers.flowCloud.unanswered).toBe(1)
+    await importPresetFile(presetFile())
+    expect(generated()).toEqual(NOTHING)
+    await workers.flowCloud.answer() // the three-sphere cloud of the preset before
+    expect(generated().flowCloud, 'the old flow cloud is not shown over the imported preset').toBe(false)
+    expect(useUiStore.getState().jobs.flowCloud.status).not.toBe('running')
+    // The next Regenerate runs and shows the imported cloud.
+    void engine.regenerate()
+    await pastDebounce()
+    await workers.flowCloud.answer()
+    expect(generated().flowCloud).toBe(true)
+    expect(workers.flowCloud.posted.at(-1)).toMatchObject({ spheres: [{ id: 'sphere-0' }] })
+  })
+
+  test('a Cut & Glue in flight when Reset replaces the preset: neither reply is shown', async () => {
+    answerConfirm(true)
+    void engine.cutAndGlue()
+    confirmAndResetPreset()
+    await workers.cutAndGlue.answer()
+    await workers.surfaceMesh.answer()
+    expect(generated()).toEqual(NOTHING)
+    const jobs = useUiStore.getState().jobs
+    expect([jobs.cutAndGlue.status, jobs.surfaceMesh.status]).toEqual(['idle', 'idle'])
+  })
+})

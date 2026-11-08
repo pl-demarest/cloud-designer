@@ -257,7 +257,8 @@ Bands and Show Flow Lines change the shown result at once.
 All three compute in Web Workers, off the editor's main thread. A request made while the same job
 is computing waits and runs when it finishes; of several waiting requests only the newest runs.
 None of the results follows later edits, undo or redo: they change only when their job runs again.
-Replacing the whole cloud (Reset, Reset to Default, Import, Discard) clears all three.
+Replacing the whole cloud (Reset, Reset to Default, Import, Discard) clears all three, and drops
+the reply of a job that was still computing for the cloud before.
 
 ### Regenerate: the flow cloud
 
