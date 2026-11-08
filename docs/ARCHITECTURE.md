@@ -22,7 +22,7 @@ does is in [USAGE.md](USAGE.md).
 | Workers | `src/workers` | `protocol.ts` (message types), three pure cores in `core/`, three thin worker shells | model, geometry | none |
 | Engine | `src/engine` | `EditorEngine`, which owns the `Viewport`, a view per primitive in `views/`, the `DragController` and a `WorkerClient` per worker | model, geometry, store, workers | three, zustand, react (only `useEditorEngine`) |
 | Store | `src/store` | `cloudStore` (the preset, its actions, the history API), `historyStore` (the snapshot stack), `uiStore` (view flags, job states, the notice), `autosave` | model, four leaf modules of engine (below) | zustand |
-| UI | `src/ui` | React components: `App`, `Toolbar`, the panels, the controls and hooks, import, reset and the keyboard shortcuts | model, store, engine, export | react, three (one type) |
+| UI | `src/ui` | React components: `App`, `Toolbar`, the panels, the controls and hooks, import, reset and the keyboard shortcuts | model, geometry (`resolveTailSetpoints`, for Snap Back), store, engine, export | react, three (one type) |
 | Export | `src/export` | The GLB scenes, the GLB writer, the download helper | nothing | three |
 
 The rules the code follows today:

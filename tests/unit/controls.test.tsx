@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { BasePanel } from '../../src/ui/panels/BasePanel'
 import { TailPanel } from '../../src/ui/panels/TailPanel'
+import { FlowCloudPanel } from '../../src/ui/panels/FlowCloudPanel'
 import { Accordion } from '../../src/ui/controls/Accordion'
 import { useCloudStore } from '../../src/store/cloudStore'
 import { useHistoryStore } from '../../src/store/historyStore'
@@ -259,5 +260,21 @@ describe('Accordion', () => {
     )
     const ids = screen.getAllByRole('region').map((r) => r.id)
     expect(new Set(ids).size).toBe(2)
+  })
+})
+
+describe('FlowCloudPanel', () => {
+  test('Snap Back → Tail moves B to where an attached tail starts, as one undo step', () => {
+    // The default tail attaches at the base's end (offset 1); its stored first setpoint stays at
+    // the old end, (2.5, -0.8, 0), when the base's last point moves.
+    store().updateBasePoint(3, [2.5, 0.5, 0])
+    store().commit()
+    render(<FlowCloudPanel />)
+    fireEvent.click(screen.getByRole('button', { name: 'Snap Back → Tail' }))
+    const [x, y, z] = store().preset.flowCloud.wireframe.backPoint
+    expect(x).toBeCloseTo(2.5, 9)
+    expect(y).toBeCloseTo(0.5, 9)
+    expect(z).toBeCloseTo(0, 9)
+    expect(history().past).toHaveLength(3)
   })
 })

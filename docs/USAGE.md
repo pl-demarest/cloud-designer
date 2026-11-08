@@ -242,7 +242,7 @@ In Spiral mode these controls follow:
 | Flow Lines | 4 to 24 (1). The number of flow lines, evenly spaced in angle. |
 | Spiral Twist | 0 to 4π (0.05 rad, shown as a multiple of π). How far a flow line turns about the axis from u = 0 to u = 1. |
 | Front, Back | The F and B anchors' coordinates, to one decimal. Drag the anchors in the viewport to change them; they have no input fields. |
-| Snap Back → Tail | Move B to the tail's first setpoint (its stored position; see [Known limitations](#known-limitations)). One undo step. |
+| Snap Back → Tail | Move B to where the tail starts: its first setpoint, or for an attached tail the point on the base where it meets it. One undo step. |
 
 The F/B anchors, Resolution, Threshold, Mode, Generate Bands, Bands, Flow Lines and Spiral Twist,
 like every sphere and tail edit, take effect at the next Regenerate. Position, Hide and Show, Show
@@ -432,8 +432,6 @@ Glue again.
 - In Preview the flow cloud is hidden, so a Cut & Glue run started there leaves the flow-cloud
   wires out of the clipped wireframe, although the surface mesh includes the flow cloud. Run Cut &
   Glue in Edit mode.
-- Snap Back → Tail reads the first setpoint's stored position. An attached tail does not use that
-  position, so B can land away from where the tail meets the base.
 - The F and B anchors have no input fields. They move only by dragging (B also with Snap Back →
   Tail) or through an imported preset, so they cannot be set from the keyboard.
 - Undo, Reset, Import and Discard leave the generated flow cloud and Cut & Glue result on screen;

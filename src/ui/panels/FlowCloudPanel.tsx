@@ -7,6 +7,7 @@ import { FieldRow } from '../controls/FieldRow';
 import { Vec3Field } from '../controls/Vec3Field';
 import { formatPi } from '../controls/format';
 import type { FlowCloudSettings } from '../../model/types';
+import { resolveTailSetpoints } from '../../geometry/primitives/tail';
 
 export function FlowCloudPanel() {
   const engine = useEngine();
@@ -41,10 +42,12 @@ export function FlowCloudPanel() {
   }
 
   function snapBackToTail() {
-    const sp = useCloudStore.getState().preset.tail.setpoints;
-    if (sp.length === 0) return;
-    // Use the first setpoint as the posterior anchor (where tail meets the cloud body)
-    const [x, y, z] = sp[0].position;
+    const { tail, base } = useCloudStore.getState().preset;
+    // The posterior anchor goes where the tail meets the cloud body: its first setpoint as drawn,
+    // which an attached tail takes from the base (resolveTailSetpoints), not the stored one.
+    const start = resolveTailSetpoints(tail, base)[0];
+    if (!start) return;
+    const [x, y, z] = start.position;
     setWireframe({ backPoint: [x, y, z] });
     commit();
   }

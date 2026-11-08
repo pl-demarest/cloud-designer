@@ -292,6 +292,19 @@ test.describe('selects', () => {
     await expect(sliderRow(body, 'Spiral Twist')).toHaveCount(0)
   })
 
+  // Snap Back read the first setpoint's stored position, which an attached tail does not use: after
+  // a base edit, B went to where the tail had started before.
+  test('Snap Back → Tail moves B to where an attached tail starts', async ({ page }) => {
+    const y = (await openPanel(page, 'Base')).getByRole('spinbutton', { name: 'P3 Y' })
+    await y.fill('0.5')
+    await y.press('Enter')
+    const body = await openPanel(page, 'Flow Cloud')
+    await body.getByRole('button', { name: 'Snap Back → Tail' }).click()
+    // The default tail attaches at the base's end (offset 1), P3, now at (2.5, 0.5, 0); the curve
+    // gives z = -1e-16 there, which shows as -0.0.
+    await expect(body.locator('.axis-coords')).toContainText(/Back\[2\.5, 0\.5, -?0\.0\]/)
+  })
+
   test('flow cloud resolution and mesh density selects', async ({ page }) => {
     const body = await openPanel(page, 'Flow Cloud')
     const resolution = fieldRow(body, 'Resolution').locator('select')
