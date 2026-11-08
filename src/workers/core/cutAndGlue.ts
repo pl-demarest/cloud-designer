@@ -40,7 +40,7 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
   //   - No CLIP_INSET needed — the inset was only a self-protection hack
   //   - Zero-gap seams between adjacent primitives
   //
-  // All containment tests use inset = 1.0 (exact visible surface boundary).
+  // Every containment test uses the exact visible surface boundary.
 
   // Every group's surviving pieces, in order. A growable typed array: spreading a group's
   // output into a push() overflowed the call stack above about 120,000 floats.
@@ -51,9 +51,9 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
     const otherSpheres = frames.filter(f => f.def.id !== sphereId);
     const insideFn = (x: number, y: number, z: number): boolean => {
       for (const f of otherSpheres) {
-        if (insideSphere(x, y, z, f, 1.0)) return true;
+        if (insideSphere(x, y, z, f)) return true;
       }
-      if (insideTailCapsule(x, y, z, tailSamples, 1.0)) return true;
+      if (insideTailCapsule(x, y, z, tailSamples)) return true;
       if (insideBase(x, y, z, baseVolume)) return true;
       return false;
     };
@@ -63,7 +63,7 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
   // ── Tail edges: clipped by spheres + base (not self) ─────────────────────
   const insideForTail = (x: number, y: number, z: number): boolean => {
     for (const f of frames) {
-      if (insideSphere(x, y, z, f, 1.0)) return true;
+      if (insideSphere(x, y, z, f)) return true;
     }
     if (insideBase(x, y, z, baseVolume)) return true;
     return false;
@@ -73,9 +73,9 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
   // ── Base edges: clipped by spheres + tail (not self) ─────────────────────
   const insideForBase = (x: number, y: number, z: number): boolean => {
     for (const f of frames) {
-      if (insideSphere(x, y, z, f, 1.0)) return true;
+      if (insideSphere(x, y, z, f)) return true;
     }
-    if (insideTailCapsule(x, y, z, tailSamples, 1.0)) return true;
+    if (insideTailCapsule(x, y, z, tailSamples)) return true;
     return false;
   };
   clipEdgeSet(baseEdges, insideForBase, out);
@@ -83,9 +83,9 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
   // ── Spiral edges: clipped by everything (no self-volume) ────────────────
   const insideForSpirals = (x: number, y: number, z: number): boolean => {
     for (const f of frames) {
-      if (insideSphere(x, y, z, f, 1.0)) return true;
+      if (insideSphere(x, y, z, f)) return true;
     }
-    if (insideTailCapsule(x, y, z, tailSamples, 1.0)) return true;
+    if (insideTailCapsule(x, y, z, tailSamples)) return true;
     if (insideBase(x, y, z, baseVolume)) return true;
     return false;
   };
@@ -94,9 +94,9 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
   // ── Flow cloud edges: clipped by everything ──────────────────────────────
   const insideForFlowCloud = (x: number, y: number, z: number): boolean => {
     for (const f of frames) {
-      if (insideSphere(x, y, z, f, 1.0)) return true;
+      if (insideSphere(x, y, z, f)) return true;
     }
-    if (insideTailCapsule(x, y, z, tailSamples, 1.0)) return true;
+    if (insideTailCapsule(x, y, z, tailSamples)) return true;
     if (insideBase(x, y, z, baseVolume)) return true;
     return false;
   };

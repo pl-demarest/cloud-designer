@@ -65,8 +65,8 @@ describe('sphere frame', () => {
     const c = new THREE.Vector3(...def.position)
     const above = c.clone().addScaledVector(up, 0.5)
     const below = c.clone().addScaledVector(up, -0.5)
-    expect(insideSphere(above.x, above.y, above.z, f, 1)).toBe(true)
-    expect(insideSphere(below.x, below.y, below.z, f, 1)).toBe(false)
+    expect(insideSphere(above.x, above.y, above.z, f)).toBe(true)
+    expect(insideSphere(below.x, below.y, below.z, f)).toBe(false)
     expect(sphereSDF(below.x, below.y, below.z, f)).toBeCloseTo(0.5, 12)
   })
 

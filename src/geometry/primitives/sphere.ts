@@ -55,11 +55,11 @@ export function sphereSDF(x: number, y: number, z: number, f: SphereFrame): numb
 }
 
 /** Hard geometric test against the sphere the editor draws, independent of the metaball
- *  falloff. With self-exclusion in the caller, inset=1.0 produces zero-gap seams. */
-export function insideSphere(x: number, y: number, z: number, f: SphereFrame, inset: number): boolean {
+ *  falloff: strictly inside its surface. */
+export function insideSphere(x: number, y: number, z: number, f: SphereFrame): boolean {
   toLocal(x, y, z, f);
   if (f.def.half && local[3] < 0) return false;
-  const r = f.def.radius * inset;
+  const r = f.def.radius;
   return local[0] * local[0] + local[1] * local[1] + local[2] * local[2] < r * r;
 }
 

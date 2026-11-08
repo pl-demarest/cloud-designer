@@ -125,7 +125,8 @@ export function tailSDF(x: number, y: number, z: number, tailSamples: TailSample
   return minD;
 }
 
-export function insideTailCapsule(x: number, y: number, z: number, tailSamples: TailSample[], inset: number): boolean {
+/** True strictly inside the tail capsule chain. */
+export function insideTailCapsule(x: number, y: number, z: number, tailSamples: TailSample[]): boolean {
   for (let i = 0; i < tailSamples.length - 1; i++) {
     const a = tailSamples[i];
     const b = tailSamples[i + 1];
@@ -141,7 +142,7 @@ export function insideTailCapsule(x: number, y: number, z: number, tailSamples: 
     const cx = a.px + param * abx;
     const cy = a.py + param * aby;
     const cz = a.pz + param * abz;
-    const r = (a.width + (b.width - a.width) * param) * inset;
+    const r = a.width + (b.width - a.width) * param;
     const dx = x - cx;
     const dy = y - cy;
     const dz = z - cz;
