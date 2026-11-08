@@ -68,7 +68,9 @@ drag). The keyboard does not move the camera.
 Handles are drawn in Edit mode only. Press on a handle and drag: the item moves on the plane that
 faces the camera through the point you grabbed, and keeps the offset you grabbed it at. The drag
 ends when you release the button, also outside the canvas, or when the browser cancels the
-pointer. Where handles overlap, the one nearest the camera under the pointer wins. A drag that
+pointer. Where handles overlap, the one nearest the camera under the pointer wins, except the
+teal flow-cloud handle, which gives way to any other handle under the pointer: on the default
+preset it covers sphere 1's handle at the origin, and a press there drags sphere 1. A drag that
 moved something is one undo step.
 
 | Handle | Moves |

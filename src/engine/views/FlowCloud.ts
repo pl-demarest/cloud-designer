@@ -125,6 +125,10 @@ export class FlowCloud implements DragSource {
 
   // ── Dragging (DragController) ───────────────────────────────────────────────
 
+  /** The handle sits at the flow cloud's position, which on the default preset is the first
+   *  sphere's centre, and it is the larger box: any other handle under the pointer wins. */
+  readonly yieldsPress = true;
+
   /** The handle, which is visible (so draggable) once something is shown, in Edit mode. */
   dragHandles(): THREE.Object3D[] {
     return [this.handle];

@@ -119,7 +119,8 @@ mesh change only when their jobs run.
 `DragController`. On `pointerdown` it takes the focus from any field (as the browser does a moment
 later), so a number field or the name records its edit before a drag's gesture opens. It then
 raycasts the handles that are visible with all their ancestors (three's raycaster ignores
-visibility) and takes the nearest hit. It drags the item on
+visibility) and takes the nearest hit, passing over the flow-cloud handle (a source with
+`yieldsPress`) when another handle is under the pointer. It drags the item on
 the plane through the hit point that faces the camera, keeping the grab offset; it disables
 OrbitControls, captures the pointer and calls `beginGesture()`. Each `pointermove` calls the item's
 `moveTo`, which calls a store action. `pointerup` (on the canvas or the window), `pointercancel`

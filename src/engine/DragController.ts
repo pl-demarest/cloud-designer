@@ -16,6 +16,8 @@ export interface DragSource {
   dragHandles(): readonly THREE.Object3D[];
   /** The item behind `handle`, one of this source's dragHandles(). */
   dragTarget(handle: THREE.Object3D): DragTarget;
+  /** Its handles give way to any other source's handle under the pointer, nearer or not. */
+  readonly yieldsPress?: boolean;
 }
 
 /** Called around each drag; C2's history gesture API plugs in here. */
@@ -41,10 +43,11 @@ export function isWorldVisible(obj: THREE.Object3D): boolean {
 
 /**
  * The one pointer pipeline for every handle in the viewport. A press raycasts the handles of
- * all registered views in one pass and the nearest world-visible hit wins. The drag moves its
- * item on a camera-facing plane through the grab point, keeping the grab offset, with pointer
- * capture and OrbitControls disabled. pointerup (on the canvas or the window), pointercancel and
- * lostpointercapture end it and re-enable the controls.
+ * all registered views in one pass and the nearest world-visible hit wins, except that a source
+ * that yields its press (the flow cloud's handle) wins only where no other handle is under the
+ * pointer. The drag moves its item on a camera-facing plane through the grab point, keeping the
+ * grab offset, with pointer capture and OrbitControls disabled. pointerup (on the canvas or the
+ * window), pointercancel and lostpointercapture end it and re-enable the controls.
  */
 export class DragController {
   private readonly viewport: Viewport;
@@ -115,8 +118,9 @@ export class DragController {
     }
     if (owners.size === 0) return;
     this.aim(e);
-    // Sorted by distance: the nearest handle under the pointer wins.
-    const hit = this.raycaster.intersectObjects([...owners.keys()], false)[0];
+    // Sorted by distance: the nearest handle under the pointer wins, after any that do not yield.
+    const hits = this.raycaster.intersectObjects([...owners.keys()], false);
+    const hit = hits.find((h) => !owners.get(h.object)!.yieldsPress) ?? hits[0];
     if (!hit) return;
 
     const target = owners.get(hit.object)!.dragTarget(hit.object);

@@ -73,6 +73,41 @@ describe('picking', () => {
     expect(store().preset.base.controlPoints[1], 'the nearer base handle moved').not.toEqual(before.base.controlPoints[1])
   })
 
+  describe('the flow-cloud handle yields to any other handle under the pointer', () => {
+    // On the default preset sphere 1 (sphere-0) sits at the origin, the flow cloud's position.
+    // After a Regenerate the flow-cloud handle, a 0.25 box, encloses the sphere's 0.18 box.
+    beforeEach(async () => {
+      expect((await engine.regenerate()).status).toBe('done')
+    })
+
+    /** The pointer position over the world point (x, y, z). */
+    function overPoint(x: number, y: number, z: number): THREE.Vector2 {
+      engine.viewport.scene.updateMatrixWorld(true) // as a rendered frame does, for the raycast
+      engine.viewport.camera.updateMatrixWorld()
+      const p = new THREE.Vector3(x, y, z).project(engine.viewport.camera)
+      return new THREE.Vector2(p.x, p.y)
+    }
+
+    test("a press on sphere 1's handle drags sphere 1, not the flow cloud", () => {
+      const at = over(sphereHandle('sphere-0'))
+      pointer('pointerdown', at)
+      pointer('pointermove', at.clone().add(new THREE.Vector2(0.1, 0.05)))
+      pointer('pointerup', at)
+      expect(store().preset.flowCloud.position, 'the flow cloud stays').toEqual([0, 0, 0])
+      expect(store().preset.spheres[0].position, 'sphere 1 moves').not.toEqual([0, 0, 0])
+    })
+
+    test('a press on the flow-cloud handle where no other handle is under the pointer drags the flow cloud', () => {
+      // Inside the flow-cloud box's front-top-right corner, beside the sphere's smaller box.
+      const at = overPoint(0.115, 0.115, 0.12)
+      pointer('pointerdown', at)
+      pointer('pointermove', at.clone().add(new THREE.Vector2(0.1, 0.05)))
+      pointer('pointerup', at)
+      expect(store().preset.spheres[0].position, 'sphere 1 stays').toEqual([0, 0, 0])
+      expect(store().preset.flowCloud.position, 'the flow cloud moves').not.toEqual([0, 0, 0])
+    })
+  })
+
   test('gizmo-hidden-still-draggable: in Preview the hidden F anchor is not grabbed', () => {
     const front = engine.viewport.gizmoGroup.children.find((c) => c.userData.which === 'front')!
     const at = over(front)
