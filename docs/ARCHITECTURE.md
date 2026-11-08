@@ -140,7 +140,8 @@ subscriptions, the drag controller's listeners, each view's geometries and textu
 workers (terminated), and the viewport's render loop, controls, helpers, lights, shared materials
 and renderer; it then resets the job states in `uiStore`. The app renders in `React.StrictMode`,
 whose second mount must find nothing left over (`tests/unit/engineLifecycle.test.tsx` counts
-geometries, materials, textures, workers and listeners). The views draw with one material per
+geometries, materials, textures, workers and listeners). The second renderer gets the canvas's
+WebGL context back, so the viewport also resets the two unpack flags three's texture uploads set. The views draw with one material per
 role (`src/engine/materials.ts`), owned and disposed by the viewport.
 
 ## Worker protocol

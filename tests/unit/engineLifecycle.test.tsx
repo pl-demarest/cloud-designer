@@ -76,6 +76,14 @@ describe('EditorEngine.dispose', () => {
     expect(resources.created()).toEqual(created)
   })
 
+  test('leaves the WebGL unpack state at its defaults, for the renderer a remount makes on the canvas', () => {
+    const engine = new EditorEngine(canvas, TEST_ENGINE_OPTIONS)
+    // As after a frame: three uploads the gizmo's label textures with flipY.
+    rendererStubs[0].unpack = { flipY: true, premultiplyAlpha: true }
+    engine.dispose()
+    expect(rendererStubs[0].unpack).toEqual({ flipY: false, premultiplyAlpha: false })
+  })
+
   test('a second dispose() is a no-op', () => {
     const engine = new EditorEngine(canvas, TEST_ENGINE_OPTIONS)
     engine.dispose()

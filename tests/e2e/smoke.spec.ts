@@ -44,4 +44,8 @@ test('app loads with a rendered viewport and the sidebar accordion', async ({ pa
   expect(consoleErrors, 'console.error messages').toEqual([])
   // three r183 deprecated THREE.Clock and warns when one is constructed; the viewport uses THREE.Timer.
   expect(consoleWarnings.filter((w) => /deprecated/i.test(w)), 'deprecation warnings').toEqual([])
+  // StrictMode's remount builds a second renderer on the same WebGL context. The first one's label
+  // upload left UNPACK_FLIP_Y_WEBGL set, and the second one's empty 3D textures then failed:
+  // 'WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed ...'.
+  expect(consoleWarnings.filter((w) => /WebGL/.test(w)), 'WebGL warnings').toEqual([])
 })

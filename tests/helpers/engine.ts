@@ -7,14 +7,19 @@ import { runWorker, type WorkerName } from './workerHarness'
 
 /**
  * A stand-in for THREE.WebGLRenderer with the members Viewport uses and no WebGL: it records the
- * animation loop it is given, counts render calls and whether it was disposed.
+ * animation loop it is given, counts render calls and whether it was disposed, and keeps the two
+ * unpack flags its context's pixelStorei sets.
  */
 export interface RendererStub {
   domElement: HTMLCanvasElement
   loop: ((time: number) => void) | null
   renders: number
   disposed: boolean
+  unpack: { flipY: boolean; premultiplyAlpha: boolean }
 }
+
+const UNPACK_FLIP_Y_WEBGL = 0x9240
+const UNPACK_PREMULTIPLY_ALPHA_WEBGL = 0x9241
 
 /** Every renderer stub created so far, oldest first; reset with `rendererStubs.length = 0`. */
 export const rendererStubs: RendererStub[] = []
@@ -25,6 +30,17 @@ export function createRendererStub(canvas: HTMLCanvasElement): THREE.WebGLRender
     loop: null as ((time: number) => void) | null,
     renders: 0,
     disposed: false,
+    unpack: { flipY: false, premultiplyAlpha: false },
+    getContext() {
+      return {
+        UNPACK_FLIP_Y_WEBGL,
+        UNPACK_PREMULTIPLY_ALPHA_WEBGL,
+        pixelStorei(name: number, value: boolean) {
+          if (name === UNPACK_FLIP_Y_WEBGL) stub.unpack.flipY = value
+          if (name === UNPACK_PREMULTIPLY_ALPHA_WEBGL) stub.unpack.premultiplyAlpha = value
+        },
+      }
+    },
     setPixelRatio() {},
     setClearColor() {},
     setSize() {},

@@ -217,6 +217,12 @@ export class Viewport {
     for (const light of this.lights) light.dispose();
     disposeEditorMaterials(this.materials);
     this.scene.clear();
+    // A renderer made later on this canvas (React StrictMode's remount) gets the same WebGL
+    // context and creates its empty 3D textures assuming WebGL's default unpack state. The gizmo's
+    // label upload left UNPACK_FLIP_Y_WEBGL set, which made those uploads fail.
+    const gl = this.renderer.getContext();
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
     this.renderer.dispose();
   }
 }
