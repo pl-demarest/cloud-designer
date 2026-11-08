@@ -10,6 +10,7 @@ import {
   panelBody,
   sliderRow,
   test,
+  toolbarButton,
   type PanelLabel,
 } from './helpers'
 
@@ -192,6 +193,28 @@ test.describe('sliders', () => {
     await sliderRow(body, 'End radius').locator('input[type=range]').focus()
     await page.keyboard.press('ArrowRight')
     await expect(widthInputs.nth(2)).toHaveValue('0.11')
+  })
+})
+
+// Audit finding number-input-nan: a cleared or half-typed number input stored NaN at once.
+test.describe('number fields', () => {
+  test('a typed coordinate applies on Enter, as one undo step', async ({ page }) => {
+    const x = (await openPanel(page, 'Base')).getByRole('spinbutton', { name: 'P0 X' })
+    await expect(x).toHaveValue('-2.50')
+    await x.fill('-3')
+    await x.press('Enter')
+    await expect(x).toHaveValue('-3.00')
+    await toolbarButton(page, 'Undo').click()
+    await expect(x).toHaveValue('-2.50')
+    await expect(toolbarButton(page, 'Undo')).toBeDisabled()
+  })
+
+  test('a field left empty shows its value again and records nothing', async ({ page }) => {
+    const width = (await openPanel(page, 'Tail')).getByRole('spinbutton', { name: 'SP 1 width' })
+    await width.fill('')
+    await width.blur()
+    await expect(width).toHaveValue('0.40')
+    await expect(toolbarButton(page, 'Undo')).toBeDisabled()
   })
 })
 

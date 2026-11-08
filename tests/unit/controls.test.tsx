@@ -119,3 +119,68 @@ describe('whole-number sliders', () => {
     expect([b.ringSegments, b.lengthSegments, t.radialSegments, t.lengthSegments]).toEqual([13, 20, 8, 40])
   })
 })
+
+describe('NumberField', () => {
+  /** Base control point `point`'s input for `axis` (0 = X). */
+  function pointInput(container: HTMLElement, point: number, axis: number): HTMLInputElement {
+    return container.querySelectorAll('.control-point-row')[point].querySelectorAll<HTMLInputElement>('input')[axis]
+  }
+
+  test('typing edits a draft; blur parses it and commits one undo step', () => {
+    const { container } = render(<BasePanel />)
+    const x = pointInput(container, 0, 0)
+    fireEvent.change(x, { target: { value: '-2' } })
+    fireEvent.change(x, { target: { value: '-2.25' } })
+    expect(store().preset.base.controlPoints[0][0], 'the preset waits for blur or Enter').toBe(-2.5)
+    fireEvent.blur(x)
+    expect(store().preset.base.controlPoints[0][0]).toBe(-2.25)
+    expect(history().past).toHaveLength(2)
+    expect(x.value).toBe('-2.25')
+  })
+
+  test('Enter applies the draft; Escape drops it', () => {
+    const { container } = render(<BasePanel />)
+    const y = pointInput(container, 1, 1)
+    fireEvent.change(y, { target: { value: '0.5' } })
+    fireEvent.keyDown(y, { key: 'Enter' })
+    expect(store().preset.base.controlPoints[1][1]).toBe(0.5)
+    fireEvent.change(y, { target: { value: '3' } })
+    fireEvent.keyDown(y, { key: 'Escape' })
+    expect(y.value).toBe('0.50')
+    fireEvent.blur(y)
+    expect(store().preset.base.controlPoints[1][1]).toBe(0.5)
+    expect(history().past).toHaveLength(2)
+  })
+
+  test('an empty or non-numeric entry is rejected and the field shows the preset value again', () => {
+    const { container } = render(<BasePanel />)
+    const z = pointInput(container, 2, 2)
+    for (const entry of ['', ' ', 'abc', '-']) {
+      fireEvent.change(z, { target: { value: entry } })
+      fireEvent.blur(z)
+      expect(store().preset.base.controlPoints[2][2], JSON.stringify(entry)).toBe(-0.3)
+      expect(z.value).toBe('-0.30')
+    }
+    expect(history().past).toHaveLength(1)
+  })
+
+  test('a typed value is clamped to the field range (tail width 0.05 to 1.5)', () => {
+    const { container } = render(<TailPanel />)
+    const width = container.querySelectorAll('.setpoint-row')[1].querySelectorAll<HTMLInputElement>('input')[3]
+    fireEvent.change(width, { target: { value: '5' } })
+    fireEvent.blur(width)
+    expect(store().preset.tail.setpoints[1].width).toBe(1.5)
+    fireEvent.change(width, { target: { value: '-1' } })
+    fireEvent.blur(width)
+    expect(store().preset.tail.setpoints[1].width).toBe(0.05)
+  })
+
+  test('re-entering the value the field holds records nothing', () => {
+    const { container } = render(<BasePanel />)
+    const x = pointInput(container, 3, 0)
+    fireEvent.change(x, { target: { value: '2.5' } })
+    fireEvent.blur(x)
+    fireEvent.blur(x)
+    expect(history().past).toHaveLength(1)
+  })
+})

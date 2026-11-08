@@ -1,5 +1,7 @@
 import { useCloudStore } from '../../store/cloudStore';
 import { SliderRow } from '../controls/SliderRow';
+import { NumberField } from '../controls/NumberField';
+import { AXES, withAxis } from '../controls/vec3';
 import { formatPi } from '../controls/format';
 
 export function TailPanel() {
@@ -89,31 +91,23 @@ export function TailPanel() {
               </div>
             </div>
             <div className="setpoint-fields">
-              {(['X', 'Y', 'Z'] as const).map((axis, ai) => (
-                <input
+              {AXES.map((axis, ai) => (
+                <NumberField
                   key={axis}
-                  type="number"
-                  value={sp.position[ai].toFixed(2)}
+                  label={`SP ${i} ${axis}`}
+                  value={sp.position[ai]}
                   step={0.1}
-                  className="cp-input"
-                  onChange={(e) => {
-                    const pos: [number, number, number] = [...sp.position] as [number, number, number];
-                    pos[ai] = parseFloat(e.target.value);
-                    updateTailSetpoint(sp.id, { position: pos });
-                  }}
-                  onBlur={commit}
+                  onChange={(v) => updateTailSetpoint(sp.id, { position: withAxis(sp.position, ai, v) })}
                 />
               ))}
               <label style={{ fontSize: '0.7rem' }}>w</label>
-              <input
-                type="number"
-                value={sp.width.toFixed(2)}
+              <NumberField
+                label={`SP ${i} width`}
+                value={sp.width}
                 step={0.05}
                 min={0.05}
                 max={1.5}
-                className="cp-input"
-                onChange={(e) => updateTailSetpoint(sp.id, { width: parseFloat(e.target.value) })}
-                onBlur={commit}
+                onChange={(width) => updateTailSetpoint(sp.id, { width })}
               />
             </div>
           </div>

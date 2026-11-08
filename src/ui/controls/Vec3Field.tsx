@@ -1,8 +1,5 @@
 import { SliderRow } from './SliderRow';
-
-type Vec3 = [number, number, number];
-
-const AXES = ['X', 'Y', 'Z'] as const;
+import { AXES, withAxis, type Vec3 } from './vec3';
 
 interface Props {
   /** Each slider's label is this prefix and its axis ("Pos" gives "Pos X"); empty gives "X". */
@@ -15,13 +12,6 @@ interface Props {
   format?: (v: number) => string;
   /** Receives the whole vector with one component replaced. */
   onChange: (value: Vec3) => void;
-}
-
-/** `v` with component `axis` set to `x`. */
-function withAxis(v: readonly [number, number, number], axis: number, x: number): Vec3 {
-  const next: Vec3 = [v[0], v[1], v[2]];
-  next[axis] = x;
-  return next;
 }
 
 /** Three SliderRows, one per component of a vector field of the preset. */

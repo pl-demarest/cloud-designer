@@ -60,10 +60,12 @@ describe('known editor defects (expected to fail until fixed)', () => {
     expect(useHistoryStore.getState().past.at(-1)).toEqual(store().preset)
   })
 
-  it.fails('number-input-nan: clearing a base control-point input never stores NaN', () => {
+  it('number-input-nan: clearing a base control-point input never stores NaN', () => {
     render(<BasePanel />)
     const input = screen.getAllByRole('spinbutton').find((el) => el.classList.contains('cp-input'))!
     fireEvent.change(input, { target: { value: '' } })
+    expect(store().preset.base.controlPoints.flat().some(Number.isNaN)).toBe(false)
+    fireEvent.blur(input)
     expect(store().preset.base.controlPoints.flat().some(Number.isNaN)).toBe(false)
   })
 

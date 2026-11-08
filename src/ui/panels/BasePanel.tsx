@@ -1,5 +1,7 @@
 import { useCloudStore } from '../../store/cloudStore';
 import { SliderRow } from '../controls/SliderRow';
+import { NumberField } from '../controls/NumberField';
+import { AXES, withAxis } from '../controls/vec3';
 
 export function BasePanel() {
   const base = useCloudStore((s) => s.preset.base);
@@ -61,19 +63,13 @@ export function BasePanel() {
         {base.controlPoints.map((pt, i) => (
           <div key={i} className="control-point-row">
             <span className="cp-label">P{i}</span>
-            {(['X', 'Y', 'Z'] as const).map((axis, ai) => (
-              <input
+            {AXES.map((axis, ai) => (
+              <NumberField
                 key={axis}
-                type="number"
-                value={pt[ai].toFixed(2)}
+                label={`P${i} ${axis}`}
+                value={pt[ai]}
                 step={0.1}
-                className="cp-input"
-                onChange={(e) => {
-                  const newPt: [number, number, number] = [...pt] as [number, number, number];
-                  newPt[ai] = parseFloat(e.target.value);
-                  updateBasePoint(i, newPt);
-                }}
-                onBlur={commit}
+                onChange={(v) => updateBasePoint(i, withAxis(pt, ai, v))}
               />
             ))}
             <button

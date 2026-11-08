@@ -83,7 +83,9 @@ function change(el: HTMLElement): void {
     const max = Number(input.max)
     fireEvent.change(input, { target: { value: String(min + (max - min) * 0.37) } })
   } else {
+    // A NumberField edits a draft and applies it on blur.
     fireEvent.change(input, { target: { value: String(Number(input.value) + 0.37) } })
+    fireEvent.blur(input)
   }
 }
 
