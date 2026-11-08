@@ -5,6 +5,7 @@ import { BasePanel } from '../../src/ui/panels/BasePanel'
 import { TailPanel } from '../../src/ui/panels/TailPanel'
 import { FlowCloudPanel } from '../../src/ui/panels/FlowCloudPanel'
 import { SpherePanel } from '../../src/ui/panels/SpherePanel'
+import { SpiralPanel } from '../../src/ui/panels/SpiralPanel'
 import { formatPi } from '../../src/ui/controls/format'
 import { Accordion } from '../../src/ui/controls/Accordion'
 import { useCloudStore } from '../../src/store/cloudStore'
@@ -183,6 +184,17 @@ describe('values that round to zero (plan decision D22)', () => {
     expect(slider(container, 'Pos X').getAttribute('aria-valuetext')).toBe('0.00')
     expect(slider(container, 'Rotate X').getAttribute('aria-valuetext')).toBe('0°')
     expect(formatPi(-0.001)).toBe('0.00π')
+  })
+})
+
+describe('the Spheres and Spirals sections show their count once (plan decision D22)', () => {
+  test('the panels leave the count to the section header', () => {
+    for (const Panel of [SpherePanel, SpiralPanel]) {
+      const { container, unmount } = render(<Panel />)
+      expect(container.textContent).not.toMatch(/(Spheres|Spirals) \(\d+\)/)
+      expect(screen.getByRole('button', { name: '+ Add' })).toBeTruthy()
+      unmount()
+    }
   })
 })
 

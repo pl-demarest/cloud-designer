@@ -36,8 +36,8 @@ export function SpherePanel() {
 
   return (
     <div className="panel-section">
-      <div className="panel-section-header">
-        <span>Spheres ({spheres.length})</span>
+      {/* The count is on the section's header (App). */}
+      <div className="panel-section-header panel-section-header--actions">
         <button onClick={handleAdd}>+ Add</button>
       </div>
       <div className="swirl-list">

@@ -88,7 +88,8 @@ test.describe('list editing', () => {
 
     await body.getByRole('button', { name: '+ Add' }).click()
     await expect(header).toContainText('Spheres (4)')
-    await expect(body.locator('.panel-section-header')).toContainText('Spheres (4)')
+    // The count shows once, on the section header (plan decision D22).
+    await expect(body.locator('.panel-section-header')).not.toContainText('Spheres')
     await expect(body.locator('.swirl-item')).toHaveCount(4)
     await expect(body.locator('.swirl-item-header').nth(3)).toContainText('Sphere 4 (sphere)')
 

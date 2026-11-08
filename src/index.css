@@ -205,6 +205,11 @@ button:disabled {
   color: var(--text-dim);
 }
 
+/* A header row with buttons only: they keep to the right. */
+.panel-section-header--actions {
+  justify-content: flex-end;
+}
+
 .panel-subsection {
   border-top: 1px solid #f0f0f0;
   padding: 0;
