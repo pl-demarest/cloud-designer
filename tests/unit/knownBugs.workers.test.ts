@@ -148,6 +148,9 @@ describe('known worker defects (expected to fail until Stage B)', () => {
       'surfaceMesh',
       surfaceMeshMessage(fixture('degenerateBase')),
     )
+    // A NaN base distance now makes the whole union NaN, and a NaN node is never inside, so the
+    // mesh comes back empty rather than with NaN vertices: an empty mesh fails too.
+    expect(message.positions.length).toBeGreaterThan(0)
     expect(message.positions.some(Number.isNaN)).toBe(false)
   })
 
