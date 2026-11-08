@@ -3,14 +3,14 @@
     "hasSurfaceMesh": true,
     "edges": {
       "type": "Float32Array",
-      "length": 12846,
+      "length": 13464,
       "nan": 0,
       "inf": 0,
       "min": -2.6184959411621094,
       "max": 4.2687668800354,
-      "sum": 3999.5462773914915,
-      "sumSq": 27624.455721264963,
-      "sha256": "7ad2a730740743a7db1b1380144ded286a4f226842448f7c49ddbb5536ce9a76"
+      "sum": 4270.845177192357,
+      "sumSq": 28815.16116698921,
+      "sha256": "d16d7a84c0f965b544675f039a3575ff3131d6c9f2751a728c9e520e0620b290"
     },
     "group": [
       {
@@ -46,14 +46,14 @@
           ],
           "position": {
             "type": "Float32Array",
-            "length": 12846,
+            "length": 13464,
             "nan": 0,
             "inf": 0,
             "min": -2.6184959411621094,
             "max": 4.2687668800354,
-            "sum": 3999.5462773914915,
-            "sumSq": 27624.455721264963,
-            "sha256": "7ad2a730740743a7db1b1380144ded286a4f226842448f7c49ddbb5536ce9a76"
+            "sum": 4270.845177192357,
+            "sumSq": 28815.16116698921,
+            "sha256": "d16d7a84c0f965b544675f039a3575ff3131d6c9f2751a728c9e520e0620b290"
           },
           "index": null
         }
@@ -91,14 +91,14 @@
           ],
           "position": {
             "type": "Float32Array",
-            "length": 22824,
+            "length": 23328,
             "nan": 0,
             "inf": 0,
             "min": -2.505479574203491,
-            "max": 4.20470666885376,
-            "sum": 2775.8909645495005,
-            "sumSq": 33531.525386730704,
-            "sha256": "9bd5d1c01ce08fb6abcb73a573b9f83ae1f9035d7e17daf4566401bdba9bccf1"
+            "max": 4.2000346183776855,
+            "sum": 3178.6585894711316,
+            "sumSq": 34348.14275184357,
+            "sha256": "4d9a63286f4700f702ed62ef1626f8e4b1c1f73948b4642e79d6e8fcdb083c22"
           },
           "index": null
         }
@@ -119,14 +119,14 @@
     "hasSurfaceMesh": true,
     "edges": {
       "type": "Float32Array",
-      "length": 12876,
+      "length": 13494,
       "nan": 0,
       "inf": 0,
       "min": -2.6184959411621094,
       "max": 4.2687668800354,
-      "sum": 3936.8120692658704,
-      "sumSq": 27637.41894412492,
-      "sha256": "092e0b724d25c268c3fda550eac2b950e4229980d602764263236dddb35ca643"
+      "sum": 4208.110969066736,
+      "sumSq": 28828.124389849167,
+      "sha256": "f1634c801d2658f4bb75b794e74c278f85feba7cca84245f47ae46af9ba9c93a"
     },
     "group": [
       {
@@ -162,14 +162,14 @@
           ],
           "position": {
             "type": "Float32Array",
-            "length": 12876,
+            "length": 13494,
             "nan": 0,
             "inf": 0,
             "min": -2.6184959411621094,
             "max": 4.2687668800354,
-            "sum": 3936.8120692658704,
-            "sumSq": 27637.41894412492,
-            "sha256": "092e0b724d25c268c3fda550eac2b950e4229980d602764263236dddb35ca643"
+            "sum": 4208.110969066736,
+            "sumSq": 28828.124389849167,
+            "sha256": "f1634c801d2658f4bb75b794e74c278f85feba7cca84245f47ae46af9ba9c93a"
           },
           "index": null
         }
@@ -207,14 +207,14 @@
           ],
           "position": {
             "type": "Float32Array",
-            "length": 94074,
+            "length": 95400,
             "nan": 0,
             "inf": 0,
             "min": -2.5784382820129395,
-            "max": 4.282443046569824,
-            "sum": 12099.53348602436,
-            "sumSq": 139832.4703096784,
-            "sha256": "24eab3195a21958fdb458f9e0785a6b95cf12058e0e9b0b3a74d9275c99ffd9e"
+            "max": 4.239866733551025,
+            "sum": 12980.101037010318,
+            "sumSq": 139369.24115029958,
+            "sha256": "3915b50f86aec211d16cb73af35b80b578d84e3dbd80e6d9828b3ce80ac9d76f"
           },
           "index": null
         }
@@ -235,14 +235,14 @@
     "hasSurfaceMesh": true,
     "edges": {
       "type": "Float32Array",
-      "length": 12912,
+      "length": 13530,
       "nan": 0,
       "inf": 0,
       "min": -2.6177263259887695,
       "max": 4.2687668800354,
-      "sum": 3872.4930330776842,
-      "sumSq": 27600.06503257032,
-      "sha256": "085bd8cff78f00bc06c479a1a63100b63b7960c512dfe56a707341d2d139dc6b"
+      "sum": 4144.515275097708,
+      "sumSq": 28786.54762044487,
+      "sha256": "c6e9b6f98473b12f83be04197751eb98a339acebd4375f56d10e11852006e951"
     },
     "group": [
       {
@@ -278,130 +278,14 @@
           ],
           "position": {
             "type": "Float32Array",
-            "length": 12912,
+            "length": 13530,
             "nan": 0,
             "inf": 0,
             "min": -2.6177263259887695,
             "max": 4.2687668800354,
-            "sum": 3872.4930330776842,
-            "sumSq": 27600.06503257032,
-            "sha256": "085bd8cff78f00bc06c479a1a63100b63b7960c512dfe56a707341d2d139dc6b"
-          },
-          "index": null
-        }
-      },
-      {
-        "type": "LineSegments",
-        "name": "",
-        "role": "geometry",
-        "visible": false,
-        "userData": {},
-        "position": [
-          0,
-          0,
-          0
-        ],
-        "quaternion": [
-          0,
-          0,
-          0,
-          1
-        ],
-        "scale": [
-          1,
-          1,
-          1
-        ],
-        "children": [],
-        "material": {
-          "type": "LineBasicMaterial",
-          "color": "000000"
-        },
-        "geometry": {
-          "attributes": [
-            "position"
-          ],
-          "position": {
-            "type": "Float32Array",
-            "length": 20196,
-            "nan": 0,
-            "inf": 0,
-            "min": -2.498385190963745,
-            "max": 4.20470666885376,
-            "sum": 4281.7659534947015,
-            "sumSq": 30040.23914084546,
-            "sha256": "257f83a86e4098134eca15311c981326dce2fff392e20be5f756f0ec4943d8af"
-          },
-          "index": null
-        }
-      }
-    ],
-    "afterSurfaceMeshVisible": [
-      {
-        "type": "LineSegments",
-        "visible": false
-      },
-      {
-        "type": "LineSegments",
-        "visible": true
-      }
-    ]
-  },
-  "degenerateEllipsoid": {
-    "hasSurfaceMesh": true,
-    "edges": {
-      "type": "Float32Array",
-      "length": 13266,
-      "nan": 0,
-      "inf": 0,
-      "min": -2.6184959411621094,
-      "max": 4.2687668800354,
-      "sum": 3718.027369883581,
-      "sumSq": 27322.774937489816,
-      "sha256": "d90c175d23d3ccdf8cb50f309a84f56c9f3f85962458237a371ce91a7c86da22"
-    },
-    "group": [
-      {
-        "type": "LineSegments",
-        "name": "",
-        "role": "geometry",
-        "visible": true,
-        "userData": {},
-        "position": [
-          0,
-          0,
-          0
-        ],
-        "quaternion": [
-          0,
-          0,
-          0,
-          1
-        ],
-        "scale": [
-          1,
-          1,
-          1
-        ],
-        "children": [],
-        "material": {
-          "type": "LineBasicMaterial",
-          "color": "000000"
-        },
-        "geometry": {
-          "attributes": [
-            "position"
-          ],
-          "position": {
-            "type": "Float32Array",
-            "length": 13266,
-            "nan": 0,
-            "inf": 0,
-            "min": -2.6184959411621094,
-            "max": 4.2687668800354,
-            "sum": 3718.027369883581,
-            "sumSq": 27322.774937489816,
-            "sha256": "d90c175d23d3ccdf8cb50f309a84f56c9f3f85962458237a371ce91a7c86da22"
+            "sum": 4144.515275097708,
+            "sumSq": 28786.54762044487,
+            "sha256": "c6e9b6f98473b12f83be04197751eb98a339acebd4375f56d10e11852006e951"
           },
           "index": null
         }
@@ -442,11 +326,127 @@
             "length": 19908,
             "nan": 0,
             "inf": 0,
+            "min": -2.498385190963745,
+            "max": 4.2000346183776855,
+            "sum": 4421.705790674314,
+            "sumSq": 29381.3391048099,
+            "sha256": "62e625a90700daf9c21ec28651b775f14eecac7a5ece0a8f4852ec07fd35e0ce"
+          },
+          "index": null
+        }
+      }
+    ],
+    "afterSurfaceMeshVisible": [
+      {
+        "type": "LineSegments",
+        "visible": false
+      },
+      {
+        "type": "LineSegments",
+        "visible": true
+      }
+    ]
+  },
+  "degenerateEllipsoid": {
+    "hasSurfaceMesh": true,
+    "edges": {
+      "type": "Float32Array",
+      "length": 13884,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.6184959411621094,
+      "max": 4.2687668800354,
+      "sum": 3989.3262696844467,
+      "sumSq": 28513.480383214057,
+      "sha256": "0c9e48dfb7aa10ccdc218a04c4a1678d98795fdf2e151b6665518b1fbbfef4c3"
+    },
+    "group": [
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": true,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 13884,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.6184959411621094,
+            "max": 4.2687668800354,
+            "sum": 3989.3262696844467,
+            "sumSq": 28513.480383214057,
+            "sha256": "0c9e48dfb7aa10ccdc218a04c4a1678d98795fdf2e151b6665518b1fbbfef4c3"
+          },
+          "index": null
+        }
+      },
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": false,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 20412,
+            "nan": 0,
+            "inf": 0,
             "min": -2.505479574203491,
-            "max": 4.20470666885376,
-            "sum": 2618.843265704345,
-            "sumSq": 31691.87378333747,
-            "sha256": "b00f6afe7faeb47d9912c2e43c5e282535e3ad8962ed12c7e9be966518ff18ce"
+            "max": 4.2000346183776855,
+            "sum": 3021.610890625976,
+            "sumSq": 32508.491148449797,
+            "sha256": "273045719c779b507e483d51c2b50d560e9012a260a44bd7d297e380a62a28a2"
           },
           "index": null
         }
@@ -467,14 +467,14 @@
     "hasSurfaceMesh": true,
     "edges": {
       "type": "Float32Array",
-      "length": 12600,
+      "length": 13218,
       "nan": 0,
       "inf": 0,
       "min": -2.6184959411621094,
       "max": 4.2687668800354,
-      "sum": 3898.1989283438306,
-      "sumSq": 27499.617271519226,
-      "sha256": "32c62956b98533ff52078364de7228af753b498d6c53958bd476f8a51c2ededf"
+      "sum": 4169.4978281446965,
+      "sumSq": 28690.322717243474,
+      "sha256": "7281abad476ad0b37bbd031647747a7ce40c2d623ec6b86d4e85301d71528e89"
     },
     "group": [
       {
@@ -510,14 +510,14 @@
           ],
           "position": {
             "type": "Float32Array",
-            "length": 12600,
+            "length": 13218,
             "nan": 0,
             "inf": 0,
             "min": -2.6184959411621094,
             "max": 4.2687668800354,
-            "sum": 3898.1989283438306,
-            "sumSq": 27499.617271519226,
-            "sha256": "32c62956b98533ff52078364de7228af753b498d6c53958bd476f8a51c2ededf"
+            "sum": 4169.4978281446965,
+            "sumSq": 28690.322717243474,
+            "sha256": "7281abad476ad0b37bbd031647747a7ce40c2d623ec6b86d4e85301d71528e89"
           },
           "index": null
         }
@@ -555,14 +555,14 @@
           ],
           "position": {
             "type": "Float32Array",
-            "length": 22824,
+            "length": 23328,
             "nan": 0,
             "inf": 0,
             "min": -2.505479574203491,
-            "max": 4.20470666885376,
-            "sum": 2775.8909645495005,
-            "sumSq": 33531.525386730704,
-            "sha256": "9bd5d1c01ce08fb6abcb73a573b9f83ae1f9035d7e17daf4566401bdba9bccf1"
+            "max": 4.2000346183776855,
+            "sum": 3178.6585894711316,
+            "sumSq": 34348.14275184357,
+            "sha256": "4d9a63286f4700f702ed62ef1626f8e4b1c1f73948b4642e79d6e8fcdb083c22"
           },
           "index": null
         }
@@ -583,14 +583,14 @@
     "hasSurfaceMesh": true,
     "edges": {
       "type": "Float32Array",
-      "length": 14328,
+      "length": 14946,
       "nan": 0,
       "inf": 0,
       "min": -2.6184959411621094,
       "max": 4.2687668800354,
-      "sum": 5279.495770155219,
-      "sumSq": 31013.97070976021,
-      "sha256": "a6f8e1b9d73f86817e5cc9491e9c619000d28a15d4f36022ca85e6ef4ea9f33c"
+      "sum": 5550.794669956085,
+      "sumSq": 32204.67615548446,
+      "sha256": "0aac6830af4d6d3ffa2e166994d389895f40047f67303bf79cf8655bd2ac8604"
     },
     "group": [
       {
@@ -626,14 +626,14 @@
           ],
           "position": {
             "type": "Float32Array",
-            "length": 14328,
+            "length": 14946,
             "nan": 0,
             "inf": 0,
             "min": -2.6184959411621094,
             "max": 4.2687668800354,
-            "sum": 5279.495770155219,
-            "sumSq": 31013.97070976021,
-            "sha256": "a6f8e1b9d73f86817e5cc9491e9c619000d28a15d4f36022ca85e6ef4ea9f33c"
+            "sum": 5550.794669956085,
+            "sumSq": 32204.67615548446,
+            "sha256": "0aac6830af4d6d3ffa2e166994d389895f40047f67303bf79cf8655bd2ac8604"
           },
           "index": null
         }
@@ -671,14 +671,14 @@
           ],
           "position": {
             "type": "Float32Array",
-            "length": 22824,
+            "length": 23328,
             "nan": 0,
             "inf": 0,
             "min": -2.505479574203491,
-            "max": 4.20470666885376,
-            "sum": 2775.8909645495005,
-            "sumSq": 33531.525386730704,
-            "sha256": "9bd5d1c01ce08fb6abcb73a573b9f83ae1f9035d7e17daf4566401bdba9bccf1"
+            "max": 4.2000346183776855,
+            "sum": 3178.6585894711316,
+            "sumSq": 34348.14275184357,
+            "sha256": "4d9a63286f4700f702ed62ef1626f8e4b1c1f73948b4642e79d6e8fcdb083c22"
           },
           "index": null
         }
@@ -699,14 +699,14 @@
     "hasSurfaceMesh": true,
     "edges": {
       "type": "Float32Array",
-      "length": 8976,
+      "length": 9240,
       "nan": 0,
       "inf": 0,
       "min": -3.377049207687378,
       "max": 4.377188682556152,
-      "sum": 1253.4261813138146,
-      "sumSq": 15991.2416387121,
-      "sha256": "f6b413e38c2f50d760c8c93fe50b4fff8be8d6191305b7b036fea217167e44bb"
+      "sum": 917.8504984636093,
+      "sumSq": 16713.71099770241,
+      "sha256": "641109985401f7ff880b81a1029292fe347a30371b2a1c1e1123f30a0f126e0a"
     },
     "group": [
       {
@@ -742,14 +742,14 @@
           ],
           "position": {
             "type": "Float32Array",
-            "length": 8976,
+            "length": 9240,
             "nan": 0,
             "inf": 0,
             "min": -3.377049207687378,
             "max": 4.377188682556152,
-            "sum": 1253.4261813138146,
-            "sumSq": 15991.2416387121,
-            "sha256": "f6b413e38c2f50d760c8c93fe50b4fff8be8d6191305b7b036fea217167e44bb"
+            "sum": 917.8504984636093,
+            "sumSq": 16713.71099770241,
+            "sha256": "641109985401f7ff880b81a1029292fe347a30371b2a1c1e1123f30a0f126e0a"
           },
           "index": null
         }
@@ -787,14 +787,14 @@
           ],
           "position": {
             "type": "Float32Array",
-            "length": 24480,
+            "length": 23976,
             "nan": 0,
             "inf": 0,
-            "min": -3.3972127437591553,
-            "max": 4.439397811889648,
-            "sum": -496.4230063986033,
-            "sumSq": 42557.776424707874,
-            "sha256": "50b1cc39a6d47972706ec3a56d8bea0f3bfdba40a4431b1cbab157c4df914199"
+            "min": -3.3284733295440674,
+            "max": 4.394308090209961,
+            "sum": 280.524571178481,
+            "sumSq": 39804.58605578507,
+            "sha256": "3d54821a2fe50aea1a523ea4b95cdfea295840b091ea6f9974a937ced74ba459"
           },
           "index": null
         }
@@ -815,14 +815,14 @@
     "hasSurfaceMesh": true,
     "edges": {
       "type": "Float32Array",
-      "length": 13812,
+      "length": 14406,
       "nan": 0,
       "inf": 0,
       "min": -2.6184959411621094,
       "max": 4.2687668800354,
-      "sum": 3620.8624494249234,
-      "sumSq": 29250.289563381204,
-      "sha256": "226e67500d97cbf94cf79dd592ac5f39ba70177db552b3a18f8a6ee371ee4e63"
+      "sum": 3882.364992440096,
+      "sumSq": 30393.60554193667,
+      "sha256": "7305893d1c57e31410aa6976723ef58eec31550596f83457252ce4565cca585d"
     },
     "group": [
       {
@@ -858,14 +858,14 @@
           ],
           "position": {
             "type": "Float32Array",
-            "length": 13812,
+            "length": 14406,
             "nan": 0,
             "inf": 0,
             "min": -2.6184959411621094,
             "max": 4.2687668800354,
-            "sum": 3620.8624494249234,
-            "sumSq": 29250.289563381204,
-            "sha256": "226e67500d97cbf94cf79dd592ac5f39ba70177db552b3a18f8a6ee371ee4e63"
+            "sum": 3882.364992440096,
+            "sumSq": 30393.60554193667,
+            "sha256": "7305893d1c57e31410aa6976723ef58eec31550596f83457252ce4565cca585d"
           },
           "index": null
         }
@@ -903,14 +903,14 @@
           ],
           "position": {
             "type": "Float32Array",
-            "length": 21168,
+            "length": 20916,
             "nan": 0,
             "inf": 0,
             "min": -2.526949882507324,
-            "max": 4.171858310699463,
-            "sum": 3386.725969177671,
-            "sumSq": 32197.036282998753,
-            "sha256": "88f11759abe1f68e920ddfbdc4de9af0336573309e7717c048857d03dde864e8"
+            "max": 4.165022373199463,
+            "sum": 3378.8310611099005,
+            "sumSq": 31067.2201899514,
+            "sha256": "00e3571e0915700e995d453413235347f88535276499dcaa355a8cbc741f800d"
           },
           "index": null
         }
@@ -931,14 +931,14 @@
     "hasSurfaceMesh": true,
     "edges": {
       "type": "Float32Array",
-      "length": 12528,
+      "length": 13266,
       "nan": 0,
       "inf": 0,
       "min": -2.6184959411621094,
       "max": 4.3411946296691895,
-      "sum": 4094.061276583583,
-      "sumSq": 28208.85627522041,
-      "sha256": "69ba4bbc7c5489a8c8c59798e93fef75823a36d3069298aa871144782021916c"
+      "sum": 4409.226697288221,
+      "sumSq": 29595.614515960966,
+      "sha256": "2ba8b9b481683308c0236073a8572f74d18333a2b833a5b2a7a8e873327dbcad"
     },
     "group": [
       {
@@ -974,14 +974,130 @@
           ],
           "position": {
             "type": "Float32Array",
-            "length": 12528,
+            "length": 13266,
             "nan": 0,
             "inf": 0,
             "min": -2.6184959411621094,
             "max": 4.3411946296691895,
-            "sum": 4094.061276583583,
-            "sumSq": 28208.85627522041,
-            "sha256": "69ba4bbc7c5489a8c8c59798e93fef75823a36d3069298aa871144782021916c"
+            "sum": 4409.226697288221,
+            "sumSq": 29595.614515960966,
+            "sha256": "2ba8b9b481683308c0236073a8572f74d18333a2b833a5b2a7a8e873327dbcad"
+          },
+          "index": null
+        }
+      },
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": false,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 23478,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.500800371170044,
+            "max": 4.30942964553833,
+            "sum": 3688.468623371795,
+            "sumSq": 35626.74986794889,
+            "sha256": "d13adcadcb09fa24c7977cda17255bd17be61fb99100226de141a5eec446468d"
+          },
+          "index": null
+        }
+      }
+    ],
+    "afterSurfaceMeshVisible": [
+      {
+        "type": "LineSegments",
+        "visible": false
+      },
+      {
+        "type": "LineSegments",
+        "visible": true
+      }
+    ]
+  },
+  "tailStart": {
+    "hasSurfaceMesh": true,
+    "edges": {
+      "type": "Float32Array",
+      "length": 11502,
+      "nan": 0,
+      "inf": 0,
+      "min": -2.6184959411621094,
+      "max": 4.34140682220459,
+      "sum": 2301.1620289953426,
+      "sumSq": 22705.374837209274,
+      "sha256": "d537d643cbc1c22f62046fa466836602187fd57e0b69055e8c98ae0088768805"
+    },
+    "group": [
+      {
+        "type": "LineSegments",
+        "name": "",
+        "role": "geometry",
+        "visible": true,
+        "userData": {},
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "quaternion": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "children": [],
+        "material": {
+          "type": "LineBasicMaterial",
+          "color": "000000"
+        },
+        "geometry": {
+          "attributes": [
+            "position"
+          ],
+          "position": {
+            "type": "Float32Array",
+            "length": 11502,
+            "nan": 0,
+            "inf": 0,
+            "min": -2.6184959411621094,
+            "max": 4.34140682220459,
+            "sum": 2301.1620289953426,
+            "sumSq": 22705.374837209274,
+            "sha256": "d537d643cbc1c22f62046fa466836602187fd57e0b69055e8c98ae0088768805"
           },
           "index": null
         }
@@ -1023,126 +1139,10 @@
             "nan": 0,
             "inf": 0,
             "min": -2.500800371170044,
-            "max": 4.317742824554443,
-            "sum": 3364.1954696499743,
-            "sumSq": 36232.13802208516,
-            "sha256": "2b8fda748b4c75783b9c7563f895741b7fa005bf6eb4c987e261679aa68255ce"
-          },
-          "index": null
-        }
-      }
-    ],
-    "afterSurfaceMeshVisible": [
-      {
-        "type": "LineSegments",
-        "visible": false
-      },
-      {
-        "type": "LineSegments",
-        "visible": true
-      }
-    ]
-  },
-  "tailStart": {
-    "hasSurfaceMesh": true,
-    "edges": {
-      "type": "Float32Array",
-      "length": 10806,
-      "nan": 0,
-      "inf": 0,
-      "min": -2.6184959411621094,
-      "max": 4.34140682220459,
-      "sum": 2368.0573886334896,
-      "sumSq": 22188.11255495502,
-      "sha256": "4b832b995c2ce28d58a25dd0d51b0df93654cd45374399616f0acaada8301d99"
-    },
-    "group": [
-      {
-        "type": "LineSegments",
-        "name": "",
-        "role": "geometry",
-        "visible": true,
-        "userData": {},
-        "position": [
-          0,
-          0,
-          0
-        ],
-        "quaternion": [
-          0,
-          0,
-          0,
-          1
-        ],
-        "scale": [
-          1,
-          1,
-          1
-        ],
-        "children": [],
-        "material": {
-          "type": "LineBasicMaterial",
-          "color": "000000"
-        },
-        "geometry": {
-          "attributes": [
-            "position"
-          ],
-          "position": {
-            "type": "Float32Array",
-            "length": 10806,
-            "nan": 0,
-            "inf": 0,
-            "min": -2.6184959411621094,
-            "max": 4.34140682220459,
-            "sum": 2368.0573886334896,
-            "sumSq": 22188.11255495502,
-            "sha256": "4b832b995c2ce28d58a25dd0d51b0df93654cd45374399616f0acaada8301d99"
-          },
-          "index": null
-        }
-      },
-      {
-        "type": "LineSegments",
-        "name": "",
-        "role": "geometry",
-        "visible": false,
-        "userData": {},
-        "position": [
-          0,
-          0,
-          0
-        ],
-        "quaternion": [
-          0,
-          0,
-          0,
-          1
-        ],
-        "scale": [
-          1,
-          1,
-          1
-        ],
-        "children": [],
-        "material": {
-          "type": "LineBasicMaterial",
-          "color": "000000"
-        },
-        "geometry": {
-          "attributes": [
-            "position"
-          ],
-          "position": {
-            "type": "Float32Array",
-            "length": 23148,
-            "nan": 0,
-            "inf": 0,
-            "min": -2.500800371170044,
-            "max": 4.314064025878906,
-            "sum": 2741.5612470712513,
-            "sumSq": 36042.200610128224,
-            "sha256": "53badc21589aab5064c31363cadd45b3213e1cc5354d6297a5622edee8fe7e38"
+            "max": 4.309413909912109,
+            "sum": 2917.810570317204,
+            "sumSq": 35409.52793323097,
+            "sha256": "d42f0e7aa87907e08ea8797e2c9892f374fe2b0577ee008e82505920b1b77b24"
           },
           "index": null
         }
@@ -1163,14 +1163,14 @@
     "hasSurfaceMesh": true,
     "edges": {
       "type": "Float32Array",
-      "length": 16374,
+      "length": 17208,
       "nan": 0,
       "inf": 0,
       "min": -2.6184959411621094,
       "max": 4.491228103637695,
-      "sum": 6585.667131255381,
-      "sumSq": 37221.32033439087,
-      "sha256": "eb21407d401badbc6d230b7d666e55c317b07425ad5800415c98673ae1a1437f"
+      "sum": 6981.856589879491,
+      "sumSq": 39007.35558601355,
+      "sha256": "11542e8b30dcb65e4093638296e7f557f5cca7a6ba80be371473f8e181ce7153"
     },
     "group": [
       {
@@ -1206,14 +1206,14 @@
           ],
           "position": {
             "type": "Float32Array",
-            "length": 16374,
+            "length": 17208,
             "nan": 0,
             "inf": 0,
             "min": -2.6184959411621094,
             "max": 4.491228103637695,
-            "sum": 6585.667131255381,
-            "sumSq": 37221.32033439087,
-            "sha256": "eb21407d401badbc6d230b7d666e55c317b07425ad5800415c98673ae1a1437f"
+            "sum": 6981.856589879491,
+            "sumSq": 39007.35558601355,
+            "sha256": "11542e8b30dcb65e4093638296e7f557f5cca7a6ba80be371473f8e181ce7153"
           },
           "index": null
         }
@@ -1251,14 +1251,14 @@
           ],
           "position": {
             "type": "Float32Array",
-            "length": 22968,
+            "length": 22896,
             "nan": 0,
             "inf": 0,
             "min": -2.568781852722168,
-            "max": 4.658077239990234,
-            "sum": 3959.158444717061,
-            "sumSq": 38961.176453580985,
-            "sha256": "265b1eda94446da0c98a4678abc1c2af6a5b05e48f5cff1ed8baf63c31be1538"
+            "max": 4.654263019561768,
+            "sum": 3852.7385215251707,
+            "sumSq": 38578.32471308979,
+            "sha256": "ceeb1edf72d242413f95fbf3385679955ea1c6f3e2115a1d48053a98c529e4f6"
           },
           "index": null
         }
@@ -1279,14 +1279,14 @@
     "hasSurfaceMesh": true,
     "edges": {
       "type": "Float32Array",
-      "length": 19050,
+      "length": 19668,
       "nan": 0,
       "inf": 0,
       "min": -2.6184959411621094,
       "max": 4.2687668800354,
-      "sum": 9256.512143750908,
-      "sumSq": 39719.15962991102,
-      "sha256": "38d1d216e992041b6112529db91936c76c140ee881bd5ee563f0b7a1410551e1"
+      "sum": 9527.811043551774,
+      "sumSq": 40909.865075635134,
+      "sha256": "254aedb40b599eef8cde3cac3f4a79f560aeb2e7567e98827af59252b0120919"
     },
     "group": [
       {
@@ -1322,14 +1322,14 @@
           ],
           "position": {
             "type": "Float32Array",
-            "length": 19050,
+            "length": 19668,
             "nan": 0,
             "inf": 0,
             "min": -2.6184959411621094,
             "max": 4.2687668800354,
-            "sum": 9256.512143750908,
-            "sumSq": 39719.15962991102,
-            "sha256": "38d1d216e992041b6112529db91936c76c140ee881bd5ee563f0b7a1410551e1"
+            "sum": 9527.811043551774,
+            "sumSq": 40909.865075635134,
+            "sha256": "254aedb40b599eef8cde3cac3f4a79f560aeb2e7567e98827af59252b0120919"
           },
           "index": null
         }
@@ -1367,14 +1367,14 @@
           ],
           "position": {
             "type": "Float32Array",
-            "length": 21960,
+            "length": 21996,
             "nan": 0,
             "inf": 0,
             "min": -2.5217838287353516,
-            "max": 4.208269119262695,
-            "sum": 3605.96004090691,
-            "sumSq": 33927.828050816024,
-            "sha256": "5aebf9e33ae4be46e4ebf31ed7e2e2d3d7c9870e3b9312e9e78ff1ca0536ccc2"
+            "max": 4.204204082489014,
+            "sum": 3706.7823641598225,
+            "sumSq": 33463.22814437958,
+            "sha256": "6c8c2baf3474374d316c50043fe846d46b5b95a3690036fa1e8eee72ab3d9c56"
           },
           "index": null
         }

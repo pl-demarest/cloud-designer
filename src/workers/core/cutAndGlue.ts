@@ -15,7 +15,7 @@
  */
 
 import { insideSphere, sphereFrame } from '../../geometry/primitives/sphere';
-import { attachedTail, insideTailCapsule, sampleTailSpine } from '../../geometry/primitives/tail';
+import { attachedTail, buildTailVolume, insideTail } from '../../geometry/primitives/tail';
 import { buildBaseVolume, insideBase } from '../../geometry/primitives/base';
 import { clipEdgeSet } from '../../geometry/clip';
 import { Float32Builder } from '../../geometry/arrayBuilder';
@@ -27,7 +27,7 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
     sphereEdgeGroups, baseEdges, tailEdges, spiralEdges, flowCloudEdges,
   } = request;
 
-  const tailSamples = sampleTailSpine(attachedTail(request.tail, base));
+  const tailVolume  = buildTailVolume(attachedTail(request.tail, base));
   const baseVolume  = buildBaseVolume(base);
   const frames      = spheres.map(sphereFrame);
 
@@ -53,7 +53,7 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
       for (const f of otherSpheres) {
         if (insideSphere(x, y, z, f)) return true;
       }
-      if (insideTailCapsule(x, y, z, tailSamples)) return true;
+      if (insideTail(x, y, z, tailVolume)) return true;
       if (insideBase(x, y, z, baseVolume)) return true;
       return false;
     };
@@ -75,7 +75,7 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
     for (const f of frames) {
       if (insideSphere(x, y, z, f)) return true;
     }
-    if (insideTailCapsule(x, y, z, tailSamples)) return true;
+    if (insideTail(x, y, z, tailVolume)) return true;
     return false;
   };
   clipEdgeSet(baseEdges, insideForBase, out);
@@ -85,7 +85,7 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
     for (const f of frames) {
       if (insideSphere(x, y, z, f)) return true;
     }
-    if (insideTailCapsule(x, y, z, tailSamples)) return true;
+    if (insideTail(x, y, z, tailVolume)) return true;
     if (insideBase(x, y, z, baseVolume)) return true;
     return false;
   };
@@ -96,7 +96,7 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
     for (const f of frames) {
       if (insideSphere(x, y, z, f)) return true;
     }
-    if (insideTailCapsule(x, y, z, tailSamples)) return true;
+    if (insideTail(x, y, z, tailVolume)) return true;
     if (insideBase(x, y, z, baseVolume)) return true;
     return false;
   };

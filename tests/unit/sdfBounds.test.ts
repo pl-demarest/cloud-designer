@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { boxDistance } from '../../src/geometry/bounds'
 import { baseSDF, buildBaseVolume } from '../../src/geometry/primitives/base'
 import { buildSpiralVolume, sampleSpiral, spiralSDF, type SpiralVolume } from '../../src/geometry/primitives/spiral'
-import { sampleTailSpine, tailSDF, tailSpineBounds } from '../../src/geometry/primitives/tail'
+import { attachedTail, buildTailVolume, tailSDF } from '../../src/geometry/primitives/tail'
 import type { BaseDef, SpiralDef } from '../../src/model/types'
 import { THICK_SPIRAL, fixture } from '../fixtures/presets'
 
@@ -76,13 +76,22 @@ describe('baseSDF bounds', () => {
   }
 })
 
-describe('tail bounds', () => {
-  for (const name of ['default', 'tailStart'] as const) {
-    test(`${name}: tailSDF is at least the distance to the spine box minus the largest width`, () => {
-      const samples = sampleTailSpine(fixture(name).tail)
-      const { box, maxWidth } = tailSpineBounds(samples)
+describe('tailSDF bounds', () => {
+  for (const name of ['default', 'tailStart', 'tailNone'] as const) {
+    const p = fixture(name)
+    const v = buildTailVolume(attachedTail(p.tail, p.base))
+
+    test(`${name}: tailSDF is at least the distance to the ring-centre box minus the largest width`, () => {
       for (const [x, y, z] of points(3000, [3.3, -0.3, 0.4], 3, 17)) {
-        expect(tailSDF(x, y, z, samples)).toBeGreaterThanOrEqual(boxDistance(box, x, y, z) - maxWidth)
+        expect(tailSDF(x, y, z, v)).toBeGreaterThanOrEqual(boxDistance(v.box, x, y, z) - v.maxWidth)
+      }
+    })
+
+    test(`${name}: a cap changes nothing below it`, () => {
+      const rnd = lcg(19)
+      for (const [x, y, z] of points(3000, [3.3, -0.3, 0.4], 2, 23)) {
+        const cap = rnd() * 2 - 0.5
+        expect(Object.is(Math.min(cap, tailSDF(x, y, z, v, cap)), Math.min(cap, tailSDF(x, y, z, v)))).toBe(true)
       }
     })
   }

@@ -226,9 +226,13 @@ describe('tail: the workers attach the tail where TailMesh draws it', () => {
 
   test("Cut & Glue: the tail volume holds the drawn tail's start, not the stored first setpoint", async () => {
     const p = detachedFirstSetpoint('end', 0.6)
-    const start = drawnTailHandles(p)[0]
+    // Inside the drawn tube next to its start, which ends flat in its first ring: halfway to the
+    // second ring, on the axis and 0.2 off it (the first ring's radius is 0.8).
+    const [first, second] = drawnTailRings(p)
+    const mid = [0, 1, 2].map((k) => (first.centre[k] + second.centre[k]) / 2) as V3
+    const off = (v: V3) => [0, 1, 2].map((k) => mid[k] + (0.2 * (v[k] - first.centre[k])) / 0.8) as V3
+    const near = [mid, off(first.vertices[0]), off(first.vertices[3])]
     // Base edges are clipped by the tail (and spheres, here none) but never by the base itself.
-    const near = [start, [start[0] + 0.2, start[1], start[2]], [start[0], start[1] + 0.2, start[2]]] as V3[]
     const segs = (pts: V3[]) => new Float32Array(pts.flatMap((q) => [...q, ...q]))
     const empty = new Float32Array(0)
     const run = async (pts: V3[]) =>
@@ -334,23 +338,7 @@ describe('tail: TailMesh samples centre, frame and width at the same arc-length 
   }
 })
 
-describe('tail: the workers share TailMesh’s spine and width profile', () => {
-  /** Signed distance to the chain of capsules through `centres` with radii `radii`, the
-   *  workers' tail model, written out independently of src/geometry. */
-  function capsuleChainSDF(centres: V3[], radii: number[], q: V3): number {
-    let d = Infinity
-    for (let i = 0; i + 1 < centres.length; i++) {
-      const a = centres[i], b = centres[i + 1]
-      const ab = [0, 1, 2].map((k) => b[k] - a[k])
-      const ab2 = ab[0] ** 2 + ab[1] ** 2 + ab[2] ** 2
-      let s = ab2 > 1e-4 ? [0, 1, 2].reduce((acc, k) => acc + (q[k] - a[k]) * ab[k], 0) / ab2 : 0
-      s = Math.max(0, Math.min(1, s))
-      const dist = Math.hypot(...([0, 1, 2].map((k) => q[k] - a[k] - s * ab[k]) as V3))
-      d = Math.min(d, dist - (radii[i] + (radii[i + 1] - radii[i]) * s))
-    }
-    return d
-  }
-
+describe('tail: the clip volume is the tube TailMesh draws', () => {
   /** Base edges are clipped by the tail (and spheres, here none) but not by the base. */
   async function pointsOutsideTail(preset: CloudPreset, points: V3[]): Promise<number> {
     const empty = new Float32Array(0)
@@ -374,25 +362,20 @@ describe('tail: the workers share TailMesh’s spine and width profile', () => {
     return p
   }
 
-  // The capsules through the drawn rings are what the workers model. Where the width falls fast
-  // they bulge past the drawn tube (up to 9% of the radius on the default tail, 13% on tailNone),
-  // so points just outside a ring can be inside a neighbouring capsule; the test sorts the
-  // points with the model and expects the worker to agree with it on every one.
+  /** Each ring vertex moved towards (f < 1) or away from (f > 1) its ring's centre. */
+  function scaled(rings: { centre: V3; vertices: V3[] }[], f: number): V3[] {
+    return rings.flatMap(({ centre, vertices }) => vertices.map((v) => [0, 1, 2].map((k) => centre[k] + f * (v[k] - centre[k])) as V3))
+  }
+
+  // The tube ends in flat caps in the planes of its end rings, so the points just inside an end
+  // ring lie on the volume's boundary and only the inner rings' are checked.
   for (const [name, preset] of [...TAILS, ['a two-point tail', endsTail()] as const]) {
-    test(`${name}: the Cut & Glue tail is the chain of capsules through TailMesh's rings`, async () => {
+    test(`${name}: points 5% inside the drawn rings are inside, 5% outside are outside`, async () => {
       const rings = drawnTailRings(preset)
-      const centres = rings.map((r) => r.centre)
-      const radii = rings.map(({ centre, vertices }) => Math.hypot(...([0, 1, 2].map((k) => vertices[0][k] - centre[k]) as V3)))
-      const points = rings.flatMap(({ centre, vertices }) =>
-        [0.95, 1.05, 1.15].flatMap((f) => vertices.map((v) => [0, 1, 2].map((k) => centre[k] + f * (v[k] - centre[k])) as V3)),
-      )
-      const clear = points.filter((q) => Math.abs(capsuleChainSDF(centres, radii, q)) > 1e-4)
-      const inside = clear.filter((q) => capsuleChainSDF(centres, radii, q) < 0)
-      const outside = clear.filter((q) => capsuleChainSDF(centres, radii, q) > 0)
-      expect(inside.length).toBeGreaterThan(0)
-      expect(outside.length).toBeGreaterThan(0)
-      expect(await pointsOutsideTail(preset, inside), `of ${inside.length} points inside the capsules`).toBe(0)
-      expect(await pointsOutsideTail(preset, outside), `of ${outside.length} points outside them`).toBe(outside.length)
+      const inside = scaled(rings.slice(1, -1), 0.95)
+      const outside = scaled(rings, 1.05)
+      expect(await pointsOutsideTail(preset, inside), `of ${inside.length} inner points`).toBe(0)
+      expect(await pointsOutsideTail(preset, outside), `of ${outside.length} outer points`).toBe(outside.length)
     })
   }
 })
