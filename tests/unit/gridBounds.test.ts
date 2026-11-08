@@ -69,3 +69,36 @@ describe('the flow-cloud grid holds what is in the field', () => {
     ).toEqual(noTail)
   })
 })
+
+describe("a sphere's scale counts only for an ellipsoid (cd:review CDR-02)", () => {
+  // The model keeps the scale of a sphere whose Shape went back from Ellipsoid to Sphere; the
+  // field, the volume and the wire then ignore it, and so must the grid and the flow lines' u range.
+  function hiddenScale(): CloudPreset {
+    const p = fixture('default')
+    p.flowCloud.resolution = 32
+    p.surfaceMeshResolution = 32
+    p.spheres[0].scale = [3, 1, 1] // shape stays 'sphere'
+    return p
+  }
+  function plain(): CloudPreset {
+    const p = fixture('default')
+    p.flowCloud.resolution = 32
+    p.surfaceMeshResolution = 32
+    return p
+  }
+
+  test('the flow cloud and its flow lines are those of the same sphere without the scale', () => {
+    const got = generateFlowCloud(marchingCubesMessage(hiddenScale()))
+    const want = generateFlowCloud(marchingCubesMessage(plain()))
+    expect(got.vertices).toEqual(want.vertices)
+    expect(got.indices).toEqual(want.indices)
+    expect(got.flowLines).toEqual(want.flowLines)
+  })
+
+  test('the surface mesh is that of the same sphere without the scale', () => {
+    const got = generateSurfaceMesh(surfaceMeshMessage(hiddenScale()))
+    const want = generateSurfaceMesh(surfaceMeshMessage(plain()))
+    expect(got.positions).toEqual(want.positions)
+    expect(got.indices).toEqual(want.indices)
+  })
+})

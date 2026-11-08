@@ -5,7 +5,7 @@
  */
 
 import type { SphereDef, TailDef, FlowCloudSettings } from '../model/types';
-import { sphereFieldTerm, type SphereFrame } from './primitives/sphere';
+import { sphereExtent, sphereFieldTerm, type SphereFrame } from './primitives/sphere';
 import type { TailSample } from './primitives/tail';
 import { Float32Builder } from './arrayBuilder';
 
@@ -248,8 +248,7 @@ export function extractSpiral(
     const dy = sw.position[1] - fp[1];
     const dz = sw.position[2] - fp[2];
     const proj = dx*axN[0] + dy*axN[1] + dz*axN[2];
-    const r = sw.radius * Math.max(sw.scale[0], sw.scale[1], sw.scale[2]);
-    uFront = Math.min(uFront, proj - r);  // front surface of frontmost sphere
+    uFront = Math.min(uFront, proj - sphereExtent(sw));  // front surface of frontmost sphere
   }
   if (!isFinite(uFront)) uFront = 0;
 

@@ -8,6 +8,12 @@
 import type { SphereDef } from '../../model/types';
 import { eulerXYZ } from '../mat3';
 
+/** How far the drawn surface reaches from the centre: the radius, times the largest scale for
+ *  an ellipsoid. A sphere keeps the scale it had as an ellipsoid, and ignores it. */
+export function sphereExtent(def: SphereDef): number {
+  return def.shape === 'ellipsoid' ? def.radius * Math.max(def.scale[0], def.scale[1], def.scale[2]) : def.radius;
+}
+
 /** A sphere prepared for evaluation at many points: its rotation computed once. */
 export interface SphereFrame {
   def: SphereDef;

@@ -14,7 +14,7 @@
 import { BOUND_SLACK, boxDistance, emptyBox, expandBox, expandFlowCloudBounds } from '../../geometry/bounds';
 import { evalMetaballField } from '../../geometry/flowField';
 import { fillField, gridFromBounds, polygonise } from '../../geometry/marchingCubes/polygonise';
-import { sphereFrame, sphereSDF } from '../../geometry/primitives/sphere';
+import { sphereExtent, sphereFrame, sphereSDF } from '../../geometry/primitives/sphere';
 import type { SphereFrame } from '../../geometry/primitives/sphere';
 import { attachedTail, buildTailVolume, sampleTailSpine, tailSDF } from '../../geometry/primitives/tail';
 import type { TailSample, TailVolume } from '../../geometry/primitives/tail';
@@ -110,8 +110,7 @@ export function generateSurfaceMesh(input: SurfaceMeshRequest): SurfaceMeshResul
 
   // Spheres
   for (const sw of spheres) {
-    const maxScale = Math.max(sw.scale[0], sw.scale[1], sw.scale[2]);
-    expandBox(box, sw.position[0], sw.position[1], sw.position[2], sw.radius * maxScale + 0.5);
+    expandBox(box, sw.position[0], sw.position[1], sw.position[2], sphereExtent(sw) + 0.5);
   }
 
   // Tail setpoints

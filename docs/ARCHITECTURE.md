@@ -253,7 +253,8 @@ Conventions:
    divides each axis of the padded box into `res` cells, so cells are boxes, not cubes.
 8. **The flow cloud's grid holds its whole surface.** With n field terms, `expandFlowCloudBounds`
    pads each sphere's centre by r·s·√(n·falloff / threshold), r its radius and s its largest scale
-   for an ellipsoid (1 for a sphere), and at least by r times its largest scale plus 1.5; when
+   for an ellipsoid (1 for a sphere, which ignores a scale it kept), and at least by r·s plus 1.5;
+   when
    `tailStrength` > 0 it pads each tail spine sample by w·√(n·tailStrength / threshold), w the
    width there (`tests/unit/gridBounds.test.ts`, at the sliders' limits).
 9. **Presets are normalized at the store's door.** Import, the autosave restore, undo and redo

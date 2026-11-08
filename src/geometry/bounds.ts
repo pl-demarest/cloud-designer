@@ -5,6 +5,7 @@
 
 import type { FlowCloudSettings, SphereDef } from '../model/types';
 import type { TailSample } from './primitives/tail';
+import { sphereExtent } from './primitives/sphere';
 
 export interface Box {
   minX: number; minY: number; minZ: number;
@@ -54,8 +55,8 @@ export const BOUND_SLACK = 1e-9;
  * threshold / n the field is below threshold, so the surface lies within r s sqrt(n falloff /
  * threshold) of each sphere's centre (s the ellipsoid's largest scale, 1 for a sphere) or within
  * w sqrt(n tailStrength / threshold) of the spine. Each centre and each spine sample is padded by
- * that reach, and a centre by at least the radius times largest scale plus 1.5 used before, so
- * settings that box already held keep their grid.
+ * that reach, and a centre by at least r s plus 1.5 used before, so settings that box already held
+ * keep their grid.
  */
 export function expandFlowCloudBounds(
   box: Box,
@@ -71,9 +72,8 @@ export function expandFlowCloudBounds(
   const reach = (strength: number) => (threshold > 0 ? Math.sqrt((terms * Math.max(strength, 0)) / threshold) : 0);
 
   for (const sw of spheres) {
-    const largestScale = Math.max(sw.scale[0], sw.scale[1], sw.scale[2]);
-    const radius = sw.radius * (sw.shape === 'ellipsoid' ? largestScale : 1);
-    const pad = Math.max(sw.radius * largestScale + 1.5, radius * reach(sw.falloff));
+    const radius = sphereExtent(sw);
+    const pad = Math.max(radius + 1.5, radius * reach(sw.falloff));
     expandBox(box, sw.position[0] + offset[0], sw.position[1] + offset[1], sw.position[2] + offset[2], pad);
   }
   if (tail) {
