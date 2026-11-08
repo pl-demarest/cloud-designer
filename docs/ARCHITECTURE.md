@@ -48,7 +48,8 @@ import that crosses a layer the wrong way.
 6. **`normalizePreset` is the one place defaults are filled in.** `cloudStore.loadPreset` passes
    every preset through it, so code past the store reads every field without a fallback.
 
-ESLint does not enforce these rules; the grep in rule 1 and the import lists above are the check.
+ESLint enforces the table's imports and rule 1, and with them the import half of rule 3. The rest
+of rules 2 to 6 has no lint rule: the tests named in rule 2 and code review are the check.
 
 ## From a slider to the screen
 
