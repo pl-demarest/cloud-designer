@@ -318,7 +318,8 @@ writes.
 
 The same Cut & Glue click starts a second job: one triangle mesh of the union of the solids, from
 marching cubes on their combined signed distance field, on a grid of Mesh Density cells per axis
-over the box that holds them all. The union holds the spheres (radius, Half and rotation; the
+over the box that holds them all, the base and tail tubes ring by ring (a curve that overshoots its
+control points at a sharp turn included). The union holds the spheres (radius, Half and rotation; the
 falloff plays no part), the base, the tail, every thick spiral (its rounded-rectangle
 cross-section swept along the spiral), and the flow cloud: the one the viewport shows, computed
 from the inputs of the Regenerate that produced it, at the current Position. The flow cloud is

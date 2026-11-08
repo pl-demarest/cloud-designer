@@ -102,3 +102,44 @@ describe("a sphere's scale counts only for an ellipsoid (cd:review CDR-02)", () 
     expect(got.indices).toEqual(want.indices)
   })
 })
+
+describe('the surface-mesh grid holds the solids, not only their control points (cd:review CDR-07)', () => {
+  /** A base whose control polygon turns back on itself: the curve overshoots its ends by about
+   *  0.125 of the leg, 1.5 here, past the 1.1 the control-point padding gives. */
+  function hairpin(leg: number, shape: 'oval' | 'rect' = 'oval'): CloudPreset {
+    const p = fixture('default')
+    p.spheres = []
+    p.base.controlPoints = [[-leg, 0, 0], [leg, 0, 0], [leg, 0.05, 0], [-leg, 0.05, 0]]
+    p.base.crossSectionShape = shape
+    p.tail.attachToBase = 'none'
+    p.surfaceMeshResolution = 64
+    return p
+  }
+
+  for (const [name, preset] of [
+    ['a hairpin base with 12-unit legs', hairpin(6)],
+    ['the same with a rectangular section', hairpin(6, 'rect')],
+    ['a hairpin base with 4-unit legs (inside the padding before too)', hairpin(2)],
+  ] as const) {
+    test(`${name}: the surface mesh is closed`, () => {
+      const { indices } = generateSurfaceMesh(surfaceMeshMessage(preset))
+      expect(indices.length).toBeGreaterThan(0)
+      expect(edgeUse(indices).notShared, 'open edges').toEqual([])
+    })
+  }
+
+  test('a tail whose curve overshoots its setpoints: the surface mesh is closed', () => {
+    const p = fixture('default')
+    p.spheres = []
+    p.tail.attachToBase = 'none'
+    p.tail.setpoints = [
+      { id: 't0', position: [-6, 4, 0], width: 0.3 },
+      { id: 't1', position: [6, 4, 0], width: 0.3 },
+      { id: 't2', position: [6, 4.05, 0], width: 0.3 },
+      { id: 't3', position: [-6, 4.05, 0], width: 0.3 },
+    ]
+    p.surfaceMeshResolution = 64
+    const { indices } = generateSurfaceMesh(surfaceMeshMessage(p))
+    expect(edgeUse(indices).notShared, 'open edges').toEqual([])
+  })
+})

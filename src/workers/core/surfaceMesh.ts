@@ -18,11 +18,14 @@ import { sphereExtent, sphereFrame, sphereSDF } from '../../geometry/primitives/
 import type { SphereFrame } from '../../geometry/primitives/sphere';
 import { attachedTail, buildTailVolume, sampleTailSpine, tailSDF } from '../../geometry/primitives/tail';
 import type { TailSample, TailVolume } from '../../geometry/primitives/tail';
-import { baseSDF, buildBaseVolume } from '../../geometry/primitives/base';
+import { baseSDF, buildBaseVolume, sectionReach } from '../../geometry/primitives/base';
 import type { BaseVolume } from '../../geometry/primitives/base';
 import { buildSpiralVolume, sampleSpiral, spiralSDF } from '../../geometry/primitives/spiral';
 import type { SpiralSample, SpiralVolume } from '../../geometry/primitives/spiral';
 import type { SurfaceMeshRequest, SurfaceMeshResult } from '../protocol';
+
+/** How far the grid's boundary stays outside the base and tail solids (generateSurfaceMesh). */
+const SOLID_MARGIN = 0.1;
 
 /** The flow cloud's metaball field as the shown flow cloud was generated, placed in the world. */
 interface FlowCloudField {
@@ -122,6 +125,21 @@ export function generateSurfaceMesh(input: SurfaceMeshRequest): SurfaceMeshResul
   const baseHalf = Math.max(base.crossSectionWidth, base.crossSectionHeight) / 2;
   for (const cp of base.controlPoints) {
     expandBox(box, cp[0], cp[1], cp[2], baseHalf + 0.5);
+  }
+
+  // The base and tail solids themselves, ring by ring: a curve overshoots its control points
+  // where it turns sharply (by about an eighth of the leg at a hairpin), past the padding above,
+  // and a solid that reaches the grid's boundary leaves the mesh open there. Every boundary node
+  // stays SOLID_MARGIN outside both solids; where the padding above holds them, the grid is the
+  // same as before.
+  const baseReach = sectionReach(baseVolume);
+  for (let k = 0; k < baseVolume.count; k++) {
+    const i = 3 * k;
+    expandBox(box, baseVolume.p[i], baseVolume.p[i + 1], baseVolume.p[i + 2], baseReach + SOLID_MARGIN);
+  }
+  for (let k = 0; k < tailVolume.count; k++) {
+    const i = 3 * k;
+    expandBox(box, tailVolume.p[i], tailVolume.p[i + 1], tailVolume.p[i + 2], tailVolume.w[k] + SOLID_MARGIN);
   }
 
   // Flow cloud: its isosurface, moved by flowCloud.position

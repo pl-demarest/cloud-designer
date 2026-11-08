@@ -59,7 +59,7 @@ export interface BaseVolume {
 
 /** How far from its ring's centre the section of `v` reaches: the larger half-size of the oval,
  *  the corner of the rectangle. Every drawn ring vertex lies within it. */
-function sectionReach(v: Pick<BaseVolume, 'rect' | 'halfH' | 'halfW'>): number {
+export function sectionReach(v: Pick<BaseVolume, 'rect' | 'halfH' | 'halfW'>): number {
   return v.rect ? Math.sqrt(v.halfH * v.halfH + v.halfW * v.halfW) : Math.max(v.halfH, v.halfW);
 }
 
