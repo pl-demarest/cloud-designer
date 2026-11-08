@@ -280,13 +280,16 @@ the tail and the flow-cloud settings to the flow-cloud worker.
   detail differs between axes. The mesh's vertices are shared between neighbouring cells, and its
   triangles face outward.
 - **Edges mode** draws the mesh's crease edges: the edges where neighbouring triangles meet at more
-  than 15°.
+  than 15°. The surface is smooth, so a finer grid has fewer such edges: on the default preset none
+  at Resolution 64 or 128 ([Known limitations](#known-limitations)).
 - **Spiral mode** traces lines over the mesh. Each vertex gets an axial coordinate u and an angle
   about the axis from F towards B. Measured along the axis, u is 0 at the front of the frontmost
   sphere and 1 at the tail's first setpoint (where an attached tail meets the base); when that
   setpoint lies less than 0.001 past the front, u is 1 at the front plus the F-to-B distance. u is
   clamped to 0 to 1, so vertices past the tail's first setpoint count as u = 1. Flow lines follow
-  constant angle + Spiral Twist × u; bands are contours of constant u.
+  constant angle + Spiral Twist × u; bands are contours of constant u. With F and B less than
+  0.001 apart there is no axis, and the result has no flow line and no band
+  ([Known limitations](#known-limitations)).
 
 The result appears at the flow cloud's Position, with the teal handle in Edit mode.
 
@@ -455,3 +458,9 @@ Glue again.
 
 - `flowCloud.tailStrength`, the tail's weight in the flow cloud's field, has no control. It can be
   set only in a preset file (0 to 10), then imported.
+- Edges mode draws little or nothing at fine grids. On the default preset a Regenerate in Edges
+  mode draws 728 edge vertices at Resolution 32 and none at 64 or 128, and Cut & Glue then has no
+  flow-cloud wires to clip. Use Resolution 32 with Edges mode, or Spiral mode.
+- With F and B less than 0.001 apart, a Regenerate in Spiral mode computes the surface but no flow
+  line and no band, so the viewport shows only the teal handle, and nothing says why. Move F or B
+  apart, then Regenerate.
