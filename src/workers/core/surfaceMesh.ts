@@ -124,7 +124,7 @@ export function generateSurfaceMesh(input: SurfaceMeshRequest): SurfaceMeshResul
   }
 
   // Flow cloud: its isosurface, moved by flowCloud.position
-  expandFlowCloudBounds(box, spheres, flowCloud.position);
+  expandFlowCloudBounds(box, spheres, fcTailSamples, flowCloud, flowCloud.position);
 
   // Spiral samples (use pre-computed world-space centers)
   for (const samples of allSpiralSamples) {

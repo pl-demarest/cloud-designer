@@ -24,9 +24,9 @@ function marchingCubes(
   // The tail's spine as TailMesh draws it
   const tailSamples = tailStrength > 0 ? sampleTailSpine(tail) : [];
 
-  // Compute bounding box from spheres
+  // Compute bounding box from spheres (and the tail's part of the field)
   const box = emptyBox();
-  expandFlowCloudBounds(box, spheres, [0, 0, 0]);
+  expandFlowCloudBounds(box, spheres, tailSamples, flowCloud, [0, 0, 0]);
 
   // Extend bounding box to include tail setpoints
   for (const sp of tail.setpoints) {
