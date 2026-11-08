@@ -1,6 +1,9 @@
+import { useId } from 'react';
 import { useCloudStore } from '../../store/cloudStore';
 import type { SphereDef } from '../../model/types';
 import { SliderRow } from '../controls/SliderRow';
+import { FieldRow } from '../controls/FieldRow';
+import { ItemHeader } from '../controls/ItemHeader';
 import { Vec3Field } from '../controls/Vec3Field';
 import { formatDegrees } from '../controls/format';
 import { useToggleSet } from '../hooks/useToggleSet';
@@ -12,6 +15,7 @@ export function SpherePanel() {
   const removeSphere = useCloudStore((s) => s.removeSphere);
   const commit = useCloudStore((s) => s.commit);
   const [expanded, toggleExpanded] = useToggleSet<string>();
+  const idPrefix = useId();
 
   function handleAdd() {
     addSphere();
@@ -36,33 +40,28 @@ export function SpherePanel() {
       <div className="swirl-list">
         {spheres.map((sw, i) => (
           <div key={sw.id} className="swirl-item">
-            <div
-              className="swirl-item-header"
-              onClick={() => toggleExpanded(sw.id)}
-            >
-              <span>Sphere {i + 1} ({sw.shape})</span>
-              <div>
-                <span>{expanded.has(sw.id) ? '▲' : '▼'}</span>
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleRemove(sw.id); }}
-                  className="btn-remove"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
+            <ItemHeader
+              label={`Sphere ${i + 1} (${sw.shape})`}
+              expanded={expanded.has(sw.id)}
+              bodyId={`${idPrefix}-${sw.id}`}
+              onToggle={() => toggleExpanded(sw.id)}
+              removeLabel={`Remove sphere ${i + 1}`}
+              onRemove={() => handleRemove(sw.id)}
+            />
             {expanded.has(sw.id) && (
-              <div className="swirl-item-body">
-                <div className="field-row">
-                  <label>Shape</label>
-                  <select
-                    value={sw.shape}
-                    onChange={(e) => { handleUpdate(sw.id, { shape: e.target.value as 'sphere' | 'ellipsoid' }); commit(); }}
-                  >
-                    <option value="sphere">Sphere</option>
-                    <option value="ellipsoid">Ellipsoid</option>
-                  </select>
-                </div>
+              <div id={`${idPrefix}-${sw.id}`} className="swirl-item-body">
+                <FieldRow label="Shape">
+                  {(id) => (
+                    <select
+                      id={id}
+                      value={sw.shape}
+                      onChange={(e) => { handleUpdate(sw.id, { shape: e.target.value as 'sphere' | 'ellipsoid' }); commit(); }}
+                    >
+                      <option value="sphere">Sphere</option>
+                      <option value="ellipsoid">Ellipsoid</option>
+                    </select>
+                  )}
+                </FieldRow>
                 <Vec3Field
                   label="Pos"
                   value={sw.position}
@@ -81,14 +80,16 @@ export function SpherePanel() {
                   min={0.5} max={5.0} step={0.1}
                   onChange={(v) => handleUpdate(sw.id, { falloff: v })}
                 />
-                <div className="field-row">
-                  <label>Half</label>
-                  <input
-                    type="checkbox"
-                    checked={sw.half}
-                    onChange={(e) => { handleUpdate(sw.id, { half: e.target.checked }); commit(); }}
-                  />
-                </div>
+                <FieldRow label="Half">
+                  {(id) => (
+                    <input
+                      id={id}
+                      type="checkbox"
+                      checked={sw.half}
+                      onChange={(e) => { handleUpdate(sw.id, { half: e.target.checked }); commit(); }}
+                    />
+                  )}
+                </FieldRow>
                 <Vec3Field
                   label="Rotate"
                   value={sw.rotation}

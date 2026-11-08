@@ -92,7 +92,7 @@ test.describe('list editing', () => {
     await expect(body.locator('.swirl-item')).toHaveCount(4)
     await expect(body.locator('.swirl-item-header').nth(3)).toContainText('Sphere 4 (sphere)')
 
-    await body.locator('.swirl-item').nth(3).getByRole('button', { name: '×' }).click()
+    await body.locator('.swirl-item').nth(3).getByRole('button', { name: /^Remove / }).click()
     await expect(header).toContainText('Spheres (3)')
     await expect(body.locator('.swirl-item')).toHaveCount(3)
   })
@@ -109,7 +109,7 @@ test.describe('list editing', () => {
     await expect(body.locator('.swirl-item-header')).toContainText('Spiral 1 (golden)')
     await expect(body.getByText(/^No spirals\./)).toHaveCount(0)
 
-    await body.locator('.swirl-item').getByRole('button', { name: '×' }).click()
+    await body.locator('.swirl-item').getByRole('button', { name: /^Remove / }).click()
     await expect(header).toContainText('Spirals (0)')
     await expect(body.getByText(/^No spirals\./)).toBeVisible()
   })
@@ -124,17 +124,17 @@ test.describe('list editing', () => {
     await expect(rows).toHaveCount(5)
     await expect(rows.nth(4).locator('.cp-label')).toHaveText('P4')
 
-    await rows.nth(4).getByRole('button', { name: '×' }).click()
+    await rows.nth(4).getByRole('button', { name: /^Remove / }).click()
     await expect(rows).toHaveCount(4)
   })
 
   test('base keeps at least two control points', async ({ page }) => {
     const body = await openPanel(page, 'Base')
     const rows = body.locator('.control-point-row')
-    await rows.nth(0).getByRole('button', { name: '×' }).click()
-    await rows.nth(0).getByRole('button', { name: '×' }).click()
+    await rows.nth(0).getByRole('button', { name: /^Remove / }).click()
+    await rows.nth(0).getByRole('button', { name: /^Remove / }).click()
     await expect(rows).toHaveCount(2)
-    for (const i of [0, 1]) await expect(rows.nth(i).getByRole('button', { name: '×' })).toBeDisabled()
+    for (const i of [0, 1]) await expect(rows.nth(i).getByRole('button', { name: /^Remove / })).toBeDisabled()
   })
 
   test('add and remove a tail setpoint updates the counts', async ({ page }) => {
@@ -149,11 +149,11 @@ test.describe('list editing', () => {
     await expect(rows).toHaveCount(4)
 
     // Insert-after on SP 0 adds a row between SP 0 and the old SP 1.
-    await rows.nth(0).getByRole('button', { name: '+' }).click()
+    await rows.nth(0).getByRole('button', { name: /^Insert a setpoint after / }).click()
     await expect(title).toContainText('Tail (5 pts)')
 
-    await rows.nth(4).getByRole('button', { name: '×' }).click()
-    await rows.nth(1).getByRole('button', { name: '×' }).click()
+    await rows.nth(4).getByRole('button', { name: /^Remove / }).click()
+    await rows.nth(1).getByRole('button', { name: /^Remove / }).click()
     await expect(title).toContainText('Tail (3 pts)')
     await expect(rows.locator('.setpoint-header > span')).toHaveText(['SP 0', 'SP 1', 'SP 2'])
   })

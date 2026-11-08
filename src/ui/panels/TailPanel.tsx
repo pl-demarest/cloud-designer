@@ -1,5 +1,7 @@
+import { useId } from 'react';
 import { useCloudStore } from '../../store/cloudStore';
 import { SliderRow } from '../controls/SliderRow';
+import { FieldRow } from '../controls/FieldRow';
 import { NumberField } from '../controls/NumberField';
 import { AXES, withAxis } from '../controls/vec3';
 import { formatPi } from '../controls/format';
@@ -11,6 +13,7 @@ export function TailPanel() {
   const removeTailSetpoint = useCloudStore((s) => s.removeTailSetpoint);
   const updateTailSetpoint = useCloudStore((s) => s.updateTailSetpoint);
   const commit = useCloudStore((s) => s.commit);
+  const idPrefix = useId();
 
   return (
     <div className="panel-section">
@@ -49,17 +52,19 @@ export function TailPanel() {
         min={8} max={64} step={1} integer
         onChange={(v) => setTail({ lengthSegments: v })}
       />
-      <div className="field-row">
-        <label>Attach</label>
-        <select
-          value={tail.attachToBase}
-          onChange={(e) => { setTail({ attachToBase: e.target.value as 'start' | 'end' | 'none' }); commit(); }}
-        >
-          <option value="none">None</option>
-          <option value="start">Base Start</option>
-          <option value="end">Base End</option>
-        </select>
-      </div>
+      <FieldRow label="Attach">
+        {(id) => (
+          <select
+            id={id}
+            value={tail.attachToBase}
+            onChange={(e) => { setTail({ attachToBase: e.target.value as 'start' | 'end' | 'none' }); commit(); }}
+          >
+            <option value="none">None</option>
+            <option value="start">Base Start</option>
+            <option value="end">Base End</option>
+          </select>
+        )}
+      </FieldRow>
       {tail.attachToBase !== 'none' && (
         <SliderRow
           label="Attach Offset"
@@ -77,6 +82,7 @@ export function TailPanel() {
                 <button
                   onClick={() => { addTailSetpoint(i); commit(); }}
                   title="Insert after"
+                  aria-label={`Insert a setpoint after SP ${i}`}
                   className="btn-small"
                 >
                   +
@@ -85,6 +91,7 @@ export function TailPanel() {
                   onClick={() => { removeTailSetpoint(sp.id); commit(); }}
                   disabled={tail.setpoints.length <= 2}
                   className="btn-remove"
+                  aria-label={`Remove SP ${i}`}
                 >
                   ×
                 </button>
@@ -100,8 +107,9 @@ export function TailPanel() {
                   onChange={(v) => updateTailSetpoint(sp.id, { position: withAxis(sp.position, ai, v) })}
                 />
               ))}
-              <label style={{ fontSize: '0.7rem' }}>w</label>
+              <label htmlFor={`${idPrefix}-${sp.id}-width`} style={{ fontSize: '0.7rem' }}>w</label>
               <NumberField
+                id={`${idPrefix}-${sp.id}-width`}
                 label={`SP ${i} width`}
                 value={sp.width}
                 step={0.05}

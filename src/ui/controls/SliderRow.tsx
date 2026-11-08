@@ -1,8 +1,10 @@
-import { useEffect, useRef, type KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, type KeyboardEvent } from 'react';
 import { useCloudStore } from '../../store/cloudStore';
 
 interface Props {
   label: string;
+  /** The accessible name, when the visible label alone is not enough ("X" under "Position"). */
+  ariaLabel?: string;
   value: number;
   min: number;
   max: number;
@@ -25,7 +27,8 @@ const store = () => useCloudStore.getState();
  * assistive technology is recorded. A press that changes nothing records nothing: commit()
  * skips a preset equal to the newest step.
  */
-export function SliderRow({ label, value, min, max, step = 0.01, integer = false, onChange, format }: Props) {
+export function SliderRow({ label, ariaLabel, value, min, max, step = 0.01, integer = false, onChange, format }: Props) {
+  const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const keyHeld = useRef(false);
   const display = format ? format(value) : value.toFixed(2);
@@ -65,8 +68,11 @@ export function SliderRow({ label, value, min, max, step = 0.01, integer = false
 
   return (
     <div className="slider-row">
-      <label>{label}</label>
+      <label htmlFor={id}>{label}</label>
       <input
+        id={id}
+        aria-label={ariaLabel}
+        aria-valuetext={display}
         ref={inputRef}
         type="range"
         min={min}

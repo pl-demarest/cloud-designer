@@ -109,7 +109,7 @@ for (const name of ['Axes', 'Grid'] as const) {
       // In the default view the 1-unit axes helper at the origin is drawn inside sphere 1's wireframe
       // and handle, and toggling it changes no pixel. Removing that sphere exposes the helper.
       const spheres = await openPanel(page, 'Spheres')
-      await spheres.locator('.swirl-item').first().getByRole('button', { name: '×' }).click()
+      await spheres.locator('.swirl-item').first().getByRole('button', { name: /^Remove / }).click()
     }
     const button = toolbarButton(page, name)
     await expect(button).toHaveClass(/\bactive\b/)

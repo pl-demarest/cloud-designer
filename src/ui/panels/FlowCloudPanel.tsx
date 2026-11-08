@@ -3,6 +3,7 @@ import { useUiStore } from '../../store/uiStore';
 import { useEngine } from '../EngineContext';
 import { confirmAndResetPreset } from '../resetPreset';
 import { SliderRow } from '../controls/SliderRow';
+import { FieldRow } from '../controls/FieldRow';
 import { Vec3Field } from '../controls/Vec3Field';
 import { formatPi } from '../controls/format';
 import type { FlowCloudSettings } from '../../model/types';
@@ -64,51 +65,58 @@ export function FlowCloudPanel() {
         >
           {cutGlueGenerating ? 'Generating...' : 'Cut & Glue'}
         </button>
-        <div className="field-row" style={{ marginTop: '6px' }}>
-          <label>Surface Mesh</label>
-          <input
-            type="checkbox"
-            checked={surfaceMeshVisible}
-            disabled={!hasSurfaceMesh}
-            onChange={(e) => setSurfaceMeshVisible(e.target.checked)}
-            title={hasSurfaceMesh ? 'Toggle unified surface mesh wireframe' : 'Run Cut & Glue first'}
-          />
-        </div>
-        <div className="field-row">
-          <label>Mesh Density</label>
-          <select
-            value={surfaceMeshResolution}
-            onChange={(e) => { setSurfaceMeshResolution(parseInt(e.target.value)); commit(); }}
-          >
-            <option value={32}>32 (fast)</option>
-            <option value={64}>64 (balanced)</option>
-            <option value={96}>96 (fine)</option>
-            <option value={128}>128 (dense)</option>
-            <option value={192}>192 ⚠ slow</option>
-            <option value={256}>256 ⚠ very slow</option>
-          </select>
-        </div>
+        <FieldRow label="Surface Mesh" style={{ marginTop: '6px' }}>
+          {(id) => (
+            <input
+              id={id}
+              type="checkbox"
+              checked={surfaceMeshVisible}
+              disabled={!hasSurfaceMesh}
+              onChange={(e) => setSurfaceMeshVisible(e.target.checked)}
+              title={hasSurfaceMesh ? 'Toggle unified surface mesh wireframe' : 'Run Cut & Glue first'}
+            />
+          )}
+        </FieldRow>
+        <FieldRow label="Mesh Density">
+          {(id) => (
+            <select
+              id={id}
+              value={surfaceMeshResolution}
+              onChange={(e) => { setSurfaceMeshResolution(parseInt(e.target.value)); commit(); }}
+            >
+              <option value={32}>32 (fast)</option>
+              <option value={64}>64 (balanced)</option>
+              <option value={96}>96 (fine)</option>
+              <option value={128}>128 (dense)</option>
+              <option value={192}>192 ⚠ slow</option>
+              <option value={256}>256 ⚠ very slow</option>
+            </select>
+          )}
+        </FieldRow>
       </div>
       <div className="panel-subsection">
         <div className="panel-subsection-header">Position</div>
         <Vec3Field
           label=""
+          name="Position"
           value={flowCloud.position}
           min={-20} max={20} step={0.1}
           onChange={(position) => setFlowCloud({ position })}
         />
       </div>
-      <div className="field-row">
-        <label>Resolution</label>
-        <select
-          value={flowCloud.resolution}
-          onChange={(e) => { setFlowCloud({ resolution: parseInt(e.target.value) }); commit(); }}
-        >
-          <option value={32}>32 (fast)</option>
-          <option value={64}>64 (balanced)</option>
-          <option value={128}>128 ⚠ slow</option>
-        </select>
-      </div>
+      <FieldRow label="Resolution">
+        {(id) => (
+          <select
+            id={id}
+            value={flowCloud.resolution}
+            onChange={(e) => { setFlowCloud({ resolution: parseInt(e.target.value) }); commit(); }}
+          >
+            <option value={32}>32 (fast)</option>
+            <option value={64}>64 (balanced)</option>
+            <option value={128}>128 ⚠ slow</option>
+          </select>
+        )}
+      </FieldRow>
       <SliderRow
         label="Threshold"
         value={flowCloud.threshold}
@@ -117,45 +125,53 @@ export function FlowCloudPanel() {
       />
       <div className="panel-subsection">
         <div className="panel-subsection-header">Wireframe</div>
-        <div className="field-row">
-          <label>Mode</label>
-          <select
-            value={flowCloud.wireframe.mode}
-            onChange={(e) => { setWireframe({ mode: e.target.value as 'edges' | 'spiral' }); commit(); }}
-          >
-            <option value="edges">Edges</option>
-            <option value="spiral">Spiral</option>
-          </select>
-        </div>
+        <FieldRow label="Mode">
+          {(id) => (
+            <select
+              id={id}
+              value={flowCloud.wireframe.mode}
+              onChange={(e) => { setWireframe({ mode: e.target.value as 'edges' | 'spiral' }); commit(); }}
+            >
+              <option value="edges">Edges</option>
+              <option value="spiral">Spiral</option>
+            </select>
+          )}
+        </FieldRow>
 
         {flowCloud.wireframe.mode === 'spiral' && (
           <>
-            <div className="field-row" title="When off, bands are not part of the generated isosurface at all. Hit Regenerate after changing.">
-              <label>Generate Bands</label>
-              <input
-                type="checkbox"
-                checked={flowCloud.wireframe.generateBands}
-                onChange={(e) => { setWireframe({ generateBands: e.target.checked }); commit(); }}
-              />
-            </div>
-            {flowCloud.wireframe.generateBands && (
-              <div className="field-row">
-                <label>Show Bands</label>
+            <FieldRow label="Generate Bands" title="When off, bands are not part of the generated isosurface at all. Hit Regenerate after changing.">
+              {(id) => (
                 <input
+                  id={id}
                   type="checkbox"
-                  checked={flowCloud.wireframe.showBands}
-                  onChange={(e) => { setWireframe({ showBands: e.target.checked }); commit(); }}
+                  checked={flowCloud.wireframe.generateBands}
+                  onChange={(e) => { setWireframe({ generateBands: e.target.checked }); commit(); }}
                 />
-              </div>
+              )}
+            </FieldRow>
+            {flowCloud.wireframe.generateBands && (
+              <FieldRow label="Show Bands">
+                {(id) => (
+                  <input
+                    id={id}
+                    type="checkbox"
+                    checked={flowCloud.wireframe.showBands}
+                    onChange={(e) => { setWireframe({ showBands: e.target.checked }); commit(); }}
+                  />
+                )}
+              </FieldRow>
             )}
-            <div className="field-row">
-              <label>Show Flow Lines</label>
-              <input
-                type="checkbox"
-                checked={flowCloud.wireframe.showFlowLines}
-                onChange={(e) => { setWireframe({ showFlowLines: e.target.checked }); commit(); }}
-              />
-            </div>
+            <FieldRow label="Show Flow Lines">
+              {(id) => (
+                <input
+                  id={id}
+                  type="checkbox"
+                  checked={flowCloud.wireframe.showFlowLines}
+                  onChange={(e) => { setWireframe({ showFlowLines: e.target.checked }); commit(); }}
+                />
+              )}
+            </FieldRow>
             {flowCloud.wireframe.generateBands && (
               <SliderRow
                 label="Bands"

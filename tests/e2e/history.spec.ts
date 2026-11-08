@@ -83,7 +83,7 @@ test('a new edit after Undo clears the redo stack', async ({ page }) => {
   await toolbarButton(page, 'Undo').click()
   await expect(toolbarButton(page, 'Redo')).toBeEnabled()
   const body = await openPanel(page, 'Spheres')
-  await body.locator('.swirl-item').first().getByRole('button', { name: '×' }).click()
+  await body.locator('.swirl-item').first().getByRole('button', { name: /^Remove / }).click()
   await expect(accordionHeader(page, 'Spheres')).toContainText('Spheres (2)')
   await expect(toolbarButton(page, 'Redo')).toBeDisabled()
 })

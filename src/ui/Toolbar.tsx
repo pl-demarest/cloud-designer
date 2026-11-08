@@ -23,6 +23,7 @@ export function Toolbar() {
     <div className="toolbar">
       <input
         className="preset-name"
+        aria-label="Cloud name"
         value={name}
         onChange={(e) => setPresetName(e.target.value)}
         placeholder="Cloud name..."
@@ -34,20 +35,22 @@ export function Toolbar() {
       <div className="toolbar-group">
         <button
           className={mode === 'edit' ? 'active' : ''}
+          aria-pressed={mode === 'edit'}
           onClick={() => setMode('edit')}
         >
           Edit
         </button>
         <button
           className={mode === 'preview' ? 'active' : ''}
+          aria-pressed={mode === 'preview'}
           onClick={() => setMode('preview')}
         >
           Preview
         </button>
       </div>
       <div className="toolbar-group">
-        <button className={showAxes ? 'active' : ''} onClick={toggleAxes}>Axes</button>
-        <button className={showGrid ? 'active' : ''} onClick={toggleGrid}>Grid</button>
+        <button className={showAxes ? 'active' : ''} aria-pressed={showAxes} onClick={toggleAxes}>Axes</button>
+        <button className={showGrid ? 'active' : ''} aria-pressed={showGrid} onClick={toggleGrid}>Grid</button>
         <button onClick={() => engine.current?.zoomToFit()}>Fit</button>
       </div>
       <button onClick={confirmAndResetPreset} className="btn-reset">Reset</button>

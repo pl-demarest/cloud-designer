@@ -4,6 +4,8 @@ import { useCloudStore } from '../../store/cloudStore';
 interface Props {
   /** The accessible name: the inputs sit in rows without a label of their own. */
   label: string;
+  /** For a visible <label htmlFor>. */
+  id?: string;
   value: number;
   onChange: (v: number) => void;
   min?: number;
@@ -19,7 +21,7 @@ interface Props {
  * again; a number is clamped to [min, max] and, if it differs from the value, goes to onChange
  * and is committed as one undo step. Escape drops the draft.
  */
-export function NumberField({ label, value, onChange, min = -Infinity, max = Infinity, step, digits = 2 }: Props) {
+export function NumberField({ label, id, value, onChange, min = -Infinity, max = Infinity, step, digits = 2 }: Props) {
   const [draft, setDraft] = useState<string | null>(null);
 
   function apply() {
@@ -41,6 +43,7 @@ export function NumberField({ label, value, onChange, min = -Infinity, max = Inf
 
   return (
     <input
+      id={id}
       type="number"
       className="cp-input"
       aria-label={label}

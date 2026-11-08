@@ -1,5 +1,6 @@
 import { useCloudStore } from '../../store/cloudStore';
 import { SliderRow } from '../controls/SliderRow';
+import { FieldRow } from '../controls/FieldRow';
 import { NumberField } from '../controls/NumberField';
 import { AXES, withAxis } from '../controls/vec3';
 
@@ -17,16 +18,18 @@ export function BasePanel() {
         <span>Base</span>
         <button onClick={() => { addBasePoint(); commit(); }}>+ Point</button>
       </div>
-      <div className="field-row">
-        <label>Shape</label>
-        <select
-          value={base.crossSectionShape}
-          onChange={(e) => { setBase({ crossSectionShape: e.target.value as 'oval' | 'rect' }); commit(); }}
-        >
-          <option value="oval">Oval</option>
-          <option value="rect">Rect</option>
-        </select>
-      </div>
+      <FieldRow label="Shape">
+        {(id) => (
+          <select
+            id={id}
+            value={base.crossSectionShape}
+            onChange={(e) => { setBase({ crossSectionShape: e.target.value as 'oval' | 'rect' }); commit(); }}
+          >
+            <option value="oval">Oval</option>
+            <option value="rect">Rect</option>
+          </select>
+        )}
+      </FieldRow>
       <SliderRow
         label="Width"
         value={base.crossSectionWidth}
@@ -51,14 +54,16 @@ export function BasePanel() {
         min={8} max={48} step={1} integer
         onChange={(v) => setBase({ lengthSegments: v })}
       />
-      <div className="field-row">
-        <label>Closed</label>
-        <input
-          type="checkbox"
-          checked={base.closed}
-          onChange={(e) => { setBase({ closed: e.target.checked }); commit(); }}
-        />
-      </div>
+      <FieldRow label="Closed">
+        {(id) => (
+          <input
+            id={id}
+            type="checkbox"
+            checked={base.closed}
+            onChange={(e) => { setBase({ closed: e.target.checked }); commit(); }}
+          />
+        )}
+      </FieldRow>
       <div className="control-points">
         {base.controlPoints.map((pt, i) => (
           <div key={i} className="control-point-row">
@@ -76,6 +81,7 @@ export function BasePanel() {
               onClick={() => { removeBasePoint(i); commit(); }}
               disabled={base.controlPoints.length <= 2}
               className="btn-remove"
+              aria-label={`Remove P${i}`}
             >
               ×
             </button>

@@ -1,5 +1,8 @@
+import { useId } from 'react';
 import { useCloudStore } from '../../store/cloudStore';
 import { SliderRow } from '../controls/SliderRow';
+import { FieldRow } from '../controls/FieldRow';
+import { ItemHeader } from '../controls/ItemHeader';
 import { Vec3Field } from '../controls/Vec3Field';
 import { formatDegrees } from '../controls/format';
 import { useToggleSet } from '../hooks/useToggleSet';
@@ -12,6 +15,7 @@ export function SpiralPanel() {
   const removeSpiral = useCloudStore((s) => s.removeSpiral);
   const commit = useCloudStore((s) => s.commit);
   const [expanded, toggleExpanded] = useToggleSet<string>();
+  const idPrefix = useId();
 
   function handleAdd() {
     addSpiral();
@@ -36,36 +40,31 @@ export function SpiralPanel() {
       <div className="swirl-list">
         {spirals.map((sp, i) => (
           <div key={sp.id} className="swirl-item">
-            <div
-              className="swirl-item-header"
-              onClick={() => toggleExpanded(sp.id)}
-            >
-              <span>Spiral {i + 1} ({sp.spiralType})</span>
-              <div>
-                <span>{expanded.has(sp.id) ? '▲' : '▼'}</span>
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleRemove(sp.id); }}
-                  className="btn-remove"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
+            <ItemHeader
+              label={`Spiral ${i + 1} (${sp.spiralType})`}
+              expanded={expanded.has(sp.id)}
+              bodyId={`${idPrefix}-${sp.id}`}
+              onToggle={() => toggleExpanded(sp.id)}
+              removeLabel={`Remove spiral ${i + 1}`}
+              onRemove={() => handleRemove(sp.id)}
+            />
 
             {expanded.has(sp.id) && (
-              <div className="swirl-item-body">
+              <div id={`${idPrefix}-${sp.id}`} className="swirl-item-body">
 
                 {/* Type */}
-                <div className="field-row">
-                  <label>Type</label>
-                  <select
-                    value={sp.spiralType}
-                    onChange={(e) => { handleUpdate(sp.id, { spiralType: e.target.value as 'archimedean' | 'golden' }); commit(); }}
-                  >
-                    <option value="golden">Golden (logarithmic)</option>
-                    <option value="archimedean">Archimedean (equal spacing)</option>
-                  </select>
-                </div>
+                <FieldRow label="Type">
+                  {(id) => (
+                    <select
+                      id={id}
+                      value={sp.spiralType}
+                      onChange={(e) => { handleUpdate(sp.id, { spiralType: e.target.value as 'archimedean' | 'golden' }); commit(); }}
+                    >
+                      <option value="golden">Golden (logarithmic)</option>
+                      <option value="archimedean">Archimedean (equal spacing)</option>
+                    </select>
+                  )}
+                </FieldRow>
 
                 {/* Shape */}
                 <SliderRow
