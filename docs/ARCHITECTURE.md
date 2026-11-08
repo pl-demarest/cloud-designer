@@ -197,13 +197,20 @@ Conventions:
    order and equals three's matrix to the bit on 1,000 random angle triples
    (`tests/unit/sphereFrame.test.ts`). `sphereSDF` and `insideSphere` use the geometric radius;
    `sphereFieldTerm`, the metaball term, uses the falloff and counts the whole sphere, half or not.
-3. **Spirals are sampled twice.** `SpiralMesh` computes its wire's spiral path itself, and
-   `primitives/spiral.ts` `sampleSpiral` computes the thick spiral's volume samples, with the same
-   formulas (radius law, taper, separation, corner-radius limit, 64 samples per turn in the
-   editor and the surface-mesh core). Both rotate by Euler XYZ, `SpiralMesh` with three's
-   `makeRotationFromEuler` and `sampleSpiral` with `eulerXYZ`, the same matrix to the bit;
-   `tests/unit/kernelProperties.test.ts` checks `sampleSpiral`'s rotation against three's matrix.
-   No test compares the two samplings, so a change to one must be made in the other.
+3. **Spirals are sampled once.** `sampleSpiral` (`primitives/spiral.ts`) samples every spiral's
+   path, flat or thick, at `SPIRAL_SAMPLES_PER_TURN` (64) samples per turn: each sample in the
+   spiral's own frame (path point, radial direction, separation) and in world space (the
+   section's centre and radial direction, its half-sizes, and its corner radius, which is 0, a
+   sharp corner, below `MIN_CORNER_RADIUS`, 0.001). `SpiralMesh` draws `spiralWire(def, samples)`,
+   and the surface-mesh core builds a thick spiral's volume from the same samples. Both place
+   points with `eulerXYZ` and the operations of three's `Vector3.applyMatrix4` and `add`, so the
+   wire equals, bit for bit, the one three's `Matrix4.makeRotationFromEuler` gives
+   (`tests/unit/spiralParity.test.ts`, 12 rotations, flat and thick). The volume sweeps its
+   rounded-rectangle section at right angles to the smoothed tangent, while a drawn ring lies in
+   the plane of the radial direction and the spiral's axis, so the two agree within a tolerance:
+   at the default proportions (thickness 0.15) points 5 % inside the drawn rings are inside the
+   volume and points 5 % outside are outside, and the drawn ring vertices lie up to 0.003 off the
+   volume's surface (0.024 at thickness 0.3, 0.054 at 0.6).
 4. **The curve port equals three.js r183 to the bit, except on open two-point curves.**
    `CatmullRomCurve` (`catmullRom.ts`) and `computeFrenetFrames` (`frames.ts`) port
    `CatmullRomCurve3` (curve type `'catmullrom'`, tension 0.5), `Curve`'s arc-length table
@@ -248,7 +255,7 @@ Conventions:
 | Layer | Files | What it pins |
 |---|---|---|
 | Goldens | `tests/golden/workers.test.ts`, `tests/golden/editor.test.ts`; baselines in `tests/golden/__baselines__/` (8 suites) | Every output of the three workers for the 12 fixture presets of `tests/fixtures/presets.ts`, each view's wireframe and scene graph, the Cut & Glue worker fed with the views' real edge buffers, the `CutGlueResult` scene, and the workers' error replies. Arrays are stored as digests (`tests/helpers/digest.ts`): type, length, NaN and infinity counts, min, max, sum, sum of squares and a SHA-256 of the bytes. The worker shells run in-process (`tests/helpers/workerHarness.ts`). |
-| Parity | `tests/unit/workerParity.test.ts`, `tests/unit/workerCores.test.ts` | The workers' base, tail and sphere volumes against what the views draw; the cores' purity, and that each shell posts its core's result. |
+| Parity | `tests/unit/workerParity.test.ts`, `tests/unit/spiralParity.test.ts`, `tests/unit/workerCores.test.ts` | The workers' base, tail, sphere and spiral volumes against what the views draw, and the spiral wire against three.js's rotation; the cores' purity, and that each shell posts its core's result. |
 | Properties | `tests/unit/kernelProperties.test.ts` | Seeded random inputs checked against references that do not share the kernel's code: three.js for rotations, curves and frames (bit for bit), mesh invariants (closed, outward, finite) for marching cubes, step bounds for the flow lines, idempotence and two old exports (`tests/fixtures/exports/`) for `normalizePreset`. |
 | Kernel and model | `baseVolume`, `tailProfile`, `sphereFrame`, `sdfBounds`, `gridBounds`, `marchingCubes`, `flowField`, `clip`, `normalizePreset`, `presetFile` and `presetLimits` in `tests/unit/` | Each kernel module on its own (volumes, the width profile, lower bounds, grid bounds, meshing, level sets, clipping), and the preset's normalization, file reading and limits. |
 | Behaviour | the other files in `tests/unit/` | The stores and the history API, the controls, shortcuts, import, autosave, export, the engine's lifecycle, jobs, drag and visibility, `WorkerClient`, resource leaks and view rebuilds. The `knownBugs.*` files started as expected failures (`it.fails`) asserting the correct behaviour; each fix commit flipped its test to `it`, and none is left. |

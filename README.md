@@ -33,7 +33,7 @@ whose landing page draws the exported clouds as drifting wireframes
   copy-paste loader snippet for the landing page.
 - **Autosave** to the browser's localStorage, restored on the next visit with a Discard option.
 - The flow cloud, Cut & Glue and the surface mesh run in three Web Workers, on a geometry kernel
-  (`src/geometry`) that also builds the editor's base and tail wireframes.
+  (`src/geometry`) that also builds the editor's base, tail and spiral wireframes.
 - Every toolbar and panel control can be reached and used from the keyboard and has an accessible
   name.
 
@@ -100,7 +100,7 @@ src/
 │   ├── defaults.ts              DEFAULT_PRESET, PRESET_VERSION (2), one factory per primitive
 │   ├── normalize.ts             normalizePreset: any version or partial preset to a complete one
 │   └── presetFile.ts            reading a preset from JSON, with the reason when it is refused
-├── geometry/                    the kernel the workers run and the base and tail views draw from
+├── geometry/                    the kernel the workers run and the base, tail and spiral views draw from
 │   ├── vec3.ts                  vector operations, computed as three.js's Vector3 does
 │   ├── mat3.ts                  the Euler XYZ rotation matrix, as three.js's Matrix4 computes it
 │   ├── catmullRom.ts            the Catmull-Rom curve with arc-length parametrisation (three r183)
@@ -117,7 +117,7 @@ src/
 │       ├── sphere.ts            sphere frame, signed distance, inside test, metaball term
 │       ├── base.ts              base curve and path, attachment point, BaseVolume
 │       ├── tail.ts              attachment, width profile, tail path and spine, TailVolume
-│       └── spiral.ts            thick-spiral samples and SpiralVolume
+│       └── spiral.ts            spiral samples, the wire SpiralMesh draws, SpiralVolume
 ├── workers/
 │   ├── protocol.ts              request and response types of the three workers
 │   ├── core/                    each worker's computation, a pure function of its request

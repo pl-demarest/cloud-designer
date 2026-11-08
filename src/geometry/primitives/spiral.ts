@@ -1,13 +1,29 @@
 /**
- * The spiral primitive's volume (thick spirals only): a rounded rectangle swept along the
- * spiral path.
+ * The spiral primitive: its path samples (sampleSpiral), the wire SpiralMesh draws from them
+ * (spiralWire), and, for a thick spiral, the solid the surface mesh unions (buildSpiralVolume,
+ * spiralSDF): a rounded rectangle swept along the path.
  */
 
 import type { SpiralDef } from '../../model/types';
 import { BOUND_SLACK, boxDistance, emptyBox, expandBox, type Box } from '../bounds';
 import { eulerXYZ } from '../mat3';
+import { Float32Builder } from '../arrayBuilder';
+
+/** Path samples per full turn, in the editor's wire and in the surface mesh alike. */
+export const SPIRAL_SAMPLES_PER_TURN = 64;
+
+/** A corner radius below this is drawn, and modelled, as a sharp corner. */
+export const MIN_CORNER_RADIUS = 0.001;
 
 export interface SpiralSample {
+  /** In the spiral's own frame (before its rotation and position): the path point at angle
+   *  theta, r (cos theta, sin theta), in the plane z = 0, and the radial direction
+   *  (cos theta, sin theta). */
+  x: number; y: number;
+  cos: number; sin: number;
+  /** The separation here: a flat spiral's second curve, and the far side of a thick spiral's
+   *  section, lie at z = sep in the spiral's frame. */
+  sep: number;
   cx: number; cy: number; cz: number;   // center (world space)
   rx: number; ry: number; rz: number;   // radial direction (world)
   halfThick: number;
@@ -17,22 +33,32 @@ export interface SpiralSample {
   cornerRadius: number;
 }
 
-/** A corner radius below this is drawn, and modelled, as a sharp corner. */
-export const MIN_CORNER_RADIUS = 0.001;
+/**
+ * (x, y, z) of the spiral's frame in world space, written to out[at..at + 2]: rotated by `m`
+ * (eulerXYZ of its rotation, row-major) and moved by `o`, as three's Vector3.applyMatrix4 with
+ * Matrix4.makeRotationFromEuler, then add, computes it. The matrix's zero translation and its last
+ * row (0, 0, 0, 1) stay in the sums, as in three, because adding a zero can turn a -0 into a 0.
+ */
+function toWorld(m: Float64Array, o: readonly [number, number, number], x: number, y: number, z: number, out: Float64Array, at: number): void {
+  const w = 1 / (0 * x + 0 * y + 0 * z + 1);
+  out[at] = (m[0] * x + m[1] * y + m[2] * z + 0) * w + o[0];
+  out[at + 1] = (m[3] * x + m[4] * y + m[5] * z + 0) * w + o[1];
+  out[at + 2] = (m[6] * x + m[7] * y + m[8] * z + 0) * w + o[2];
+}
 
-/** Pre-sample a spiral into world-space cross-section frames.
- *  Only produces samples for thick spirals (thickness > 0). */
-export function sampleSpiral(def: SpiralDef, samplesPerTurn: number): SpiralSample[] {
-  const thickness = def.thickness;
-  if (thickness <= 0) return [];
-
+/**
+ * The spiral's path at turns * samplesPerTurn + 1 equal steps of angle (at least 3), flat or
+ * thick: what SpiralMesh draws and the surface mesh models. Empty for a spiral of no turns
+ * (below 0.001 rad) or no outer radius.
+ */
+export function sampleSpiral(def: SpiralDef, samplesPerTurn = SPIRAL_SAMPLES_PER_TURN): SpiralSample[] {
   const maxTheta = def.turns * Math.PI * 2;
   if (maxTheta < 0.001 || def.endRadius <= 0) return [];
 
   const N = Math.max(2, Math.round(def.turns * samplesPerTurn));
   const startR = Math.max(def.startRadius, 0.001);
   const endR = Math.max(def.endRadius, startR + 0.001);
-  const halfThick = thickness / 2;
+  const halfThick = def.thickness / 2;
   const cornerR = def.cornerRadius;
 
   const getRadius = (theta: number): number => {
@@ -44,10 +70,10 @@ export function sampleSpiral(def: SpiralDef, samplesPerTurn: number): SpiralSamp
   };
 
   // The rotation SpiralMesh applies (Euler XYZ, as three's makeRotationFromEuler computes it),
-  // row-major, for the local frame vectors.
-  const [r00, r01, r02, r10, r11, r12, r20, r21, r22] = eulerXYZ(def.rotation[0], def.rotation[1], def.rotation[2]);
-
-  const ox = def.position[0], oy = def.position[1], oz = def.position[2];
+  // row-major.
+  const m = eulerXYZ(def.rotation[0], def.rotation[1], def.rotation[2]);
+  const [r00, r01, r02, r10, r11, r12, r20, r21, r22] = m;
+  const centre = new Float64Array(3);
 
   const samples: SpiralSample[] = [];
   for (let i = 0; i <= N; i++) {
@@ -57,28 +83,20 @@ export function sampleSpiral(def: SpiralDef, samplesPerTurn: number): SpiralSamp
     const sinT = Math.sin(theta);
     const taper = def.taperPower === 0 ? 1.0 : Math.pow(r / endR, def.taperPower);
     const sep = def.separation * taper;
+    const x = r * cosT;
+    const y = r * sinT;
 
-    // Local-space center of the cross-section rectangle
-    const lcx = r * cosT;
-    const lcy = r * sinT;
-    const lcz = sep / 2; // midpoint between z=0 and z=sep
-
-    // Local-space frame:
-    // radial direction (thickness axis): (cosT, sinT, 0)
-    const lrx = cosT, lry = sinT, lrz = 0;
-
-    // Rotate center + axes to world space
-    const wcx = r00*lcx + r01*lcy + r02*lcz + ox;
-    const wcy = r10*lcx + r11*lcy + r12*lcz + oy;
-    const wcz = r20*lcx + r21*lcy + r22*lcz + oz;
-
-    const wrx = r00*lrx + r01*lry + r02*lrz;
-    const wry = r10*lrx + r11*lry + r12*lrz;
-    const wrz = r20*lrx + r21*lry + r22*lrz;
+    // The section's centre, midway between z = 0 and z = sep, and the radial direction
+    // (cosT, sinT, 0), in world space.
+    toWorld(m, def.position, x, y, sep / 2, centre, 0);
+    const wrx = r00 * cosT + r01 * sinT + r02 * 0;
+    const wry = r10 * cosT + r11 * sinT + r12 * 0;
+    const wrz = r20 * cosT + r21 * sinT + r22 * 0;
 
     const cr = Math.min(cornerR, Math.min(halfThick, sep / 2));
     samples.push({
-      cx: wcx, cy: wcy, cz: wcz,
+      x, y, cos: cosT, sin: sinT, sep,
+      cx: centre[0], cy: centre[1], cz: centre[2],
       rx: wrx, ry: wry, rz: wrz,
       halfThick,
       halfSep: sep / 2,
@@ -86,6 +104,99 @@ export function sampleSpiral(def: SpiralDef, samplesPerTurn: number): SpiralSamp
     });
   }
   return samples;
+}
+
+/** Segments per quarter circle of a rounded section corner. */
+const ARC_SEGMENTS = 4;
+
+/**
+ * The wire SpiralMesh draws for `def`, from its samples (sampleSpiral(def)), as world-space
+ * x,y,z,x,y,z segment pairs.
+ *
+ * - Flat (thickness 0 or less): the path in the plane z = 0 and its copy at z = sep, then a rung
+ *   between them at each of turns * rungDensity + 1 samples evenly spread over the path.
+ * - Thick: the four corner curves of the section (inner and outer edge at z = 0, outer and inner
+ *   at z = sep), then a section ring at those samples: four straight sides where the corner
+ *   radius is 0, else a rounded rectangle of ARC_SEGMENTS segments per corner. The corner
+ *   curves stay sharp; only the rings are rounded.
+ */
+export function spiralWire(def: SpiralDef, samples: readonly SpiralSample[]): Float32Array {
+  const out = new Float32Builder();
+  const N = samples.length - 1;
+  if (N < 1) return out.toArray();
+  const m = eulerXYZ(def.rotation[0], def.rotation[1], def.rotation[2]);
+  const o = def.position;
+  const rings = Math.max(1, Math.round(def.turns * def.rungDensity));
+  // The sample of rung or ring j, of rings + 1 spread evenly over the path.
+  const ringIndex = (j: number) => Math.min(Math.round((j / rings) * N), N);
+  const segment = (a: Float64Array, i: number, b: Float64Array, k: number) => {
+    out.push3(a[i], a[i + 1], a[i + 2]);
+    out.push3(b[k], b[k + 1], b[k + 2]);
+  };
+
+  if (!(def.thickness > 0)) {
+    // The two curves, at z = 0 and z = sep.
+    const p1 = new Float64Array(3 * (N + 1));
+    const p2 = new Float64Array(3 * (N + 1));
+    samples.forEach((s, i) => {
+      toWorld(m, o, s.x, s.y, 0, p1, 3 * i);
+      toWorld(m, o, s.x, s.y, s.sep, p2, 3 * i);
+    });
+    for (const curve of [p1, p2]) for (let i = 0; i < N; i++) segment(curve, 3 * i, curve, 3 * i + 3);
+    for (let j = 0; j <= rings; j++) {
+      const i = 3 * ringIndex(j);
+      segment(p1, i, p2, i);
+    }
+    return out.toArray();
+  }
+
+  // The section's corners: inner and outer edge at z = 0, outer and inner at z = sep.
+  const corners = [0, 1, 2, 3].map(() => new Float64Array(3 * (N + 1)));
+  const [pa, pb, pc, pd] = corners;
+  samples.forEach((s, i) => {
+    const h = s.halfThick;
+    toWorld(m, o, s.x - h * s.cos, s.y - h * s.sin, 0, pa, 3 * i);
+    toWorld(m, o, s.x + h * s.cos, s.y + h * s.sin, 0, pb, 3 * i);
+    toWorld(m, o, s.x + h * s.cos, s.y + h * s.sin, s.sep, pc, 3 * i);
+    toWorld(m, o, s.x - h * s.cos, s.y - h * s.sin, s.sep, pd, 3 * i);
+  });
+  for (const curve of corners) for (let i = 0; i < N; i++) segment(curve, 3 * i, curve, 3 * i + 3);
+
+  const ring = new Float64Array(3 * 4 * (ARC_SEGMENTS + 1));
+  for (let j = 0; j <= rings; j++) {
+    const idx = ringIndex(j);
+    const s = samples[idx];
+    const i = 3 * idx;
+    const cr = s.cornerRadius;
+    if (cr === 0) {
+      segment(pa, i, pb, i);
+      segment(pb, i, pc, i);
+      segment(pc, i, pd, i);
+      segment(pd, i, pa, i);
+      continue;
+    }
+    // A rounded rectangle in the section's own coordinates (radial, along z from its centre),
+    // corner by corner counter-clockwise from the inner edge at z = 0, then into world space.
+    const hx = s.halfThick;
+    const hy = s.sep / 2;
+    const arcs: Array<[number, number, number, number]> = [
+      [-hx + cr, -hy + cr, Math.PI, Math.PI * 1.5],
+      [hx - cr, -hy + cr, Math.PI * 1.5, Math.PI * 2],
+      [hx - cr, hy - cr, 0, Math.PI * 0.5],
+      [-hx + cr, hy - cr, Math.PI * 0.5, Math.PI],
+    ];
+    let n = 0;
+    for (const [ccx, ccy, startA, endA] of arcs) {
+      for (let k = 0; k <= ARC_SEGMENTS; k++) {
+        const a = startA + (endA - startA) * (k / ARC_SEGMENTS);
+        const lr = ccx + cr * Math.cos(a);
+        const ls = ccy + cr * Math.sin(a);
+        toWorld(m, o, s.x + lr * s.cos, s.y + lr * s.sin, hy + ls, ring, 3 * n++);
+      }
+    }
+    for (let k = 0; k < n; k++) segment(ring, 3 * k, ring, 3 * ((k + 1) % n));
+  }
+  return out.toArray();
 }
 
 /** 2D rounded-rectangle SDF.

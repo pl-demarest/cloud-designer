@@ -102,10 +102,8 @@ export function generateSurfaceMesh(input: SurfaceMeshRequest): SurfaceMeshResul
   const fcTail = fcInput ? attachedTail(fcInput.tail, fcInput.base) : null;
   const fcTailSamples = fcInput && fcTail && fcInput.flowCloud.tailStrength > 0 ? sampleTailSpine(fcTail) : [];
 
-  // Sample spirals (only thick ones produce samples)
-  const allSpiralSamples: SpiralSample[][] = spirals.map(
-    (sp) => sampleSpiral(sp, 64)
-  );
+  // Sample the thick spirals; a flat ribbon has no volume.
+  const allSpiralSamples: SpiralSample[][] = spirals.filter((sp) => sp.thickness > 0).map((sp) => sampleSpiral(sp));
 
   // Compute bounding box from all primitives
   const box = emptyBox();
