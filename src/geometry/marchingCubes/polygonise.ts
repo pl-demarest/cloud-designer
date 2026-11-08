@@ -77,7 +77,10 @@ EDGE_PAIRS.forEach(([a, b], e) => {
 
 /**
  * Triangulates the iso-surface of `field` on `grid`: a node whose value is >= iso is inside.
- * Triangles keep TRI_TABLE's vertex order.
+ * Triangles wind counterclockwise seen from outside, so their front faces (three.js's default)
+ * face out. TRI_TABLE turns each triangle's front face towards the corners whose bit is set,
+ * which three.js sets for outside corners and this function for inside ones, so every triangle
+ * is emitted with its second and third vertex swapped.
  *
  * Cubes share vertices: the vertex on a grid edge is interpolated once, from the edge's lower
  * node towards its upper node, and every cube that uses the edge gets its index. The indices are
@@ -166,7 +169,7 @@ export function polygonise(
           const v0 = edgeVertex(triList[t]);
           const v1 = edgeVertex(triList[t + 1]);
           const v2 = edgeVertex(triList[t + 2]);
-          indices.push3(v0, v1, v2);
+          indices.push3(v0, v2, v1);
         }
       }
     }

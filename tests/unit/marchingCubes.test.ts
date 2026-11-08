@@ -2,8 +2,8 @@ import { describe, expect, test } from 'vitest'
 import { fillField, gridFromBounds, polygonise } from '../../src/geometry/marchingCubes/polygonise'
 import { generateFlowCloud } from '../../src/workers/core/flowCloud'
 import { generateSurfaceMesh } from '../../src/workers/core/surfaceMesh'
-import { FIXTURE_NAMES, fixture, marchingCubesMessage, surfaceMeshMessage } from '../fixtures/presets'
-import { edgeUse } from '../helpers/mesh'
+import { FIXTURE_NAMES, fixture, marchingCubesMessage, surfaceMeshMessage, type FixtureName } from '../fixtures/presets'
+import { edgeUse, signedVolume } from '../helpers/mesh'
 
 /** Marching cubes (src/geometry/marchingCubes/polygonise.ts) on analytic fields and on the workers' meshes. */
 
@@ -51,6 +51,13 @@ describe('polygonise', () => {
     }
   })
 
+  test("a sphere's triangles face outward: positive signed volume, close to 4/3 pi", () => {
+    const { positions, indices } = sphere(1, 24)
+    const volume = signedVolume(positions, indices)
+    expect(volume).toBeGreaterThan(0)
+    expect(volume / ((4 / 3) * Math.PI)).toBeCloseTo(1, 1)
+  })
+
   test('a surface cut open by the grid boundary is open only along the boundary', () => {
     const { grid, positions, indices } = sphere(1.7, 24)
     const { notShared } = edgeUse(indices)
@@ -68,17 +75,30 @@ describe('polygonise', () => {
 })
 
 describe('worker meshes', () => {
+  /** Each fixture's flow-cloud and surface meshes, computed once. */
+  const cache = new Map<FixtureName, Array<{ positions: Float32Array; indices: Uint32Array }>>()
+  function meshes(name: FixtureName) {
+    if (!cache.has(name)) {
+      const flowCloud = generateFlowCloud(marchingCubesMessage(fixture(name)))
+      const surface = generateSurfaceMesh(surfaceMeshMessage(fixture(name)))
+      cache.set(name, [{ positions: flowCloud.vertices, indices: flowCloud.indices }, surface])
+    }
+    return cache.get(name)!
+  }
+
   // None of the fixtures' surfaces reaches its grid's boundary, so each mesh is closed.
   for (const name of FIXTURE_NAMES) {
     test(`${name}: every flow-cloud and surface-mesh edge is shared by two triangles, in opposite directions`, () => {
-      const flowCloud = generateFlowCloud(marchingCubesMessage(fixture(name)))
-      const surface = generateSurfaceMesh(surfaceMeshMessage(fixture(name)))
-      for (const indices of [flowCloud.indices, surface.indices]) {
+      for (const { indices } of meshes(name)) {
         expect(indices.length).toBeGreaterThan(0)
         const use = edgeUse(indices)
         expect(use.notShared).toEqual([])
         expect(use.sameDirection).toBe(0)
       }
+    })
+
+    test(`${name}: the flow-cloud and surface meshes face outward (positive signed volume)`, () => {
+      for (const { positions, indices } of meshes(name)) expect(signedVolume(positions, indices)).toBeGreaterThan(0)
     })
   }
 })

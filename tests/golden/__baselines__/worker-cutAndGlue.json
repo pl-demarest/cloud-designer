@@ -522,8 +522,8 @@
         "min": -2.324742555618286,
         "max": 2.4096579551696777,
         "sum": 131.92436987906694,
-        "sumSq": 2335.057073601282,
-        "sha256": "0c40d40476f5a3c91984ff0d2ae1ccebce4159db6b74bd81e0c7d31147fbc86d"
+        "sumSq": 2335.057073601281,
+        "sha256": "1a2ca08eef40643a1cd838cb1a3f489c54cd527edd0d5ddf0b5d7f8ed1839d26"
       }
     },
     "output": {
@@ -539,7 +539,7 @@
         "max": 4.2687668800354,
         "sum": 3894.1958329107147,
         "sumSq": 27497.81212011772,
-        "sha256": "6357eaac75f8c9e6178421a115bccf1a312860849bafd9e86034f4b21f2c1b7e"
+        "sha256": "8ab17b3f3f4c1c3865573c0b7e41730baa5745639ee3f45c9f629841da9e874a"
       },
       "transferIsOutputBuffer": true
     }
