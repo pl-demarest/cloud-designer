@@ -195,9 +195,11 @@ Conventions:
   client also turns the worker's `error` event into a failed job: the flow-cloud shell reads the
   message's fields outside its `try`, so a `null` or `undefined` message reaches that path. An
   error reply is logged with `console.error`, and the failure is kept in `uiStore.jobs[kind]`
-  until the next request. An `error` event with no request in flight means the worker failed to
-  start (its chunk did not load): the client logs it and fails every later request at once with
-  that message, so the panel shows why instead of "Working..." for good.
+  until the next request. An `error` event before the worker's first answer means it failed to
+  start (its chunk did not load; requests posted while it loaded wait for it), and one with no
+  request in flight means it died between jobs: the client logs it and fails the open requests and
+  every later one at once with that message, so the panel shows why instead of "Working..." for
+  good. Once the worker has answered, its `error` event fails only the job in flight.
 - The worker goldens record each result's keys and transfer list, so a change to a message's shape
   shows in `tests/golden/__baselines__/worker-*.json`.
 

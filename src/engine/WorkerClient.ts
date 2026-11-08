@@ -31,9 +31,11 @@ interface Pending<Req, Res> {
  * worker's next reply belongs to it. A request made while one is in flight waits and is posted
  * when that one's reply arrives; a newer request replaces a waiting one, so the latest wins. A
  * reply to a request that a newer one has superseded is dropped. An { error } reply, or the
- * worker's error event, fails the job with its message; an error event with no request in flight
- * means the worker failed to start (its script did not load), and every request from then on
- * fails at once with that message. request() resolves with the outcome.
+ * worker's error event once it has answered, fails the job with its message. An error event
+ * before the worker's first answer means it failed to start (its script did not load; requests
+ * posted while it loaded wait for it), and one with no request in flight means it died between
+ * jobs: either way it will answer nothing, so the open requests and every request from then on
+ * fail at once with that message. request() resolves with the outcome.
  * cancel() ends every open request at once (the editor's preset was replaced): the reply of the
  * one in flight is dropped when it comes, and a request made after waits for it.
  */
@@ -44,22 +46,30 @@ export class WorkerClient<Req, Res extends object> {
   private inFlight: Pending<Req, Res> | null = null;
   private waiting: Pending<Req, Res> | null = null;
   private current: JobState = IDLE_JOB;
-  /** Why the worker cannot answer: it failed with no request in flight. */
+  /** Why the worker cannot answer: it failed to start, or died between jobs. */
   private broken: string | null = null;
+  /** The worker has answered once, so its script loaded and runs. */
+  private started = false;
 
   constructor(worker: Worker, options: WorkerClientOptions<Req, Res>) {
     this.worker = worker;
     this.options = options;
-    worker.onmessage = (e: MessageEvent<Res | WorkerError>) => this.onReply(e.data);
+    worker.onmessage = (e: MessageEvent<Res | WorkerError>) => {
+      this.started = true;
+      this.onReply(e.data);
+    };
     worker.onerror = (e: ErrorEvent) => {
       const error = e.message || `${options.name} worker failed`;
-      if (this.inFlight) {
+      if (this.inFlight && this.started) {
+        // The job of a running worker failed; the worker takes the next one.
         this.onReply({ error });
         return;
       }
-      // Nothing to answer: the worker died before or between jobs, and would answer nothing more.
+      // The worker failed to start, with or without requests waiting for it, or died between
+      // jobs: it will answer nothing more.
       console.error(`${options.name} worker failed to start:`, error);
       this.broken = error;
+      this.failOpenRequests(error);
     };
   }
 
@@ -112,6 +122,22 @@ export class WorkerClient<Req, Res extends object> {
     this.waiting?.settle({ status: 'superseded' });
     this.inFlight = null;
     this.waiting = null;
+  }
+
+  /**
+   * Ends the requests a broken worker will not answer: the latest (the one waiting, else the one
+   * in flight) fails with `error`, unless cancel() already ended it, and the one in flight before
+   * a waiting one is superseded, as a newer request supersedes it.
+   */
+  private failOpenRequests(error: string): void {
+    const { inFlight, waiting } = this;
+    this.inFlight = null;
+    this.waiting = null;
+    if (waiting) inFlight?.settle({ status: 'superseded' });
+    const latest = waiting ?? inFlight;
+    if (!latest || latest.cancelled) return;
+    this.setState({ status: 'failed', requestId: latest.id, error });
+    latest.settle({ status: 'failed', error });
   }
 
   private post(pending: Pending<Req, Res>): void {

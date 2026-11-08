@@ -101,22 +101,72 @@ describe('WorkerClient', () => {
     expect(c.state).toEqual({ status: 'running', requestId: 2, error: null })
   })
 
-  test("the worker's error event fails the in-flight request and lets a waiting one run", async () => {
+  test("once the worker has answered, its error event fails the in-flight request and lets a waiting one run", async () => {
     const { c, worker } = client()
     vi.spyOn(console, 'error').mockImplementation(() => {})
+    // A first answer: the worker's script loaded and runs.
+    const started = c.request({ n: 0 })
+    worker.reply({ doubled: 0 })
+    expect(await started).toEqual({ status: 'done', result: { doubled: 0 } })
+
     const first = c.request({ n: 1 })
-    worker.fail('Uncaught SyntaxError')
-    expect(await first).toEqual({ status: 'failed', error: 'Uncaught SyntaxError' })
-    expect(c.state.error).toBe('Uncaught SyntaxError')
+    worker.fail('Uncaught TypeError')
+    expect(await first).toEqual({ status: 'failed', error: 'Uncaught TypeError' })
+    expect(c.state.error).toBe('Uncaught TypeError')
 
     const second = c.request({ n: 2 })
     const third = c.request({ n: 3 })
-    worker.fail('Uncaught SyntaxError')
+    worker.fail('Uncaught TypeError')
     expect(await second, 'superseded: its failure is not reported').toEqual({ status: 'superseded' })
-    expect(c.state).toEqual({ status: 'running', requestId: 3, error: null })
-    expect(worker.posted).toEqual([{ n: 1 }, { n: 2 }, { n: 3 }])
+    expect(c.state).toEqual({ status: 'running', requestId: 4, error: null })
+    expect(worker.posted).toEqual([{ n: 0 }, { n: 1 }, { n: 2 }, { n: 3 }])
     worker.reply({ doubled: 6 })
     expect(await third).toEqual({ status: 'done', result: { doubled: 6 } })
+  })
+
+  /** The outcome of `p` if it settles within 50 ms, else 'pending'. */
+  const within50ms = <T,>(p: Promise<T>) =>
+    Promise.race([p, new Promise<'pending'>((resolve) => setTimeout(() => resolve('pending'), 50))])
+
+  describe('cdx-03: a worker whose script fails to load after requests were posted to it (they wait while it loads)', () => {
+    const LOAD_ERROR = 'Failed to fetch dynamically imported module'
+
+    test('the request in flight fails, and every later one fails at once instead of waiting for good', async () => {
+      const { c, worker } = client()
+      const logged = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const first = c.request({ n: 1 })
+      worker.fail(LOAD_ERROR)
+      expect(logged, 'the failure is logged when it happens').toHaveBeenCalled()
+      expect(await first).toEqual({ status: 'failed', error: LOAD_ERROR })
+      expect(c.state).toEqual({ status: 'failed', requestId: 1, error: LOAD_ERROR })
+      expect(await within50ms(c.request({ n: 2 })), 'the next request').toEqual({ status: 'failed', error: LOAD_ERROR })
+      expect(c.state).toEqual({ status: 'failed', requestId: 2, error: LOAD_ERROR })
+      expect(worker.posted, 'nothing more is posted to the dead worker').toEqual([{ n: 1 }])
+    })
+
+    test('a request waiting behind the one in flight fails too, and is not posted', async () => {
+      const { c, worker } = client()
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      const first = c.request({ n: 1 })
+      const second = c.request({ n: 2 })
+      worker.fail(LOAD_ERROR)
+      expect(await first).toEqual({ status: 'superseded' })
+      expect(await within50ms(second)).toEqual({ status: 'failed', error: LOAD_ERROR })
+      expect(c.state).toEqual({ status: 'failed', requestId: 2, error: LOAD_ERROR })
+      expect(worker.posted).toEqual([{ n: 1 }])
+    })
+
+    test('after cancel(), the job stays idle and the next request fails at once', async () => {
+      const { c, worker, states } = client()
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      void c.request({ n: 1 })
+      c.cancel()
+      worker.fail(LOAD_ERROR)
+      expect(c.state.status, 'a cancelled job reports nothing').toBe('idle')
+      expect(await within50ms(c.request({ n: 2 }))).toEqual({ status: 'failed', error: LOAD_ERROR })
+      expect(states.map((s) => s.status)).toEqual(['running', 'idle', 'failed'])
+      expect(worker.posted).toEqual([{ n: 1 }])
+    })
   })
 
   test('cdx-03: a worker that fails before its first request (its script did not load) fails every request at once', async () => {
