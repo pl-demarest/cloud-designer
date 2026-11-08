@@ -118,6 +118,19 @@ describe('WorkerClient', () => {
     expect(await third).toEqual({ status: 'done', result: { doubled: 6 } })
   })
 
+  test('cdx-03: a worker that fails before its first request (its script did not load) fails every request at once', async () => {
+    const { c, worker, states } = client()
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {})
+    worker.fail('Failed to fetch dynamically imported module')
+    expect(logged, 'the failure is logged when it happens').toHaveBeenCalledTimes(1)
+    const outcome = c.request({ n: 1 })
+    expect(await outcome).toEqual({ status: 'failed', error: 'Failed to fetch dynamically imported module' })
+    expect(c.state).toEqual({ status: 'failed', requestId: 1, error: 'Failed to fetch dynamically imported module' })
+    expect(await c.request({ n: 2 }), 'and every later one').toMatchObject({ status: 'failed' })
+    expect(worker.posted, 'nothing is posted to the dead worker').toEqual([])
+    expect(states.map((s) => s.status)).toEqual(['failed', 'failed'])
+  })
+
   test('cancel() ends the open requests as superseded and drops the reply of the one in flight', async () => {
     const { c, worker, results } = client()
     const first = c.request({ n: 1 })

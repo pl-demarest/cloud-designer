@@ -43,7 +43,9 @@ interface Pending<Req, Res> {
  * worker's next reply belongs to it. A request made while one is in flight waits and is posted
  * when that one's reply arrives; a newer request replaces a waiting one, so the latest wins. A
  * reply to a request that a newer one has superseded is dropped. An { error } reply, or the
- * worker's error event, fails the job with its message. request() resolves with the outcome.
+ * worker's error event, fails the job with its message; an error event with no request in flight
+ * means the worker failed to start (its script did not load), and every request from then on
+ * fails at once with that message. request() resolves with the outcome.
  * cancel() ends every open request at once (the editor's preset was replaced): the reply of the
  * one in flight is dropped when it comes, and a request made after waits for it.
  */
@@ -54,12 +56,23 @@ export class WorkerClient<Req, Res extends object> {
   private inFlight: Pending<Req, Res> | null = null;
   private waiting: Pending<Req, Res> | null = null;
   private current: JobState = IDLE_JOB;
+  /** Why the worker cannot answer: it failed with no request in flight. */
+  private broken: string | null = null;
 
   constructor(worker: Worker, options: WorkerClientOptions<Req, Res>) {
     this.worker = worker;
     this.options = options;
     worker.onmessage = (e: MessageEvent<Res | WorkerError>) => this.onReply(e.data);
-    worker.onerror = (e: ErrorEvent) => this.onReply({ error: e.message || `${options.name} worker failed` });
+    worker.onerror = (e: ErrorEvent) => {
+      const error = e.message || `${options.name} worker failed`;
+      if (this.inFlight) {
+        this.onReply({ error });
+        return;
+      }
+      // Nothing to answer: the worker died before or between jobs, and would answer nothing more.
+      console.error(`${options.name} worker failed to start:`, error);
+      this.broken = error;
+    };
   }
 
   /** The latest request's state. */
@@ -70,6 +83,11 @@ export class WorkerClient<Req, Res extends object> {
   /** Sends `request`, or queues it behind the one in flight; returns how it ended. */
   request(request: Req): Promise<JobOutcome<Res>> {
     const id = this.nextId++;
+    if (this.broken !== null) {
+      const error = this.broken;
+      this.setState({ status: 'failed', requestId: id, error });
+      return Promise.resolve({ status: 'failed', error });
+    }
     return new Promise((settle) => {
       const pending: Pending<Req, Res> = { id, request, settle };
       if (this.inFlight) {
