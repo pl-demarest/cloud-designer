@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { DEFAULT_PRESET, PRESET_VERSION, makeBase, makeFlowCloud, makeSpiral, makeTail } from '../../src/model/defaults'
-import { MIN_DIMENSION, normalizePreset } from '../../src/model/normalize'
+import { normalizePreset, type NormalizeReport } from '../../src/model/normalize'
 import { RANGES, RESOLUTIONS, type NumberRange } from '../../src/model/ranges'
 
 /** Every object and array reachable from `v`. */
@@ -161,18 +161,63 @@ describe('normalizePreset', () => {
     expect(out.base).not.toHaveProperty('extra')
   })
 
-  test('clamps degenerate dimensions to MIN_DIMENSION so no volume divides by zero', () => {
+  test("clamps degenerate dimensions to their sliders' minimums so no volume divides by zero", () => {
     const raw = structuredClone(DEFAULT_PRESET)
     raw.base.crossSectionWidth = -1
     raw.base.crossSectionHeight = 0
     raw.spheres[0] = { ...raw.spheres[0], shape: 'ellipsoid', scale: [1, 0, -2] }
     raw.tail.setpoints[2].width = 0
+    const report: NormalizeReport = { clamped: 0 }
+    const out = normalizePreset(raw, report)
+    expect(out.base.crossSectionWidth).toBe(RANGES.base.crossSectionWidth.min)
+    expect(out.base.crossSectionHeight).toBe(RANGES.base.crossSectionHeight.min)
+    expect(out.spheres[0].scale).toEqual([1, 0.2, 0.2])
+    expect(out.tail.setpoints.map((s) => s.width)).toEqual([0.8, 0.4, 0.05])
+    expect(report.clamped).toBe(5)
+  })
+
+  test('clamps every number to its range, counting the finite ones it moved (refactor plan D11)', () => {
+    const raw = structuredClone(DEFAULT_PRESET)
+    raw.spheres[0] = { ...raw.spheres[0], position: [1e308, -1e308, 0], radius: 1e308, falloff: -1 }
+    raw.base.controlPoints[1] = [1e200, -60, 0]
+    raw.tail.setpoints[0] = { ...raw.tail.setpoints[0], position: [0, 0, 1e9], width: 7 }
+    raw.tail.curlAmount = -1
+    raw.tail.attachOffset = 2
+    raw.spirals = [makeSpiral('s', { turns: 30000, position: [100, 0, 0], separation: -1, thickness: 9, cornerRadius: 5 })]
+    raw.flowCloud = { ...raw.flowCloud, threshold: 0, tailStrength: 1e6, position: [21, -21, 0] }
+    raw.flowCloud.wireframe = { ...raw.flowCloud.wireframe, frontPoint: [-1e9, 0, 0], spiralTwist: 1e9 }
+    raw.surfaceMeshResolution = 1e9
+    const report: NormalizeReport = { clamped: 0 }
+    const out = normalizePreset(raw, report)
+    expect(out.spheres[0]).toMatchObject({ position: [8, -4, 0], radius: 3, falloff: 0.5 })
+    expect(out.base.controlPoints[1]).toEqual([50, -50, 0])
+    expect(out.tail.setpoints[0]).toMatchObject({ position: [0, 0, 50], width: 1.5 })
+    expect(out.tail).toMatchObject({ curlAmount: 0, attachOffset: 1 })
+    expect(out.spirals[0]).toMatchObject({ turns: 6, position: [8, 0, 0], separation: 0, thickness: 2, cornerRadius: 1 })
+    expect(out.flowCloud).toMatchObject({ threshold: 0.5, tailStrength: 10, position: [20, -20, 0] })
+    expect(out.flowCloud.wireframe).toMatchObject({ frontPoint: [-50, 0, 0], spiralTwist: Math.PI * 4 })
+    expect(out.surfaceMeshResolution).toBe(256)
+    expect(report.clamped).toBe(22)
+  })
+
+  test('wraps an Euler angle from outside -pi to pi by whole turns, keeping the rotation', () => {
+    const raw = structuredClone(DEFAULT_PRESET)
+    raw.spheres[0].rotation = [4, -7, Math.PI]
+    raw.spirals = [makeSpiral('s', { rotation: [2 * Math.PI + 0.5, 1e308, -Math.PI] })]
     const out = normalizePreset(raw)
-    expect(MIN_DIMENSION).toBe(1e-3)
-    expect(out.base.crossSectionWidth).toBe(1e-3)
-    expect(out.base.crossSectionHeight).toBe(1e-3)
-    expect(out.spheres[0].scale).toEqual([1, 1e-3, 1e-3])
-    expect(out.tail.setpoints.map((s) => s.width)).toEqual([0.8, 0.4, 1e-3])
+    const [a, b, c] = out.spheres[0].rotation
+    expect(a).toBeCloseTo(4 - 2 * Math.PI, 12)
+    expect(b).toBeCloseTo(-7 + 2 * Math.PI, 12)
+    expect(c, 'pi is in range').toBe(Math.PI)
+    const [d, e, f] = out.spirals[0].rotation
+    expect(d).toBeCloseTo(0.5, 12)
+    expect(Math.abs(e), 'finite and in range').toBeLessThanOrEqual(Math.PI)
+    expect(f).toBe(-Math.PI)
+  })
+
+  test('an imported spiral of 30,000 turns gets the Turns maximum, 6 (cd:review CDR-05)', () => {
+    const out = normalizePreset({ ...DEFAULT_PRESET, spirals: [makeSpiral('s', { turns: 30000 })] })
+    expect(out.spirals[0].turns).toBe(RANGES.spiral.turns.max)
   })
 
   test("rounds the whole-number fields and clamps them to their sliders' ranges", () => {

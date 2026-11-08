@@ -4,7 +4,7 @@
  * what the editor's panels cannot edit, with a message that says why.
  */
 
-import { normalizePreset } from './normalize';
+import { normalizePreset, type NormalizeReport } from './normalize';
 import type { CloudPreset } from './types';
 
 /** Why JSON could not be read as a preset. The message is written for the person importing. */
@@ -19,18 +19,19 @@ const PRESET_FIELDS = ['spheres', 'swirls', 'base', 'tail', 'spirals', 'flowClou
 export const MIN_PATH_POINTS = 2;
 
 /**
- * The preset in parsed JSON, normalized (normalizePreset: any version, defaults filled in).
- * Throws a PresetFileError when `raw` is not an object, has none of the preset fields, or has a
- * base with fewer than two control points or a tail with fewer than two setpoints.
+ * The preset in parsed JSON, normalized (normalizePreset: any version, defaults filled in, every
+ * number in its range, which `report` counts). Throws a PresetFileError when `raw` is not an
+ * object, has none of the preset fields, or has a base with fewer than two control points or a
+ * tail with fewer than two setpoints.
  */
-export function presetFromJson(raw: unknown): CloudPreset {
+export function presetFromJson(raw: unknown, report?: NormalizeReport): CloudPreset {
   if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
     throw new PresetFileError('it holds no cloud preset (the JSON is not an object).');
   }
   if (!PRESET_FIELDS.some((field) => field in raw)) {
     throw new PresetFileError('it holds no cloud preset (none of spheres, base, tail, spirals or flowCloud).');
   }
-  const preset = normalizePreset(raw);
+  const preset = normalizePreset(raw, report);
   if (preset.base.controlPoints.length < MIN_PATH_POINTS) {
     throw new PresetFileError(`its base has ${preset.base.controlPoints.length} control points; the editor needs at least ${MIN_PATH_POINTS}.`);
   }
@@ -41,12 +42,12 @@ export function presetFromJson(raw: unknown): CloudPreset {
 }
 
 /** presetFromJson of `text`; a PresetFileError also when the text is not JSON. */
-export function parsePresetJson(text: string): CloudPreset {
+export function parsePresetJson(text: string, report?: NormalizeReport): CloudPreset {
   let raw: unknown;
   try {
     raw = JSON.parse(text);
   } catch {
     throw new PresetFileError('it is not valid JSON.');
   }
-  return presetFromJson(raw);
+  return presetFromJson(raw, report);
 }

@@ -386,14 +386,19 @@ completed and corrected to a version-2 preset:
 - a missing or invalid field (wrong type, a number that is not finite, an unknown option) gets its
   default, a missing base or tail the default one, missing sphere and spiral lists are empty, and
   unknown fields are dropped;
-- segment counts, rung density and the band and flow-line counts are rounded and clamped to their
-  sliders' ranges, and the two resolutions become the nearest value their lists offer;
-- base cross-section sizes, ellipsoid scales and tail widths are at least 0.001.
+- every number is brought into the range its control has (the tables in this guide; base control
+  points, tail setpoints and the F and B anchors −50 to 50; `flowCloud.tailStrength` 0 to 10):
+  segment counts, rung density and the band and flow-line counts are rounded, then clamped; a
+  Rotate angle is taken by whole turns into −180° to 180°, which keeps the rotation; every other
+  number is clamped, and the two resolutions become the nearest value their lists offer. A value
+  of 1e308, for example, becomes the field's maximum. Every preset the editor saves is inside these
+  ranges, so it imports unchanged.
 
 A file is refused, and the preset left as it was, when it is not valid JSON, is not an object,
 holds none of the fields above, or ends up with a base of fewer than two control points or a tail
 of fewer than two setpoints. The notice says which ("Could not import <file>: …"); a successful
-import shows "Imported <file>.". An import is one undo step. It clears the generated flow cloud and
+import shows "Imported <file>.", and, when numbers were outside their ranges, how many ("4 values
+were outside the editor's ranges and clamped to them."). An import is one undo step. It clears the generated flow cloud and
 Cut & Glue result and regenerates nothing.
 
 ### Export
@@ -437,4 +442,4 @@ Glue again.
 ## Known limitations
 
 - `flowCloud.tailStrength`, the tail's weight in the flow cloud's field, has no control. It can be
-  set only in a preset file, then imported.
+  set only in a preset file (0 to 10), then imported.

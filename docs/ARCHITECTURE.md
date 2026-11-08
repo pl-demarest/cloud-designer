@@ -256,12 +256,14 @@ Conventions:
    width there (`tests/unit/gridBounds.test.ts`, at the sliders' limits).
 9. **Presets are normalized at the store's door.** Import, the autosave restore, undo and redo
    all go through `loadPreset`, which stores `normalizePreset(raw)`: version 2, every field set,
-   counts rounded into their sliders' ranges, resolutions taken from the offered lists, sizes at
-   least `MIN_DIMENSION` (0.001). The ranges and lists are those of `src/model/ranges.ts`, the
-   one range table the panels' sliders, number fields and selects read too
+   every number in its range in `src/model/ranges.ts` (counts rounded, then clamped; Euler angles
+   wrapped by whole turns; every other number clamped), resolutions taken from the offered lists.
+   It is the one range table the panels' sliders, number fields and selects read too
    (`tests/unit/presetLimits.test.tsx` renders each panel and checks every control against it).
    `normalizePreset` is idempotent (`kernelProperties.test.ts`: 3,000 mutated presets, the
-   fixtures and two old exports).
+   fixtures and two old exports), keeps every preset inside the table as it is, and so a preset
+   survives Export JSON and Import unchanged (400 random presets drawn inside the ranges).
+   Given a `NormalizeReport`, it counts the finite numbers it moved, which Import's notice states.
 
 ## Test layers
 

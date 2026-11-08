@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { afterEach, beforeEach, describe, expect, test } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { importPresetFile } from '../../src/ui/importPreset'
 import { NoticeBar } from '../../src/ui/NoticeBar'
@@ -8,6 +8,10 @@ import { useCloudStore } from '../../src/store/cloudStore'
 import { useHistoryStore } from '../../src/store/historyStore'
 import { useUiStore } from '../../src/store/uiStore'
 import { DEFAULT_PRESET } from '../../src/model/defaults'
+import { RANGES } from '../../src/model/ranges'
+import { SphereMesh } from '../../src/engine/views/SphereMesh'
+import { createViewportStub } from '../helpers/scene'
+import * as THREE from 'three'
 
 /** Import JSON: one undo step, a notice for the outcome, and the viewport as a drop target. */
 
@@ -57,6 +61,47 @@ describe('importPresetFile', () => {
     store().undo()
     expect(store().preset.base.closed, 'back to the edit, not past it').toBe(true)
     expect(store().preset.spheres).toHaveLength(3)
+  })
+})
+
+describe('a file with values outside the editor\'s ranges (C4 F7, plan decision D11)', () => {
+  const F7 = '{"spheres":[{"position":[1e308,-1e308,0],"radius":1e308}],"surfaceMeshResolution":1e9}'
+
+  test('imports clamped, with finite bounds and no console error, and the notice counts the clamped values', async () => {
+    const errors = vi.spyOn(console, 'error')
+    const mesh = new SphereMesh(createViewportStub())
+    try {
+      await importPresetFile(new File([F7], 'huge.json', { type: 'application/json' }))
+      const sphere = store().preset.spheres[0]
+      expect(sphere.position).toEqual([RANGES.sphere.position[0].max, RANGES.sphere.position[1].min, 0])
+      expect(sphere.radius).toBe(RANGES.sphere.radius.max)
+      expect(store().preset.surfaceMeshResolution).toBe(256)
+      expect(useUiStore.getState().notice).toEqual({
+        tone: 'info',
+        text: "Imported huge.json. 4 values were outside the editor's ranges and clamped to them.",
+      })
+      // The sphere's wire, as the renderer and the raycaster bound it.
+      const wire = mesh.getEdgesGrouped()
+      expect(wire).toHaveLength(1)
+      const geometry = new THREE.BufferGeometry()
+      geometry.setAttribute('position', new THREE.BufferAttribute(wire[0].edges, 3))
+      geometry.computeBoundingSphere()
+      expect(Number.isFinite(geometry.boundingSphere!.radius), 'finite bounds').toBe(true)
+      expect(errors, 'no console error').not.toHaveBeenCalled()
+    } finally {
+      mesh.dispose()
+      errors.mockRestore()
+    }
+  })
+
+  test('a file inside every range says nothing about clamping', async () => {
+    await importPresetFile(presetFile('fine.json'))
+    expect(useUiStore.getState().notice?.text).toBe('Imported fine.json.')
+  })
+
+  test('one value outside its range: the notice says one value', async () => {
+    await importPresetFile(presetFile('one.json', (p) => { p.base.crossSectionWidth = 9 }))
+    expect(useUiStore.getState().notice?.text).toBe("Imported one.json. 1 value was outside the editor's ranges and clamped to them.")
   })
 })
 

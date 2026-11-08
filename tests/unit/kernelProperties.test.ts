@@ -13,6 +13,8 @@ import { generateFlowCloud } from '../../src/workers/core/flowCloud'
 import { generateSurfaceMesh } from '../../src/workers/core/surfaceMesh'
 import { cutAndGlue } from '../../src/workers/core/cutAndGlue'
 import { normalizePreset } from '../../src/model/normalize'
+import { parsePresetJson } from '../../src/model/presetFile'
+import { RANGES, RESOLUTIONS, type NumberRange } from '../../src/model/ranges'
 import { DEFAULT_PRESET, makeSphere } from '../../src/model/defaults'
 import type { BaseDef, CloudPreset, SphereDef, TailSetpoint } from '../../src/model/types'
 import { FIXTURE_NAMES, THICK_SPIRAL, fixture, marchingCubesMessage, surfaceMeshMessage } from '../fixtures/presets'
@@ -544,6 +546,119 @@ describe('normalizePreset', () => {
       }
       expect(fc.flowLines.length).toBeGreaterThan(0)
       expect(fc.flowLines.every((l) => l.every(Number.isFinite))).toBe(true)
+    }
+  })
+})
+
+// ── The range table (refactor plan D11) ──────────────────────────────────────
+
+/** A value in `range`: its ends now and then, a whole number for a count, else anywhere between. */
+function inRange(rnd: () => number, range: NumberRange): number {
+  const u = rnd()
+  if (u < 0.08) return range.min
+  if (u < 0.16) return range.max
+  const x = range.min + rnd() * (range.max - range.min)
+  return range.integer ? Math.round(x) : x
+}
+
+function inRanges(rnd: () => number, range: NumberRange | readonly NumberRange[]): V3 {
+  return [0, 1, 2].map((i) => inRange(rnd, 'min' in range ? range : range[i])) as V3
+}
+
+function pick<T>(rnd: () => number, options: readonly T[]): T {
+  return options[Math.floor(rnd() * options.length)]
+}
+
+/** A preset with every number inside its range, as the editor's controls could set it. */
+function presetInRange(rnd: () => number, n: number): CloudPreset {
+  const S = RANGES.sphere, B = RANGES.base, T = RANGES.tail, P = RANGES.spiral, F = RANGES.flowCloud
+  const times = <X>(count: number, make: (i: number) => X) => Array.from({ length: count }, (_, i) => make(i))
+  return {
+    name: `cloud ${n} "é" <b>`,
+    version: 2,
+    spheres: times(Math.floor(rnd() * 5), (i) => ({
+      id: `s${n}-${i}`,
+      position: inRanges(rnd, S.position),
+      radius: inRange(rnd, S.radius),
+      falloff: inRange(rnd, S.falloff),
+      shape: pick(rnd, ['sphere', 'ellipsoid'] as const),
+      scale: inRanges(rnd, S.scale),
+      rotation: inRanges(rnd, S.rotation),
+      half: rnd() < 0.5,
+    })),
+    base: {
+      controlPoints: times(2 + Math.floor(rnd() * 5), () => inRanges(rnd, B.controlPoint)),
+      crossSectionWidth: inRange(rnd, B.crossSectionWidth),
+      crossSectionHeight: inRange(rnd, B.crossSectionHeight),
+      crossSectionShape: pick(rnd, ['oval', 'rect'] as const),
+      closed: rnd() < 0.3,
+      ringSegments: inRange(rnd, B.ringSegments),
+      lengthSegments: inRange(rnd, B.lengthSegments),
+    },
+    tail: {
+      setpoints: times(2 + Math.floor(rnd() * 4), (i) => ({
+        id: `t${n}-${i}`,
+        position: inRanges(rnd, T.setpointPosition),
+        width: inRange(rnd, T.width),
+      })),
+      curlAmount: inRange(rnd, T.curlAmount),
+      attachToBase: pick(rnd, ['start', 'end', 'none'] as const),
+      attachOffset: inRange(rnd, T.attachOffset),
+      radialSegments: inRange(rnd, T.radialSegments),
+      lengthSegments: inRange(rnd, T.lengthSegments),
+    },
+    spirals: times(Math.floor(rnd() * 3), (i) => ({
+      id: `p${n}-${i}`,
+      position: inRanges(rnd, P.position),
+      rotation: inRanges(rnd, P.rotation),
+      startRadius: inRange(rnd, P.startRadius),
+      endRadius: inRange(rnd, P.endRadius),
+      turns: inRange(rnd, P.turns),
+      separation: inRange(rnd, P.separation),
+      taperPower: inRange(rnd, P.taperPower),
+      rungDensity: inRange(rnd, P.rungDensity),
+      spiralType: pick(rnd, ['archimedean', 'golden'] as const),
+      thickness: inRange(rnd, P.thickness),
+      cornerRadius: inRange(rnd, P.cornerRadius),
+    })),
+    flowCloud: {
+      resolution: pick(rnd, RESOLUTIONS.flowCloud),
+      threshold: inRange(rnd, F.threshold),
+      smooth: rnd() < 0.5,
+      tailStrength: inRange(rnd, F.tailStrength),
+      position: inRanges(rnd, F.position),
+      wireframe: {
+        mode: pick(rnd, ['edges', 'spiral'] as const),
+        frontPoint: inRanges(rnd, F.anchor),
+        backPoint: inRanges(rnd, F.anchor),
+        numBands: inRange(rnd, F.numBands),
+        numFlowLines: inRange(rnd, F.numFlowLines),
+        spiralTwist: inRange(rnd, F.spiralTwist),
+        generateBands: rnd() < 0.5,
+        showBands: rnd() < 0.5,
+        showFlowLines: rnd() < 0.5,
+      },
+    },
+    surfaceMeshResolution: pick(rnd, RESOLUTIONS.surfaceMesh),
+  }
+}
+
+describe('presets inside the range table', () => {
+  const rnd = lcg(41)
+  const presets = Array.from({ length: 400 }, (_, n) => presetInRange(rnd, n))
+
+  test('normalizePreset keeps every one as it is and counts nothing clamped', () => {
+    for (const p of presets) {
+      const report = { clamped: 0 }
+      expect(normalizePreset(p, report), p.name).toEqual(p)
+      expect(report.clamped, p.name).toBe(0)
+    }
+  })
+
+  test('Export JSON, then Import, gives the same preset', () => {
+    for (const p of presets) {
+      const text = JSON.stringify(p, null, 2) // Export JSON Preset
+      expect(parsePresetJson(text), p.name).toEqual(p)
     }
   })
 })

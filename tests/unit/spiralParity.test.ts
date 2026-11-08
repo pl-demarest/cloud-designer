@@ -140,9 +140,10 @@ function referenceWire(def: SpiralDef): Float32Array | null {
 
 // ── What SpiralMesh draws ────────────────────────────────────────────────────
 
-/** The position array of the wire SpiralMesh draws for `def` (null without one). */
+/** The position array of the wire SpiralMesh draws for `def` (null without one). The store gets
+ *  `def` as it is, not through normalizePreset, which would bring a spiral of no turns into range. */
 function drawnWire(def: SpiralDef): Float32Array | null {
-  store().loadPreset({ ...store().preset, spirals: [def] })
+  useCloudStore.setState({ preset: { ...store().preset, spirals: [def] } })
   const vp = createViewportStub()
   const mesh = new SpiralMesh(vp)
   disposers.push(() => mesh.dispose())

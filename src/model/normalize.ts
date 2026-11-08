@@ -29,12 +29,11 @@ import { RANGES, RESOLUTIONS, type NumberRange } from './ranges';
 
 type Vec3 = [number, number, number];
 
-/**
- * The smallest base cross-section width or height, ellipsoid scale component and tail width.
- * A zero there divides by zero in the volumes and puts NaN vertices into the surface mesh.
- */
-export const MIN_DIMENSION = 1e-3;
-
+/** What normalizePreset changed to fit the editor's ranges, for the person importing. */
+export interface NormalizeReport {
+  /** Finite numbers outside their range (src/model/ranges.ts), clamped or wrapped into it. */
+  clamped: number;
+}
 
 type Fields = Record<string, unknown>;
 
@@ -51,24 +50,52 @@ function num(v: unknown, fallback: number): number {
   return typeof v === 'number' && Number.isFinite(v) ? v : fallback;
 }
 
-function dimension(v: unknown, fallback: number): number {
-  return Math.max(num(v, fallback), MIN_DIMENSION);
-}
+/** A full turn of an angle's range. */
+const TURN = Math.PI * 2;
 
-/** A whole number in `range` (the range table's, src/model/ranges.ts): v rounded, then clamped.
- *  Out of range, a base or tail segment count of 0 or below made the surface-mesh core throw
- *  inside the curve code. */
-function count(v: unknown, fallback: number, range: NumberRange): number {
-  return Math.min(Math.max(Math.round(num(v, fallback)), range.min), range.max);
-}
+/**
+ * Normalizes the numbers of one preset into their ranges, counting the finite ones it had to
+ * move. Every geometry kernel input stays finite and sized as the editor's controls make it: a
+ * finite but huge value (1e308) broke the curve code and left the editor blank, a zero size
+ * divided by zero in the volumes, a segment count of 0 or below made the surface-mesh core throw.
+ */
+class Ranger {
+  clamped = 0;
 
-/** The value in `values` (ascending) nearest to v, the smaller of two equally near. A
- *  fractional resolution made the cores throw allocating the grid. */
-function nearest(v: unknown, values: readonly number[], fallback: number): number {
-  const x = num(v, fallback);
-  let best = values[0];
-  for (const value of values) if (Math.abs(value - x) < Math.abs(best - x)) best = value;
-  return best;
+  /** A number in `range`: a whole-number field rounded, then clamped; an angle wrapped by whole
+   *  turns; any other clamped. A value that is not a finite number gets `fallback`. */
+  in(v: unknown, fallback: number, range: NumberRange): number {
+    const x = range.integer ? Math.round(num(v, fallback)) : num(v, fallback);
+    if (x >= range.min && x <= range.max) return x;
+    this.clamped++;
+    if (range.angle) {
+      // The remainder is exact; at most one more turn brings it into [min, max].
+      let a = x % TURN;
+      if (a > range.max) a -= TURN;
+      if (a < range.min) a += TURN;
+      return Math.min(Math.max(a, range.min), range.max);
+    }
+    return x < range.min ? range.min : range.max;
+  }
+
+  /** Three numbers, each in its range (one for all three, or one per axis), each falling back
+   *  separately. */
+  vec3(v: unknown, fallback: Vec3, range: NumberRange | readonly NumberRange[]): Vec3 {
+    const a = list(v);
+    const r = (i: number) => ('min' in range ? range : range[i]);
+    return [this.in(a[0], fallback[0], r(0)), this.in(a[1], fallback[1], r(1)), this.in(a[2], fallback[2], r(2))];
+  }
+
+  /** The value in `values` (ascending) nearest to v, the smaller of two equally near; a value
+   *  beyond either end counts as clamped. A fractional resolution made the cores throw allocating
+   *  the grid. */
+  nearest(v: unknown, values: readonly number[], fallback: number): number {
+    const x = num(v, fallback);
+    if (x < values[0] || x > values[values.length - 1]) this.clamped++;
+    let best = values[0];
+    for (const value of values) if (Math.abs(value - x) < Math.abs(best - x)) best = value;
+    return best;
+  }
 }
 
 function bool(v: unknown, fallback: boolean): boolean {
@@ -83,116 +110,115 @@ function oneOf<T extends string>(v: unknown, options: readonly T[], fallback: T)
   return options.find((o) => o === v) ?? fallback;
 }
 
-/** Three numbers, each component falling back separately. */
-function vec3(v: unknown, fallback: Vec3): Vec3 {
-  const a = list(v);
-  return [num(a[0], fallback[0]), num(a[1], fallback[1]), num(a[2], fallback[2])];
-}
-
-function normalizeSphere(raw: unknown, index: number): SphereDef {
+function normalizeSphere(raw: unknown, index: number, n: Ranger): SphereDef {
   const r = fields(raw);
   const d = makeSphere(`sphere-${index}`);
-  const scale = vec3(r.scale, d.scale);
+  const R = RANGES.sphere;
   return {
     id: str(r.id, d.id),
-    position: vec3(r.position, d.position),
-    radius: num(r.radius, d.radius),
-    falloff: num(r.falloff, d.falloff),
+    position: n.vec3(r.position, d.position, R.position),
+    radius: n.in(r.radius, d.radius, R.radius),
+    falloff: n.in(r.falloff, d.falloff, R.falloff),
     shape: oneOf(r.shape, ['sphere', 'ellipsoid'], d.shape),
-    // Clamped for every shape: the scale takes effect as soon as the panel switches to ellipsoid.
-    scale: [Math.max(scale[0], MIN_DIMENSION), Math.max(scale[1], MIN_DIMENSION), Math.max(scale[2], MIN_DIMENSION)],
-    rotation: vec3(r.rotation, d.rotation),
+    // In range for every shape: the scale takes effect as soon as the panel switches to ellipsoid.
+    scale: n.vec3(r.scale, d.scale, R.scale),
+    rotation: n.vec3(r.rotation, d.rotation, R.rotation),
     half: bool(r.half, d.half),
   };
 }
 
-function normalizeBase(raw: unknown): BaseDef {
+function normalizeBase(raw: unknown, n: Ranger): BaseDef {
   const r = fields(raw);
   const d = makeBase();
+  const R = RANGES.base;
   return {
     controlPoints: Array.isArray(r.controlPoints)
-      ? r.controlPoints.map((p) => vec3(p, [0, 0, 0]))
+      ? r.controlPoints.map((p) => n.vec3(p, [0, 0, 0], R.controlPoint))
       : d.controlPoints,
-    crossSectionWidth: dimension(r.crossSectionWidth, d.crossSectionWidth),
-    crossSectionHeight: dimension(r.crossSectionHeight, d.crossSectionHeight),
+    crossSectionWidth: n.in(r.crossSectionWidth, d.crossSectionWidth, R.crossSectionWidth),
+    crossSectionHeight: n.in(r.crossSectionHeight, d.crossSectionHeight, R.crossSectionHeight),
     crossSectionShape: oneOf(r.crossSectionShape, ['oval', 'rect'], d.crossSectionShape),
     closed: bool(r.closed, d.closed),
-    ringSegments: count(r.ringSegments, d.ringSegments, RANGES.base.ringSegments),
-    lengthSegments: count(r.lengthSegments, d.lengthSegments, RANGES.base.lengthSegments),
+    ringSegments: n.in(r.ringSegments, d.ringSegments, R.ringSegments),
+    lengthSegments: n.in(r.lengthSegments, d.lengthSegments, R.lengthSegments),
   };
 }
 
-function normalizeTailSetpoint(raw: unknown, index: number): TailSetpoint {
+function normalizeTailSetpoint(raw: unknown, index: number, n: Ranger): TailSetpoint {
   const r = fields(raw);
   const d = makeTailSetpoint(`tail-${index}`);
   return {
     id: str(r.id, d.id),
-    position: vec3(r.position, d.position),
-    width: dimension(r.width, d.width),
+    position: n.vec3(r.position, d.position, RANGES.tail.setpointPosition),
+    width: n.in(r.width, d.width, RANGES.tail.width),
   };
 }
 
-function normalizeTail(raw: unknown, fromVersion1: boolean): TailDef {
+function normalizeTail(raw: unknown, fromVersion1: boolean, n: Ranger): TailDef {
   const r = fields(raw);
   const d = makeTail();
+  const R = RANGES.tail;
   const attachToBase = oneOf(r.attachToBase, ['start', 'end', 'none'], d.attachToBase);
-  const attachOffset = num(r.attachOffset, d.attachOffset);
+  const attachOffset = n.in(r.attachOffset, d.attachOffset, R.attachOffset);
   return {
-    setpoints: Array.isArray(r.setpoints) ? r.setpoints.map(normalizeTailSetpoint) : d.setpoints,
-    curlAmount: num(r.curlAmount, d.curlAmount),
+    setpoints: Array.isArray(r.setpoints) ? r.setpoints.map((sp, i) => normalizeTailSetpoint(sp, i, n)) : d.setpoints,
+    curlAmount: n.in(r.curlAmount, d.curlAmount, R.curlAmount),
     attachToBase,
     // Version 1 attached 'start' like 'end', at attachOffset from the base's start. Version 2
     // measures 'start' from the other end, so the offset flips to keep the tail where it was.
     attachOffset: fromVersion1 && attachToBase === 'start' ? 1 - attachOffset : attachOffset,
-    radialSegments: count(r.radialSegments, d.radialSegments, RANGES.tail.radialSegments),
-    lengthSegments: count(r.lengthSegments, d.lengthSegments, RANGES.tail.lengthSegments),
+    radialSegments: n.in(r.radialSegments, d.radialSegments, R.radialSegments),
+    lengthSegments: n.in(r.lengthSegments, d.lengthSegments, R.lengthSegments),
   };
 }
 
-function normalizeSpiral(raw: unknown, index: number): SpiralDef {
+function normalizeSpiral(raw: unknown, index: number, n: Ranger): SpiralDef {
   const r = fields(raw);
   const d = makeSpiral(`spiral-${index}`);
+  const R = RANGES.spiral;
   return {
     id: str(r.id, d.id),
-    position: vec3(r.position, d.position),
-    rotation: vec3(r.rotation, d.rotation),
-    startRadius: num(r.startRadius, d.startRadius),
-    endRadius: num(r.endRadius, d.endRadius),
-    turns: num(r.turns, d.turns),
-    separation: num(r.separation, d.separation),
-    taperPower: num(r.taperPower, d.taperPower),
-    rungDensity: count(r.rungDensity, d.rungDensity, RANGES.spiral.rungDensity),
+    position: n.vec3(r.position, d.position, R.position),
+    rotation: n.vec3(r.rotation, d.rotation, R.rotation),
+    startRadius: n.in(r.startRadius, d.startRadius, R.startRadius),
+    endRadius: n.in(r.endRadius, d.endRadius, R.endRadius),
+    turns: n.in(r.turns, d.turns, R.turns),
+    separation: n.in(r.separation, d.separation, R.separation),
+    taperPower: n.in(r.taperPower, d.taperPower, R.taperPower),
+    rungDensity: n.in(r.rungDensity, d.rungDensity, R.rungDensity),
     spiralType: oneOf(r.spiralType, ['archimedean', 'golden'], d.spiralType),
-    thickness: num(r.thickness, d.thickness),
-    cornerRadius: num(r.cornerRadius, d.cornerRadius),
+    thickness: n.in(r.thickness, d.thickness, R.thickness),
+    cornerRadius: n.in(r.cornerRadius, d.cornerRadius, R.cornerRadius),
   };
 }
 
-function normalizeWireframe(raw: unknown, d: WireframeStyle): WireframeStyle {
+function normalizeWireframe(raw: unknown, d: WireframeStyle, n: Ranger): WireframeStyle {
   const r = fields(raw);
+  const R = RANGES.flowCloud;
   return {
     mode: oneOf(r.mode, ['edges', 'spiral'], d.mode),
-    frontPoint: vec3(r.frontPoint, d.frontPoint),
-    backPoint: vec3(r.backPoint, d.backPoint),
-    numBands: count(r.numBands, d.numBands, RANGES.flowCloud.numBands),
-    numFlowLines: count(r.numFlowLines, d.numFlowLines, RANGES.flowCloud.numFlowLines),
-    spiralTwist: num(r.spiralTwist, d.spiralTwist),
+    frontPoint: n.vec3(r.frontPoint, d.frontPoint, R.anchor),
+    backPoint: n.vec3(r.backPoint, d.backPoint, R.anchor),
+    numBands: n.in(r.numBands, d.numBands, R.numBands),
+    numFlowLines: n.in(r.numFlowLines, d.numFlowLines, R.numFlowLines),
+    spiralTwist: n.in(r.spiralTwist, d.spiralTwist, R.spiralTwist),
     generateBands: bool(r.generateBands, d.generateBands),
     showBands: bool(r.showBands, d.showBands),
     showFlowLines: bool(r.showFlowLines, d.showFlowLines),
   };
 }
 
-function normalizeFlowCloud(raw: unknown): FlowCloudSettings {
+function normalizeFlowCloud(raw: unknown, n: Ranger): FlowCloudSettings {
   const r = fields(raw);
   const d = makeFlowCloud();
+  const R = RANGES.flowCloud;
   return {
-    resolution: nearest(r.resolution, RESOLUTIONS.flowCloud, d.resolution),
-    threshold: num(r.threshold, d.threshold),
+    resolution: n.nearest(r.resolution, RESOLUTIONS.flowCloud, d.resolution),
+    threshold: n.in(r.threshold, d.threshold, R.threshold),
     smooth: bool(r.smooth, d.smooth),
-    tailStrength: num(r.tailStrength, d.tailStrength),
-    position: vec3(r.position, d.position),
-    wireframe: normalizeWireframe(r.wireframe, d.wireframe),
+    tailStrength: n.in(r.tailStrength, d.tailStrength, R.tailStrength),
+    position: n.vec3(r.position, d.position, R.position),
+    wireframe: normalizeWireframe(r.wireframe, d.wireframe, n),
   };
 }
 
@@ -205,28 +231,30 @@ function normalizeFlowCloud(raw: unknown): FlowCloudSettings {
  * - A missing or invalid field (wrong type, NaN, an unknown option) gets its default from the
  *   factories in ./defaults.ts: a missing base, tail or flow cloud is the default one, missing
  *   sphere and spiral lists are empty. Unknown fields are dropped.
- * - Base cross-section width and height, sphere scale components and tail widths are at least
- *   MIN_DIMENSION.
- * - Segment counts, rung density and the band and flow-line counts are rounded and clamped to
- *   their sliders' ranges (RANGES in ./ranges.ts); the two grid resolutions become the nearest
- *   value the editor offers (RESOLUTIONS). Every value the editor's controls produce is kept as
- *   it is.
+ * - Every number is brought into its range in the range table (./ranges.ts): whole-number fields
+ *   rounded, then clamped; Euler angles wrapped by whole turns into -pi to pi; every other number
+ *   clamped; the two grid resolutions taken to the nearest value the editor offers
+ *   (RESOLUTIONS). Every value the editor's controls produce is kept as it is, and `report`, when
+ *   given, counts the finite numbers that were outside their range.
  *
  * Throws a TypeError when `raw` is not an object.
  */
-export function normalizePreset(raw: unknown): CloudPreset {
+export function normalizePreset(raw: unknown, report?: NormalizeReport): CloudPreset {
   if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
     throw new TypeError('normalizePreset: a preset must be an object');
   }
   const r = raw as Fields;
-  return {
+  const n = new Ranger();
+  const preset: CloudPreset = {
     name: str(r.name, DEFAULT_PRESET.name),
     version: PRESET_VERSION,
-    spheres: list(r.spheres ?? r.swirls).map(normalizeSphere),
-    base: normalizeBase(r.base),
-    tail: normalizeTail(r.tail, num(r.version, 1) < 2),
-    spirals: list(r.spirals).map(normalizeSpiral),
-    flowCloud: normalizeFlowCloud(r.flowCloud ?? r.merge),
-    surfaceMeshResolution: nearest(r.surfaceMeshResolution, RESOLUTIONS.surfaceMesh, DEFAULT_PRESET.surfaceMeshResolution),
+    spheres: list(r.spheres ?? r.swirls).map((sw, i) => normalizeSphere(sw, i, n)),
+    base: normalizeBase(r.base, n),
+    tail: normalizeTail(r.tail, num(r.version, 1) < 2, n),
+    spirals: list(r.spirals).map((sp, i) => normalizeSpiral(sp, i, n)),
+    flowCloud: normalizeFlowCloud(r.flowCloud ?? r.merge, n),
+    surfaceMeshResolution: n.nearest(r.surfaceMeshResolution, RESOLUTIONS.surfaceMesh, DEFAULT_PRESET.surfaceMeshResolution),
   };
+  if (report) report.clamped += n.clamped;
+  return preset;
 }

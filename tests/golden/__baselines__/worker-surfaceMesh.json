@@ -74,25 +74,25 @@
     ],
     "positions": {
       "type": "Float32Array",
-      "length": 3324,
+      "length": 3516,
       "nan": 0,
       "inf": 0,
       "min": -2.498385190963745,
       "max": 4.2000346183776855,
-      "sum": 738.3676500935107,
-      "sumSq": 4918.202327160863,
-      "sha256": "0ecdfd65a1409303c469d31d6892de4afdeb6c52ae1a9c66e23e9774db3d2c8e"
+      "sum": 688.4535328177735,
+      "sumSq": 5126.284543682041,
+      "sha256": "34471ca4542c9e9c5db2b7e262a75550c9fcd1fd701de18a215bea884b30184b"
     },
     "indices": {
       "type": "Uint32Array",
-      "length": 6636,
+      "length": 6984,
       "nan": 0,
       "inf": 0,
       "min": 0,
-      "max": 1107,
-      "sum": 3669109,
-      "sumSq": 2706959263,
-      "sha256": "4f02b95aebbe39e84f6f48620d521f5e9962014a1937d9e3412f672eaf822d04"
+      "max": 1171,
+      "sum": 4087159,
+      "sumSq": 3191746411,
+      "sha256": "3698e3672e6c6dedc142d3a68b6b1d43cba2ad8b4b9b648fa8bdaa490bc45ed3"
     },
     "transfer": [
       "positions",
@@ -108,25 +108,25 @@
     ],
     "positions": {
       "type": "Float32Array",
-      "length": 3390,
+      "length": 3732,
       "nan": 0,
       "inf": 0,
       "min": -2.505479574203491,
       "max": 4.2000346183776855,
-      "sum": 497.1128352088854,
-      "sumSq": 5399.056082131826,
-      "sha256": "411f22451e620cd37e7fcecb741b20b03d220f88c1b66263b000169dc545321d"
+      "sum": 489.68943906761706,
+      "sumSq": 5488.5165572335345,
+      "sha256": "5a5b8dbed55cb589098b349fc8a5bd904ea4913aa300612c11635ab82c0a05d1"
     },
     "indices": {
       "type": "Uint32Array",
-      "length": 6804,
+      "length": 7500,
       "nan": 0,
       "inf": 0,
       "min": 0,
-      "max": 1129,
-      "sum": 3829533,
-      "sumSq": 2874780745,
-      "sha256": "7faa39071e2289cfcea1eb06da3f3357e8461b770687f1a4dac425c971189d86"
+      "max": 1243,
+      "sum": 4649528,
+      "sumSq": 3843039872,
+      "sha256": "eae44b4a172f2f7063176e440e7f2c82141b5b06206c10a8c20cbf5998cb371c"
     },
     "transfer": [
       "positions",

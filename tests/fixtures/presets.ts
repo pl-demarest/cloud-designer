@@ -123,12 +123,14 @@ export const FIXTURES = {
     p.flowCloud.position = [0.2, 0.1, -0.1]
   }),
 
-  /** (j) Degenerate: zero base cross-section height (audit: nan-on-degenerate-dims). */
+  /** (j) Degenerate: zero base cross-section height (audit: nan-on-degenerate-dims), which
+   *  normalizePreset raises to the Height slider's minimum, 0.05. */
   degenerateBase: fromDefault('degenerateBase', (p) => {
     p.base.crossSectionHeight = 0
   }),
 
-  /** (j) Degenerate: an ellipsoid with a zero scale component (audit: nan-on-degenerate-dims). */
+  /** (j) Degenerate: an ellipsoid with a zero scale component (audit: nan-on-degenerate-dims),
+   *  which normalizePreset raises to the Scale sliders' minimum, 0.2. */
   degenerateEllipsoid: fromDefault('degenerateEllipsoid', (p) => {
     Object.assign(p.spheres[0], { shape: 'ellipsoid', scale: [1, 0, 1] })
   }),
