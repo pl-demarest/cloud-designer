@@ -152,7 +152,7 @@ export function SpiralPanel() {
         ))}
         {spirals.length === 0 && (
           <div style={{ padding: '8px', color: '#999', fontSize: '0.75rem' }}>
-            No spirals. Click + Add to place a Fibonacci spiral on the cloud body.
+            No spirals. Click + Add to place a golden spiral above the cloud.
           </div>
         )}
       </div>

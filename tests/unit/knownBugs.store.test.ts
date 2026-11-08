@@ -3,7 +3,7 @@ import { useCloudStore } from '../../src/store/cloudStore'
 import { DEFAULT_PRESET } from '../../src/model/defaults'
 import type { CloudPreset } from '../../src/model/types'
 
-/** Known store defects as expected-to-fail tests asserting the correct behaviour (see knownBugs.workers.test.ts). */
+/** Store defects the audit found, each fixed, each test asserting the correct behaviour (see knownBugs.workers.test.ts). */
 
 const store = () => useCloudStore.getState()
 
@@ -11,7 +11,7 @@ beforeEach(() => {
   store().resetToDefault()
 })
 
-describe('known store defects (expected to fail until fixed)', () => {
+describe('audited store defects, fixed', () => {
   it('addTailSetpoint-empty: addTailSetpoint on an empty setpoints array does not throw', () => {
     store().setTail({ setpoints: [] })
     expect(() => store().addTailSetpoint()).not.toThrow()

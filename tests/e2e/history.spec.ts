@@ -1,7 +1,8 @@
 import { accordionHeader, expect, openApp, openPanel, sliderRow, test, toolbarButton } from './helpers'
 
 // Audit finding (react-layer, high): "commit() pushes the render-closure preset, so discrete edits
-// (add/remove/checkbox/select-onChange) record the pre-edit state" (src/components/SpherePanel.tsx:16).
+// (add/remove/checkbox/select-onChange) record the pre-edit state" (then src/components/SpherePanel.tsx,
+// now src/ui/panels/SpherePanel.tsx).
 // After "+ Add" the history held [initial, initial]: Undo still returned to 3 spheres, but Redo
 // replayed the pre-edit snapshot, so the added sphere never came back. Since Stage C the store's
 // commit() records the preset as it is after the edit.

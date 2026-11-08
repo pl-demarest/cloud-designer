@@ -21,8 +21,8 @@ import type { CloudPreset } from '../../../src/model/types'
  * For each input and select in an expanded panel the test applies one change and
  * records exactly which preset paths changed and to what. The preset gives every
  * vector component a distinct value, so a control that copies the wrong component
- * shows up as an extra changed path. Stage C replaces the panel controls; the
- * snapshot (in __snapshots__/) is the contract they must keep.
+ * shows up as an extra changed path. The snapshot (in __snapshots__/) is the contract the
+ * controls keep; a change to a control's mapping changes it in the commit that names why.
  */
 
 const store = () => useCloudStore.getState()
@@ -138,7 +138,7 @@ describe('panel controls map to one preset field each', () => {
     test(name, () => {
       const map = mapControls(ui())
       // Every control that edits the preset changes exactly one leaf; the Surface Mesh
-      // checkbox only calls its prop. Stage C may add history entries but not more fields.
+      // checkbox sets a view flag in the uiStore, not the preset.
       for (const [key, changes] of Object.entries(map)) {
         if (!(name === 'FlowCloudPanel' && key.endsWith('checkbox Surface Mesh'))) {
           expect(changes, key).toHaveLength(1)

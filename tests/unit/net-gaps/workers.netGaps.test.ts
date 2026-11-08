@@ -7,9 +7,8 @@ import type { CloudPreset } from '../../../src/model/types'
 
 /**
  * Worker branches the golden fixture set does not reach, found by mutation testing
- * (Stage A net check, 2026-11-07). Each case pins today's output, so Stage B's kernel
- * extraction must reproduce it or change the snapshot in a commit that names the
- * intended behaviour change (ground rule 3).
+ * (Stage A net check, 2026-11-07). Each case pins today's output: a change must reproduce it
+ * or change the snapshot in a commit that names the intended behaviour change (ground rule 3).
  *
  * Snapshots live in __snapshots__/ next to this file. Vitest writes a missing
  * snapshot outside CI and fails on it in CI; update one deliberately with

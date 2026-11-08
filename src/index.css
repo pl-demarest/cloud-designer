@@ -280,7 +280,7 @@ button:disabled {
   outline: none;
 }
 
-/* Swirl items */
+/* List items: spheres and spirals (the swirl-* names are the first version's word for sphere) */
 .swirl-list {
   padding: 4px 0;
 }
@@ -408,7 +408,7 @@ button:disabled {
   background: #fff0f0;
 }
 
-/* Merge panel */
+/* Flow Cloud panel */
 .btn-regen {
   background: var(--accent);
   color: #fff;

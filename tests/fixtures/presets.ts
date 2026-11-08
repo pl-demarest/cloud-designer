@@ -152,7 +152,7 @@ export function fixture(name: FixtureName): CloudPreset {
 // raw (the degenerate ones keep their zero dimensions) and still reach the worker
 // the way the app would send it.
 
-/** FlowCloud.dispatch (src/engine/views/FlowCloud.ts). */
+/** EditorEngine.regenerate (src/engine/EditorEngine.ts). */
 export function marchingCubesMessage(raw: CloudPreset) {
   const p = normalizePreset(raw)
   return { spheres: p.spheres, base: p.base, tail: p.tail, flowCloud: p.flowCloud }

@@ -15,8 +15,8 @@ import { fixture } from '../fixtures/presets'
 import type { CloudPreset } from '../../src/model/types'
 
 /**
- * Known editor defects as expected-to-fail tests asserting the correct behaviour,
- * each named after its audit finding id (see knownBugs.workers.test.ts).
+ * Editor defects the audit found, each fixed, each test asserting the correct behaviour and
+ * named after its audit finding id (see knownBugs.workers.test.ts).
  */
 
 const store = () => useCloudStore.getState()
@@ -52,7 +52,7 @@ function tailHandlePositions(vp: ReturnType<typeof createViewportStub>): number[
   return vp.tailGroup.children.filter(isHandle).map((h) => h.position.toArray())
 }
 
-describe('known editor defects (expected to fail until fixed)', () => {
+describe('audited editor defects, fixed', () => {
   it('history-stale-commit: after "+ Add" the newest history snapshot is the post-add preset', () => {
     useHistoryStore.getState().push(store().preset) // App pushes the initial preset on mount
     render(<SpherePanel />)

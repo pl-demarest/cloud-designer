@@ -8,11 +8,10 @@ import { TRI_TABLE } from '../../src/geometry/marchingCubes/tables'
 import type { CloudPreset } from '../../src/model/types'
 
 /**
- * Known worker defects, written as expected-to-fail tests that assert the CORRECT
- * behaviour. Each is named after its audit finding id (audit.json) or, where the
- * lead found it in a spot check, after the refactor-plan decision that fixes it.
- * When Stage B fixes a defect its test starts passing, it.fails reports that, and
- * the fix commit flips it.fails to it.
+ * Worker defects the audit found, each fixed, each test asserting the correct behaviour. A test is
+ * named after its audit finding id (audit.json) or, where the lead found the defect in a spot
+ * check, after the refactor-plan decision that fixed it. They were written as expected failures
+ * (it.fails) before the fixes, and each fix commit flipped its test to it.
  */
 
 const WORKERS_DIR = resolve(import.meta.dirname, '../../src/workers')
@@ -102,7 +101,7 @@ function standingEllipsoid(): CloudPreset {
   return p
 }
 
-describe('known worker defects (expected to fail until Stage B)', () => {
+describe('audited worker defects, fixed', () => {
   // Both workers import the one table in src/geometry/marchingCubes/tables.ts, so the former
   // per-worker table checks are one check each; this guard keeps a worker from growing its own copy.
   it('sanity: the shared TRI_TABLE has 256 rows and no worker source declares its own', () => {
