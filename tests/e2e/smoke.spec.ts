@@ -42,7 +42,7 @@ test('app loads with a rendered viewport and the sidebar accordion', async ({ pa
   await page.waitForTimeout(500)
   expect(pageErrors, 'uncaught page errors').toEqual([])
   expect(consoleErrors, 'console.error messages').toEqual([])
-  // three r183 deprecated THREE.Clock and warns when one is constructed; the viewport uses THREE.Timer.
+  // three r183 deprecated THREE.Clock and warns when one is constructed; the editor constructs none.
   expect(consoleWarnings.filter((w) => /deprecated/i.test(w)), 'deprecation warnings').toEqual([])
   // StrictMode's remount builds a second renderer on the same WebGL context. The first one's label
   // upload left UNPACK_FLIP_Y_WEBGL set, and the second one's empty 3D textures then failed:
