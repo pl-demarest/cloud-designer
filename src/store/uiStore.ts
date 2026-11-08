@@ -3,6 +3,14 @@ import type { WorkerKind } from '../engine/workers';
 import { IDLE_JOB, type JobState } from '../engine/WorkerClient';
 import type { ViewFlags } from '../engine/visibility';
 
+/** A message over the viewport, such as the outcome of an import. */
+export interface Notice {
+  tone: 'info' | 'error';
+  text: string;
+  /** A button beside the message. */
+  action?: { label: string; run: () => void };
+}
+
 /**
  * Editor state outside the preset. The view flags (Edit/Preview and the toolbar and panel
  * toggles) are set by the components; the engine follows them (computeVisibility). The engine
@@ -25,8 +33,13 @@ interface UiStore extends ViewFlags {
   setJob: (kind: WorkerKind, job: JobState) => void;
   setHasSurfaceMesh: (hasSurfaceMesh: boolean) => void;
   /** Back to the state of an editor with no engine: every job idle, no surface mesh. The view
-   *  flags stay: a remounted engine shows what the toolbar says. */
+   *  flags and the notice stay: a remounted engine shows what the toolbar says. */
   resetEngineState: () => void;
+
+  /** The message the viewport shows, or null. A new notice replaces the one shown. */
+  notice: Notice | null;
+  showNotice: (notice: Notice) => void;
+  dismissNotice: () => void;
 }
 
 const IDLE_JOBS: Record<WorkerKind, JobState> = { flowCloud: IDLE_JOB, cutAndGlue: IDLE_JOB, surfaceMesh: IDLE_JOB };
@@ -50,6 +63,10 @@ export const useUiStore = create<UiStore>()((set) => ({
   setJob: (kind, job) => set((s) => ({ jobs: { ...s.jobs, [kind]: job } })),
   setHasSurfaceMesh: (hasSurfaceMesh) => set({ hasSurfaceMesh }),
   resetEngineState: () => set({ jobs: IDLE_JOBS, hasSurfaceMesh: false }),
+
+  notice: null,
+  showNotice: (notice) => set({ notice }),
+  dismissNotice: () => set({ notice: null }),
 }));
 
 /** The view flags in `state`. */

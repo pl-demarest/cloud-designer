@@ -1,12 +1,15 @@
+import { useRef } from 'react';
 import type { Object3D } from 'three';
 import { useCloudStore } from '../../store/cloudStore';
 import { useEngine } from '../EngineContext';
 import { downloadBlob, safeFileName } from '../../export/download';
 import { cloudScene, fullScene, scaffoldScene, wireframeScene, type ExportSources } from '../../export/scenes';
 import { writeGlb } from '../../export/glb';
+import { importPresetFile } from '../importPreset';
 
 export function ExportPanel() {
   const engine = useEngine();
+  const fileInput = useRef<HTMLInputElement>(null);
 
   /** The editor's groups, or null before the engine is mounted. */
   function sources(): ExportSources | null {
@@ -93,6 +96,19 @@ cloudLayer.update(deltaTime);
         <span>Export</span>
       </div>
       <div className="export-buttons">
+        <button onClick={() => fileInput.current?.click()} className="btn-export">Import JSON Preset</button>
+        <input
+          ref={fileInput}
+          type="file"
+          accept=".json,application/json"
+          aria-label="Preset file to import"
+          hidden
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = ''; // choosing the same file again imports it again
+            if (file) void importPresetFile(file);
+          }}
+        />
         <button onClick={exportJSON}             className="btn-export">Export JSON Preset</button>
         <button onClick={handleExportCloudGLB}  className="btn-export">Export Cloud GLB</button>
         <button onClick={handleExportScaffold}   className="btn-export">Export Scaffold GLB</button>

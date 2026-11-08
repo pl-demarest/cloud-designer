@@ -60,6 +60,40 @@ body {
   position: relative;
 }
 
+/* A preset file dragged over the viewport */
+.viewport-wrap.drop-target {
+  outline: 2px dashed var(--accent);
+  outline-offset: -6px;
+}
+
+/* Notice over the viewport (NoticeBar) */
+.notice-region {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  max-width: calc(100% - 16px);
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px 5px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+.notice--error {
+  color: #c00;
+  border-color: #fcc;
+}
+
+.notice-dismiss {
+  padding: 1px 6px;
+}
+
 .sidebar {
   width: var(--sidebar-w);
   background: var(--surface);

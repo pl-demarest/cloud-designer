@@ -1,5 +1,7 @@
 import { useRef, useEffect, type ReactNode } from 'react';
 import { ViewportCanvas } from './ViewportCanvas';
+import { ViewportArea } from './ViewportArea';
+import { NoticeBar } from './NoticeBar';
 import { Toolbar } from './Toolbar';
 import { SpherePanel } from './panels/SpherePanel';
 import { BasePanel } from './panels/BasePanel';
@@ -46,9 +48,10 @@ export function App() {
       <div className="app">
         <Toolbar />
         <div className="app-body">
-          <div className="viewport-wrap">
+          <ViewportArea>
             <ViewportCanvas canvasRef={canvasRef} />
-          </div>
+            <NoticeBar />
+          </ViewportArea>
           <div className="sidebar">
             {panels.map(({ id, label, component }) => (
               <Accordion key={id} label={label} open={openPanels.has(id)} onToggle={() => togglePanel(id)}>
