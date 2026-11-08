@@ -3,14 +3,14 @@
  *
  * Generates a unified homogeneous triangle mesh over the entire cloud surface
  * by evaluating a signed distance field (SDF) representing the boolean union
- * of all solid primitives (spheres, base, tail, flow cloud isosurface, thick
- * spirals) and running marching cubes on it.
+ * of all solid primitives (spheres, base, tail, thick spirals and, when the
+ * request includes it, the flow cloud's isosurface as last generated) and
+ * running marching cubes on it.
  *
  * The SDF approach guarantees uniform mesh topology — the same grid pattern
  * as the flow cloud's marching cubes output, but covering everything.
  */
 
-import type { FlowCloudSettings } from '../../model/types';
 import { BOUND_SLACK, boxDistance, emptyBox, expandBox, expandFlowCloudBounds } from '../../geometry/bounds';
 import { evalMetaballField } from '../../geometry/flowField';
 import { fillField, gridFromBounds, polygonise } from '../../geometry/marchingCubes/polygonise';
@@ -24,9 +24,18 @@ import { buildSpiralVolume, sampleSpiral, spiralSDF } from '../../geometry/primi
 import type { SpiralSample, SpiralVolume } from '../../geometry/primitives/spiral';
 import type { SurfaceMeshRequest, SurfaceMeshResult } from '../protocol';
 
+/** The flow cloud's metaball field as the shown flow cloud was generated, placed in the world. */
+interface FlowCloudField {
+  frames: SphereFrame[];
+  tailSamples: TailSample[];
+  tailStrength: number;
+  threshold: number;
+  position: readonly [number, number, number];
+}
+
 /** Combined SDF: boolean union of all primitives.
  *  Returns negative inside the cloud, positive outside.
- *  flowCloudPos offsets the metaball field to world space.
+ *  The flow cloud's position offsets its metaball field to world space; null leaves it out.
  *  The cheap terms come first, so that the tail, the base and the spirals can be skipped, in
  *  whole or in part, where their lower bounds lie above the union so far; the minimum does not
  *  depend on the order. */
@@ -35,8 +44,7 @@ function evalSDF(
   spheres: SphereFrame[],
   tail: TailVolume,
   baseVolume: BaseVolume,
-  flowCloud: FlowCloudSettings,
-  fcTailSamples: TailSample[],
+  flowCloud: FlowCloudField | null,
   spirals: SpiralVolume[],
 ): number {
   let d = Infinity;
@@ -47,16 +55,17 @@ function evalSDF(
   }
 
   // Flow cloud SDF: threshold - metaball field
-  // Transform point to flow cloud local space (subtract position offset)
-  const fcPos = flowCloud.position;
-  const localX = x - fcPos[0];
-  const localY = y - fcPos[1];
-  const localZ = z - fcPos[2];
-  const tailStrength = flowCloud.tailStrength;
-  const field = evalMetaballField(localX, localY, localZ, spheres, fcTailSamples, tailStrength);
-  const flowCloudD = (flowCloud.threshold - field);
-  // flowCloudD is negative inside the isosurface (field > threshold)
-  d = Math.min(d, flowCloudD);
+  if (flowCloud) {
+    // Transform point to flow cloud local space (subtract position offset)
+    const fcPos = flowCloud.position;
+    const localX = x - fcPos[0];
+    const localY = y - fcPos[1];
+    const localZ = z - fcPos[2];
+    const field = evalMetaballField(localX, localY, localZ, flowCloud.frames, flowCloud.tailSamples, flowCloud.tailStrength);
+    const flowCloudD = (flowCloud.threshold - field);
+    // flowCloudD is negative inside the isosurface (field > threshold)
+    d = Math.min(d, flowCloudD);
+  }
 
   // Tail SDF
   if (tail.count >= 2 && boxDistance(tail.box, x, y, z) - tail.maxWidth <= d + BOUND_SLACK) {
@@ -87,9 +96,11 @@ export function generateSurfaceMesh(input: SurfaceMeshRequest): SurfaceMeshResul
   const tailVolume = buildTailVolume(tail);
   const baseVolume = buildBaseVolume(base);
 
-  // Tail samples for the metaball field (flow cloud SDF component)
-  const tailStrength = flowCloud.tailStrength;
-  const fcTailSamples = tailStrength > 0 ? sampleTailSpine(tail) : [];
+  // The flow cloud as the viewport shows it: the field of its last Regenerate's inputs (their
+  // spheres and, when tailStrength > 0, their tail), at the live position.
+  const fcInput = input.includeFlowCloud ? input.flowCloudInput : null;
+  const fcTail = fcInput ? attachedTail(fcInput.tail, fcInput.base) : null;
+  const fcTailSamples = fcInput && fcTail && fcInput.flowCloud.tailStrength > 0 ? sampleTailSpine(fcTail) : [];
 
   // Sample spirals (only thick ones produce samples)
   const allSpiralSamples: SpiralSample[][] = spirals.map(
@@ -117,7 +128,7 @@ export function generateSurfaceMesh(input: SurfaceMeshRequest): SurfaceMeshResul
   }
 
   // Flow cloud: its isosurface, moved by flowCloud.position
-  expandFlowCloudBounds(box, spheres, fcTailSamples, flowCloud, flowCloud.position);
+  if (fcInput) expandFlowCloudBounds(box, fcInput.spheres, fcTailSamples, fcInput.flowCloud, flowCloud.position);
 
   // Spiral samples (use pre-computed world-space centers)
   for (const samples of allSpiralSamples) {
@@ -135,9 +146,16 @@ export function generateSurfaceMesh(input: SurfaceMeshRequest): SurfaceMeshResul
 
   // Build SDF field — store negated SDF so MC's "field >= 0" = "inside"
   const frames = spheres.map(sphereFrame);
+  const flowCloudField: FlowCloudField | null = fcInput && {
+    frames: fcInput.spheres.map(sphereFrame),
+    tailSamples: fcTailSamples,
+    tailStrength: fcInput.flowCloud.tailStrength,
+    threshold: fcInput.flowCloud.threshold,
+    position: flowCloud.position,
+  };
   const spiralVolumes = allSpiralSamples.map(buildSpiralVolume);
   const field = fillField(grid, (x, y, z) =>
-    -evalSDF(x, y, z, frames, tailVolume, baseVolume, flowCloud, fcTailSamples, spiralVolumes));
+    -evalSDF(x, y, z, frames, tailVolume, baseVolume, flowCloudField, spiralVolumes));
 
   // March cubes at threshold = 0
   return polygonise(field, grid, 0);

@@ -4,9 +4,10 @@ import { EditorEngine } from '../../src/engine/EditorEngine'
 import { FlowCloud } from '../../src/engine/views/FlowCloud'
 import { useCloudStore } from '../../src/store/cloudStore'
 import { useUiStore } from '../../src/store/uiStore'
-import type { FlowCloudRequest, FlowCloudResult } from '../../src/workers/protocol'
+import type { FlowCloudRequest, FlowCloudResult, SurfaceMeshRequest, SurfaceMeshResult } from '../../src/workers/protocol'
 import { createRendererStub, installCanvas2dStub, manualWorkers, mountCanvas, type ManualWorker } from '../helpers/engine'
 import { createViewportStub } from '../helpers/scene'
+import { fixture } from '../fixtures/presets'
 import { digestArray } from '../helpers/digest'
 import { runWorker } from '../helpers/workerHarness'
 import type { WorkerKind } from '../../src/engine/workers'
@@ -15,7 +16,8 @@ import type { WorkerKind } from '../../src/engine/workers'
  * The engine's worker jobs (Regenerate, and Cut & Glue with its surface mesh), each through a
  * WorkerClient: a request made while one computes is not lost, a reply to a superseded request
  * is not shown, the uiStore's busy state follows the latest request, and a failure is kept with
- * its message. The workers here answer only when the test says so.
+ * its message. The surface mesh unions the flow cloud the viewport shows. The workers here answer
+ * only when the test says so.
  */
 
 const store = () => useCloudStore.getState()
@@ -149,5 +151,91 @@ describe('dispose during a job', () => {
     }
     await pastDebounce()
     expect(workers.flowCloud.posted, 'the debounced request never went out').toHaveLength(0)
+  })
+})
+
+describe("the surface mesh's flow cloud", () => {
+  /** The default preset with the flow cloud moved 6 up, clear of every other primitive. */
+  function liftedFlowCloud() {
+    const p = fixture('default')
+    p.flowCloud.position = [0, 6, 0]
+    p.surfaceMeshResolution = 32
+    return p
+  }
+
+  /** The vertices above `minY` (above y = 4 only the lifted flow cloud reaches): count and x range. */
+  function above(positions: Float32Array, minY: number): { count: number; minX: number; maxX: number } {
+    let count = 0
+    let minX = Infinity
+    let maxX = -Infinity
+    for (let i = 0; i < positions.length; i += 3) {
+      if (positions[i + 1] > minY) {
+        count++
+        minX = Math.min(minX, positions[i])
+        maxX = Math.max(maxX, positions[i])
+      }
+    }
+    return { count, minX, maxX }
+  }
+  const above4 = (positions: Float32Array) => above(positions, 4)
+
+  async function surfaceMesh(): Promise<{ request: SurfaceMeshRequest; positions: Float32Array }> {
+    void engine!.cutAndGlue()
+    const sm = workers.surfaceMesh
+    await sm.answer()
+    return {
+      request: sm.posted.at(-1) as SurfaceMeshRequest,
+      positions: (sm.replies.at(-1) as SurfaceMeshResult).positions,
+    }
+  }
+
+  async function regenerate(): Promise<FlowCloudResult> {
+    void engine!.regenerate()
+    await pastDebounce()
+    await workers.flowCloud.answer()
+    return workers.flowCloud.replies.at(-1) as FlowCloudResult
+  }
+
+  test('flowcloud-always-unioned-live: before any Regenerate the union has no flow cloud', async () => {
+    store().loadPreset(liftedFlowCloud())
+    const { request, positions } = await surfaceMesh()
+    expect(above4(positions).count, 'no flow cloud above the scaffold').toBe(0)
+    expect(positions.length).toBeGreaterThan(0)
+    expect(request.includeFlowCloud).toBe(false)
+    expect(request.flowCloudInput).toBeNull()
+  })
+
+  test('after Regenerate the union holds the flow cloud as generated, not as the live spheres would make it', async () => {
+    store().loadPreset(liftedFlowCloud())
+    const generated = await regenerate()
+    const generatedSpheres = structuredClone(store().preset.spheres)
+    store().updateSphere('sphere-0', { position: [3, 0, 0] }) // after the Regenerate
+    const { request, positions } = await surfaceMesh()
+
+    // The shown flow cloud's x range against that of the surface mesh's part above y = 4. Measured:
+    // shown -2.307 to 2.375, union -2.318 to 2.410; from the live spheres the union reached 3.915.
+    const shown = above(generated.vertices, -Infinity)
+    const blob = above4(positions)
+    expect(blob.count).toBeGreaterThan(100)
+    expect(Math.abs(blob.minX - shown.minX), `min x ${blob.minX} against the shown ${shown.minX}`).toBeLessThan(0.15)
+    expect(Math.abs(blob.maxX - shown.maxX), `max x ${blob.maxX} against the shown ${shown.maxX}`).toBeLessThan(0.15)
+    expect(request.includeFlowCloud).toBe(true)
+    expect(request.flowCloudInput?.spheres).toEqual(generatedSpheres)
+    expect(request.spheres[0].position, 'the live spheres still mesh where they are').toEqual([3, 0, 0])
+  })
+
+  test('Show/Hide decides; the Edit/Preview mode does not', async () => {
+    store().loadPreset(liftedFlowCloud())
+    await regenerate()
+    engine!.setFlowCloudVisible(false)
+    const hidden = await surfaceMesh()
+    expect(above4(hidden.positions).count, 'a hidden flow cloud is left out').toBe(0)
+    expect(hidden.request.includeFlowCloud).toBe(false)
+
+    engine!.setFlowCloudVisible(true)
+    engine!.setMode('preview', false)
+    const shown = await surfaceMesh()
+    expect(above4(shown.positions).count).toBeGreaterThan(100)
+    expect(shown.request.includeFlowCloud).toBe(true)
   })
 })

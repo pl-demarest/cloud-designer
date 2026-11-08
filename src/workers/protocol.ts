@@ -44,10 +44,18 @@ export interface SurfaceMeshRequest {
   spheres: SphereDef[];
   base: BaseDef;
   tail: TailDef;
+  /** The live flow-cloud settings: flowCloud.position places the flow cloud, as the viewport
+   *  places the shown one. */
   flowCloud: FlowCloudSettings;
   spirals: SpiralDef[];
   /** Grid cells per axis. */
   resolution: number;
+  /** Union the flow cloud: one has been generated and Show/Hide shows it. */
+  includeFlowCloud: boolean;
+  /** The request of the Regenerate whose result the viewport shows (null before the first).
+   *  The flow cloud's field is evaluated from these inputs, not from the live spheres, so the
+   *  union holds the flow cloud the user sees. */
+  flowCloudInput: FlowCloudRequest | null;
 }
 
 export interface SurfaceMeshResult {

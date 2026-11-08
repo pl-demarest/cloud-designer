@@ -35,6 +35,23 @@ describe('worker cores', () => {
     expect(digestValue(message)).toEqual(digestValue(result))
   })
 
+  test('generateSurfaceMesh unions the flow cloud only when includeFlowCloud is set and an input is given', () => {
+    const p = fixture('default')
+    p.flowCloud.position = [0, 6, 0] // clear of every other primitive
+    p.surfaceMeshResolution = 32
+    const request = surfaceMeshMessage(p)
+    const top = (positions: Float32Array) => {
+      let max = -Infinity
+      for (let i = 1; i < positions.length; i += 3) max = Math.max(max, positions[i])
+      return max
+    }
+    expect(top(generateSurfaceMesh(request).positions)).toBeGreaterThan(6)
+    const without = generateSurfaceMesh({ ...request, includeFlowCloud: false })
+    expect(top(without.positions)).toBeLessThan(4)
+    expect(without.positions.length).toBeGreaterThan(0)
+    expect(digestValue(generateSurfaceMesh({ ...request, flowCloudInput: null }))).toEqual(digestValue(without))
+  })
+
   test('cutAndGlue leaves its request untouched, and the shell posts its result', async () => {
     const request = cutAndGlueMessage(fixture('default'), {
       // Each segment starts inside another primitive's volume, so every group is clipped.

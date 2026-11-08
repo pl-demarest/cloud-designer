@@ -64,6 +64,10 @@ export class EditorEngine {
   private readonly resizeObserver: ResizeObserver | null = null;
   private regenerateTimer: ReturnType<typeof setTimeout> | null = null;
   private settleDebounced: ((outcome: JobOutcome<FlowCloudResult>) => void) | null = null;
+  /** The Regenerate request whose result the flow-cloud view shows; null before the first. */
+  private shownFlowCloud: FlowCloudRequest | null = null;
+  /** Show/Hide: whether the user shows the flow cloud (the mode hides it in Preview as well). */
+  private flowCloudVisible = true;
   private disposed = false;
 
   constructor(canvas: HTMLCanvasElement, options: EditorEngineOptions = {}) {
@@ -89,7 +93,10 @@ export class EditorEngine {
     // Each job's state in the uiStore follows its latest request (WorkerClient).
     this.flowCloudJob = new WorkerClient(createWorker('flowCloud'), {
       name: 'flowCloud',
-      onResult: (result) => this.flowCloud.show(result),
+      onResult: (result, request) => {
+        this.flowCloud.show(result);
+        this.shownFlowCloud = request;
+      },
       onState: (state) => ui().setJob('flowCloud', state),
     });
     this.cutGlueJob = new WorkerClient(createWorker('cutAndGlue'), {
@@ -135,7 +142,8 @@ export class EditorEngine {
 
   /**
    * Clips every wireframe against the other primitives' volumes and meshes the union: two jobs,
-   * run in parallel. Resolves with both outcomes.
+   * run in parallel. Resolves with both outcomes. The union includes the flow cloud the viewport
+   * shows, if any: the one the last Regenerate produced, unless Show/Hide hides it.
    */
   cutAndGlue(): Promise<[JobOutcome<CutGlueWorkerResult>, JobOutcome<SurfaceMeshResult>]> {
     const preset = useCloudStore.getState().preset;
@@ -164,6 +172,8 @@ export class EditorEngine {
       flowCloud: preset.flowCloud,
       spirals: preset.spirals,
       resolution: preset.surfaceMeshResolution,
+      includeFlowCloud: this.flowCloudVisible && this.shownFlowCloud !== null,
+      flowCloudInput: this.shownFlowCloud,
     });
 
     return Promise.all([cut, surface]);
@@ -198,7 +208,9 @@ export class EditorEngine {
     }
   }
 
+  /** Show/Hide for the flow cloud. */
   setFlowCloudVisible(visible: boolean): void {
+    this.flowCloudVisible = visible;
     this.viewport.flowCloudGroup.visible = visible;
   }
 

@@ -1,6 +1,7 @@
 import { DEFAULT_PRESET } from '../../src/model/defaults'
 import { normalizePreset } from '../../src/model/normalize'
 import type { CloudPreset, SpiralDef } from '../../src/model/types'
+import type { SurfaceMeshRequest } from '../../src/workers/protocol'
 
 /**
  * Fixed preset set for the characterization goldens.
@@ -155,8 +156,12 @@ export function marchingCubesMessage(raw: CloudPreset) {
   return { spheres: p.spheres, base: p.base, tail: p.tail, flowCloud: p.flowCloud }
 }
 
-/** EditorEngine.cutAndGlue, surface-mesh half (src/engine/EditorEngine.ts). */
-export function surfaceMeshMessage(raw: CloudPreset) {
+/**
+ * EditorEngine.cutAndGlue, surface-mesh half (src/engine/EditorEngine.ts), run after a Regenerate
+ * of the same preset with the flow cloud shown: the union includes the flow cloud, generated from
+ * marchingCubesMessage(raw).
+ */
+export function surfaceMeshMessage(raw: CloudPreset): SurfaceMeshRequest {
   const p = normalizePreset(raw)
   return {
     spheres: p.spheres,
@@ -165,6 +170,8 @@ export function surfaceMeshMessage(raw: CloudPreset) {
     flowCloud: p.flowCloud,
     spirals: p.spirals,
     resolution: p.surfaceMeshResolution,
+    includeFlowCloud: true,
+    flowCloudInput: marchingCubesMessage(raw),
   }
 }
 

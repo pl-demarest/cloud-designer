@@ -93,6 +93,8 @@ export class ManualWorker {
   readonly name: WorkerName
   /** Every request posted, structured-cloned as postMessage would. */
   readonly posted: unknown[] = []
+  /** Every reply delivered, in order. */
+  readonly replies: unknown[] = []
   onmessage: ((e: MessageEvent) => void) | null = null
   onerror: ((e: ErrorEvent) => void) | null = null
   terminated = false
@@ -114,6 +116,7 @@ export class ManualWorker {
   async answer(): Promise<void> {
     if (this.unanswered === 0) throw new Error(`${this.name}: no request to answer`)
     const run = await runWorker(this.name, this.posted[this.answered++])
+    this.replies.push(run.message)
     if (!this.terminated) this.onmessage?.({ data: run.message } as MessageEvent)
   }
 
@@ -121,6 +124,7 @@ export class ManualWorker {
   reply(data: unknown): void {
     if (this.unanswered === 0) throw new Error(`${this.name}: no request to answer`)
     this.answered++
+    this.replies.push(data)
     if (!this.terminated) this.onmessage?.({ data } as MessageEvent)
   }
 
