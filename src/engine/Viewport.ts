@@ -18,9 +18,8 @@ export class Viewport {
   /** Cut & Glue output — shown in Preview mode only. NOT inside activeUnitGroup. */
   cutGlueGroup: THREE.Group;
 
-  private animFrameId: number | null = null;
   private tickCallbacks: Array<(dt: number) => void> = [];
-  private clock = new THREE.Clock();
+  private timer = new THREE.Timer();
   private _claimedDrag = false;
 
   constructor(canvas: HTMLCanvasElement) {
@@ -114,23 +113,20 @@ export class Viewport {
     this.tickCallbacks.push(cb);
   }
 
+  /** Starts the render loop; calling it again replaces the loop rather than adding one. */
   start(): void {
-    this.clock.start();
-    const loop = () => {
-      this.animFrameId = requestAnimationFrame(loop);
-      const dt = this.clock.getDelta();
+    this.timer.reset();
+    this.renderer.setAnimationLoop((time) => {
+      this.timer.update(time);
+      const dt = this.timer.getDelta();
       this.controls.update();
       this.tickCallbacks.forEach((cb) => cb(dt));
       this.renderer.render(this.scene, this.camera);
-    };
-    loop();
+    });
   }
 
   stop(): void {
-    if (this.animFrameId !== null) {
-      cancelAnimationFrame(this.animFrameId);
-      this.animFrameId = null;
-    }
+    this.renderer.setAnimationLoop(null);
   }
 
   resize(width: number, height: number): void {
@@ -171,6 +167,7 @@ export class Viewport {
 
   dispose(): void {
     this.stop();
+    this.timer.dispose();
     window.removeEventListener('resize', this.handleResize);
     this.controls.dispose();
     this.renderer.dispose();

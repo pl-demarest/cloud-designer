@@ -3,9 +3,11 @@ import { expect, test } from '@playwright/test'
 test('app loads with a rendered viewport and the sidebar accordion', async ({ page }) => {
   const pageErrors: Error[] = []
   const consoleErrors: string[] = []
+  const consoleWarnings: string[] = []
   page.on('pageerror', (err) => pageErrors.push(err))
   page.on('console', (msg) => {
     if (msg.type() === 'error') consoleErrors.push(msg.text())
+    else if (msg.type() === 'warning') consoleWarnings.push(msg.text())
   })
 
   await page.goto('/')
@@ -40,4 +42,6 @@ test('app loads with a rendered viewport and the sidebar accordion', async ({ pa
   await page.waitForTimeout(500)
   expect(pageErrors, 'uncaught page errors').toEqual([])
   expect(consoleErrors, 'console.error messages').toEqual([])
+  // three r183 deprecated THREE.Clock and warns when one is constructed; the viewport uses THREE.Timer.
+  expect(consoleWarnings.filter((w) => /deprecated/i.test(w)), 'deprecation warnings').toEqual([])
 })
