@@ -19,8 +19,8 @@ import { attachedTail, sampleTailSpine, tailSDF } from '../../geometry/primitive
 import type { TailSample } from '../../geometry/primitives/tail';
 import { baseSDF, buildBaseVolume } from '../../geometry/primitives/base';
 import type { BaseVolume } from '../../geometry/primitives/base';
-import { sampleSpiral, spiralSDF } from '../../geometry/primitives/spiral';
-import type { SpiralSample } from '../../geometry/primitives/spiral';
+import { buildSpiralVolume, sampleSpiral, spiralSDF } from '../../geometry/primitives/spiral';
+import type { SpiralSample, SpiralVolume } from '../../geometry/primitives/spiral';
 import type { SurfaceMeshRequest, SurfaceMeshResult } from '../protocol';
 
 /** Combined SDF: boolean union of all primitives.
@@ -33,7 +33,7 @@ function evalSDF(
   baseVolume: BaseVolume,
   flowCloud: FlowCloudSettings,
   fcTailSamples: TailSample[],
-  allSpiralSamples: SpiralSample[][],
+  spirals: SpiralVolume[],
 ): number {
   let d = Infinity;
 
@@ -65,9 +65,9 @@ function evalSDF(
   d = Math.min(d, flowCloudD);
 
   // Spiral SDFs (thick spirals only — flat ribbons have no volume)
-  for (const samples of allSpiralSamples) {
-    if (samples.length > 0) {
-      d = Math.min(d, spiralSDF(x, y, z, samples));
+  for (const v of spirals) {
+    if (v.n > 0) {
+      d = Math.min(d, spiralSDF(x, y, z, v));
     }
   }
 
@@ -150,8 +150,9 @@ export function generateSurfaceMesh(input: SurfaceMeshRequest): SurfaceMeshResul
 
   // Build SDF field — store negated SDF so MC's "field >= 0" = "inside"
   const frames = spheres.map(sphereFrame);
+  const spiralVolumes = allSpiralSamples.map(buildSpiralVolume);
   const field = fillField(grid, (x, y, z) =>
-    -evalSDF(x, y, z, frames, tailSamples, baseVolume, flowCloud, fcTailSamples, allSpiralSamples));
+    -evalSDF(x, y, z, frames, tailSamples, baseVolume, flowCloud, fcTailSamples, spiralVolumes));
 
   // March cubes at threshold = 0
   return polygonise(field, grid, 0);

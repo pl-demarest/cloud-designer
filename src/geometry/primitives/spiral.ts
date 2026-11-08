@@ -97,6 +97,81 @@ function sdRoundedRect2D(px: number, py: number, hx: number, hy: number, r: numb
   return outside + inside - r;
 }
 
+/**
+ * A thick spiral prepared for evaluation at many points: its samples in typed arrays (three per
+ * vector), the smoothed tangent at each sample, and each segment's vector, length and direction.
+ * Everything here depends on the spiral alone, so it is computed once per job.
+ */
+export interface SpiralVolume {
+  /** Number of samples. */
+  n: number;
+  centre: Float64Array;
+  radial: Float64Array;
+  halfThick: Float64Array;
+  halfSep: Float64Array;
+  cornerRadius: Float64Array;
+  /** Per sample: the average of the directions of its adjacent segments, normalised. */
+  tangent: Float64Array;
+  /** Per segment (from sample i to i + 1): its vector, its length (0 for a segment shorter than
+   *  1e-10, which is skipped) and its unit direction. */
+  seg: Float64Array;
+  segLen: Float64Array;
+  dir: Float64Array;
+}
+
+export function buildSpiralVolume(samples: SpiralSample[]): SpiralVolume {
+  const n = samples.length;
+  const centre = new Float64Array(3 * n);
+  const radial = new Float64Array(3 * n);
+  const halfThick = new Float64Array(n);
+  const halfSep = new Float64Array(n);
+  const cornerRadius = new Float64Array(n);
+  samples.forEach((s, i) => {
+    centre.set([s.cx, s.cy, s.cz], 3 * i);
+    radial.set([s.rx, s.ry, s.rz], 3 * i);
+    halfThick[i] = s.halfThick;
+    halfSep[i] = s.halfSep;
+    cornerRadius[i] = s.cornerRadius;
+  });
+
+  // Per-sample smooth tangent (average of adjacent segment dirs)
+  const tangent = new Float64Array(3 * n);
+  for (let i = 0; i < n; i++) {
+    let vx = 0, vy = 0, vz = 0;
+    if (i > 0) {
+      vx += samples[i].cx - samples[i - 1].cx;
+      vy += samples[i].cy - samples[i - 1].cy;
+      vz += samples[i].cz - samples[i - 1].cz;
+    }
+    if (i < n - 1) {
+      vx += samples[i + 1].cx - samples[i].cx;
+      vy += samples[i + 1].cy - samples[i].cy;
+      vz += samples[i + 1].cz - samples[i].cz;
+    }
+    const len = Math.sqrt(vx * vx + vy * vy + vz * vz);
+    if (len > 1e-10) tangent.set([vx / len, vy / len, vz / len], 3 * i);
+  }
+
+  const segments = Math.max(n - 1, 0);
+  const seg = new Float64Array(3 * segments);
+  const segLen = new Float64Array(segments);
+  const dir = new Float64Array(3 * segments);
+  for (let i = 0; i < segments; i++) {
+    const a = samples[i];
+    const b = samples[i + 1];
+    const segX = b.cx - a.cx;
+    const segY = b.cy - a.cy;
+    const segZ = b.cz - a.cz;
+    const segLen2 = segX * segX + segY * segY + segZ * segZ;
+    if (segLen2 < 1e-20) continue;
+    const len = Math.sqrt(segLen2);
+    seg.set([segX, segY, segZ], 3 * i);
+    segLen[i] = len;
+    dir.set([segX / len, segY / len, segZ / len], 3 * i);
+  }
+  return { n, centre, radial, halfThick, halfSep, cornerRadius, tangent, seg, segLen, dir };
+}
+
 /** Signed distance to the swept rounded-rectangle spiral volume.
  *  Per segment: build an orthonormal frame (R, S, T) where T is a smoothly
  *  interpolated tangent (averaged from adjacent segments at each sample, then
@@ -105,72 +180,46 @@ function sdRoundedRect2D(px: number, py: number, hx: number, hy: number, r: numb
  *  Decompose (query − footpoint) into (localR, localS, localT), compute the
  *  2D rounded-rect SDF d2 in the cross-section plane, the 1D signed distance
  *  dT to the segment's tangent-direction extent, and combine via the IQ 3D
- *  extrude formula. Final value is min over all segments. */
-export function spiralSDF(x: number, y: number, z: number, samples: SpiralSample[]): number {
-  const N = samples.length;
+ *  extrude formula. Final value is min over all segments. Allocates nothing. */
+export function spiralSDF(x: number, y: number, z: number, v: SpiralVolume): number {
+  const N = v.n;
   if (N < 2) return Infinity;
-
-  // Precompute per-sample smooth tangent (average of adjacent segment dirs)
-  const smTx = new Float64Array(N);
-  const smTy = new Float64Array(N);
-  const smTz = new Float64Array(N);
-  for (let i = 0; i < N; i++) {
-    let vx = 0, vy = 0, vz = 0;
-    if (i > 0) {
-      vx += samples[i].cx - samples[i - 1].cx;
-      vy += samples[i].cy - samples[i - 1].cy;
-      vz += samples[i].cz - samples[i - 1].cz;
-    }
-    if (i < N - 1) {
-      vx += samples[i + 1].cx - samples[i].cx;
-      vy += samples[i + 1].cy - samples[i].cy;
-      vz += samples[i + 1].cz - samples[i].cz;
-    }
-    const len = Math.sqrt(vx * vx + vy * vy + vz * vz);
-    if (len > 1e-10) { smTx[i] = vx / len; smTy[i] = vy / len; smTz[i] = vz / len; }
-  }
+  const { centre, radial, tangent, seg, segLen: lengths, dir, halfThick: hT, halfSep: hS, cornerRadius: cR } = v;
 
   let minD = Infinity;
 
   for (let i = 0; i < N - 1; i++) {
-    const a = samples[i];
-    const b = samples[i + 1];
-
-    // Segment direction and length (for projection + extent)
-    const segX = b.cx - a.cx;
-    const segY = b.cy - a.cy;
-    const segZ = b.cz - a.cz;
-    const segLen2 = segX * segX + segY * segY + segZ * segZ;
-    if (segLen2 < 1e-20) continue;
-    const segLen = Math.sqrt(segLen2);
-    const stx = segX / segLen;
-    const sty = segY / segLen;
-    const stz = segZ / segLen;
+    const segLen = lengths[i];
+    if (segLen === 0) continue;
+    const a = 3 * i;
+    const b = a + 3;
+    const segX = seg[a], segY = seg[a + 1], segZ = seg[a + 2];
+    const stx = dir[a], sty = dir[a + 1], stz = dir[a + 2];
 
     // Project query onto segment axis, clamp to [0, 1]
-    const dpax = x - a.cx;
-    const dpay = y - a.cy;
-    const dpaz = z - a.cz;
+    const dpax = x - centre[a];
+    const dpay = y - centre[a + 1];
+    const dpaz = z - centre[a + 2];
     const uRaw = dpax * stx + dpay * sty + dpaz * stz;
     const tParam = Math.max(0, Math.min(1, uRaw / segLen));
 
     // Footpoint on segment at clamped parameter
-    const cx = a.cx + tParam * segX;
-    const cy = a.cy + tParam * segY;
-    const cz = a.cz + tParam * segZ;
+    const cx = centre[a] + tParam * segX;
+    const cy = centre[a + 1] + tParam * segY;
+    const cz = centre[a + 2] + tParam * segZ;
 
     // Smoothly interpolated tangent at footpoint (lerp per-sample tangents)
-    let tx = smTx[i] + tParam * (smTx[i + 1] - smTx[i]);
-    let ty = smTy[i] + tParam * (smTy[i + 1] - smTy[i]);
-    let tz = smTz[i] + tParam * (smTz[i + 1] - smTz[i]);
+    let tx = tangent[a] + tParam * (tangent[b] - tangent[a]);
+    let ty = tangent[a + 1] + tParam * (tangent[b + 1] - tangent[a + 1]);
+    let tz = tangent[a + 2] + tParam * (tangent[b + 2] - tangent[a + 2]);
     const tLen = Math.sqrt(tx * tx + ty * ty + tz * tz);
     if (tLen < 1e-10) continue;
     tx /= tLen; ty /= tLen; tz /= tLen;
 
     // Interpolated radial axis
-    const irx = a.rx + tParam * (b.rx - a.rx);
-    const iry = a.ry + tParam * (b.ry - a.ry);
-    const irz = a.rz + tParam * (b.rz - a.rz);
+    const irx = radial[a] + tParam * (radial[b] - radial[a]);
+    const iry = radial[a + 1] + tParam * (radial[b + 1] - radial[a + 1]);
+    const irz = radial[a + 2] + tParam * (radial[b + 2] - radial[a + 2]);
     const rLen = Math.sqrt(irx * irx + iry * iry + irz * irz);
     let nrx = rLen > 1e-10 ? irx / rLen : irx;
     let nry = rLen > 1e-10 ? iry / rLen : iry;
@@ -191,9 +240,9 @@ export function spiralSDF(x: number, y: number, z: number, samples: SpiralSample
     const nsz = tx * nry - ty * nrx;
 
     // Interpolated half-dimensions and corner radius
-    const halfThick = a.halfThick + tParam * (b.halfThick - a.halfThick);
-    const halfSep = a.halfSep + tParam * (b.halfSep - a.halfSep);
-    const cr = a.cornerRadius + tParam * (b.cornerRadius - a.cornerRadius);
+    const halfThick = hT[i] + tParam * (hT[i + 1] - hT[i]);
+    const halfSep = hS[i] + tParam * (hS[i + 1] - hS[i]);
+    const cr = cR[i] + tParam * (cR[i + 1] - cR[i]);
 
     // Decompose (query − footpoint) into local (R, S, T) frame
     const dx = x - cx;
