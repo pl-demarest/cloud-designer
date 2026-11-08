@@ -1,6 +1,7 @@
 import { useCloudStore } from '../store/cloudStore';
 import { useUiStore } from '../store/uiStore';
 import { PresetFileError, parsePresetJson } from '../model/presetFile';
+import { isEditableTarget } from './shortcuts';
 
 /**
  * Loads the preset in a JSON file (the Import button, or a file dropped on the viewport) as one
@@ -12,7 +13,9 @@ import { PresetFileError, parsePresetJson } from '../model/presetFile';
 export async function importPresetFile(file: File): Promise<void> {
   // A dropped file takes no focus, so a number field or the name being typed in keeps its draft;
   // it records the draft now, as a click would, before the import replaces the preset under it.
-  if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  // Any other focus, such as the Import button's, stays where it is.
+  const active = document.activeElement;
+  if (active instanceof HTMLElement && isEditableTarget(active)) active.blur();
   const ui = useUiStore.getState();
   const report = { clamped: 0 };
   let preset;

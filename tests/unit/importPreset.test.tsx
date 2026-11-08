@@ -10,6 +10,7 @@ import { useUiStore } from '../../src/store/uiStore'
 import { DEFAULT_PRESET } from '../../src/model/defaults'
 import { RANGES } from '../../src/model/ranges'
 import { BasePanel } from '../../src/ui/panels/BasePanel'
+import { ExportPanel } from '../../src/ui/panels/ExportPanel'
 import { SphereMesh } from '../../src/engine/views/SphereMesh'
 import { createViewportStub } from '../helpers/scene'
 import * as THREE from 'three'
@@ -137,6 +138,18 @@ describe('a number field being typed in when a file is dropped (cd:review CDR-10
     fireEvent.blur(x)
     expect(store().preset.base.controlPoints[0][0], 'leaving the field changes nothing').toBe(-4)
     expect(history().past.map((p) => p.base.controlPoints[0][0])).toEqual([-2.5, 5, -4])
+  })
+
+  test('only a field being typed in is left: an import from the Import button keeps the focus on the button', async () => {
+    render(<ExportPanel />)
+    const button = screen.getByRole('button', { name: 'Import JSON Preset' })
+    button.focus()
+    // The file the picker returns, as ExportPanel's hidden input receives it.
+    fireEvent.change(screen.getByLabelText('Preset file to import', { selector: 'input' }), {
+      target: { files: [presetFile('picked.json', fourSpheres)] },
+    })
+    await waitFor(() => expect(store().preset.spheres).toHaveLength(4))
+    expect(document.activeElement, 'the focus stays on the Import button').toBe(button)
   })
 })
 
