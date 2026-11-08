@@ -7,6 +7,8 @@ export class CutGlueResult {
   private lines: THREE.LineSegments | null = null;
   private surfaceWire: THREE.LineSegments | null = null;
   private edgesBuffer: Float32Array = new Float32Array(0);
+  /** Show the surface mesh rather than the clipped wireframe; a new result keeps the choice. */
+  private surfaceMeshShown = false;
 
   constructor(viewport: Viewport) {
     this.group = viewport.cutGlueGroup;
@@ -27,6 +29,7 @@ export class CutGlueResult {
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.BufferAttribute(edges, 3));
       this.lines = new THREE.LineSegments(geo, this.material);
+      this.lines.visible = !this.surfaceMeshShown;
       this.group.add(this.lines);
     }
   }
@@ -45,7 +48,7 @@ export class CutGlueResult {
       geo.setIndex(new THREE.BufferAttribute(indices, 1));
       const wireGeo = new THREE.WireframeGeometry(geo);
       this.surfaceWire = new THREE.LineSegments(wireGeo, this.material);
-      this.surfaceWire.visible = false; // toggled by user
+      this.surfaceWire.visible = this.surfaceMeshShown;
       this.group.add(this.surfaceWire);
       geo.dispose();
     }
@@ -56,6 +59,7 @@ export class CutGlueResult {
   }
 
   setSurfaceMeshVisible(v: boolean): void {
+    this.surfaceMeshShown = v;
     if (this.surfaceWire) this.surfaceWire.visible = v;
     if (this.lines) this.lines.visible = !v;
   }

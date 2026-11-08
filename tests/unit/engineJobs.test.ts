@@ -33,6 +33,7 @@ beforeAll(() => installCanvas2dStub())
 
 beforeEach(() => {
   store().resetToDefault()
+  useUiStore.setState(useUiStore.getInitialState())
   const manual = manualWorkers()
   workers = manual.workers
   engine = new EditorEngine(mountCanvas(), { createRenderer: createRendererStub, createWorker: manual.createWorker })
@@ -227,13 +228,13 @@ describe("the surface mesh's flow cloud", () => {
   test('Show/Hide decides; the Edit/Preview mode does not', async () => {
     store().loadPreset(liftedFlowCloud())
     await regenerate()
-    engine!.setFlowCloudVisible(false)
+    useUiStore.getState().toggleFlowCloud() // Hide
     const hidden = await surfaceMesh()
     expect(above4(hidden.positions).count, 'a hidden flow cloud is left out').toBe(0)
     expect(hidden.request.includeFlowCloud).toBe(false)
 
-    engine!.setFlowCloudVisible(true)
-    engine!.setMode('preview', false)
+    useUiStore.getState().toggleFlowCloud() // Show
+    useUiStore.getState().setMode('preview')
     const shown = await surfaceMesh()
     expect(above4(shown.positions).count).toBeGreaterThan(100)
     expect(shown.request.includeFlowCloud).toBe(true)

@@ -18,14 +18,16 @@ export function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useEditorEngine(canvasRef);
 
-  const [mode, setMode]                     = useState<'edit' | 'preview'>('edit');
-  const [showAxes, setShowAxes]             = useState(true);
-  const [showGrid, setShowGrid]             = useState(true);
-  const [showFlowCloud, setShowFlowCloud]   = useState(true);
   const [openPanels, setOpenPanels]         = useState<Set<PanelId>>(
     new Set(['spheres', 'flowCloud'])
   );
-  const [surfaceMeshVisible, setSurfaceMeshVisible] = useState(false);
+
+  // The engine follows these flags (computeVisibility); the toolbar and panels set them.
+  const mode               = useUiStore((s) => s.mode);
+  const showAxes           = useUiStore((s) => s.showAxes);
+  const showGrid           = useUiStore((s) => s.showGrid);
+  const showFlowCloud      = useUiStore((s) => s.showFlowCloud);
+  const surfaceMeshVisible = useUiStore((s) => s.surfaceMeshVisible);
 
   const generating        = useUiStore((s) => s.jobs.flowCloud.status === 'running');
   const cutGlueGenerating = useUiStore(
@@ -65,16 +67,9 @@ export function App() {
 
   function handleCutAndGlue() { void engineRef.current?.cutAndGlue(); }
 
-  function handleToggleSurfaceMesh(v: boolean) {
-    setSurfaceMeshVisible(v);
-    engineRef.current?.setSurfaceMeshVisible(v, mode);
-  }
+  function handleToggleSurfaceMesh(v: boolean) { useUiStore.getState().setSurfaceMeshVisible(v); }
 
-  function handleToggleFlowCloud() {
-    const next = !showFlowCloud;
-    setShowFlowCloud(next);
-    engineRef.current?.setFlowCloudVisible(next);
-  }
+  function handleToggleFlowCloud() { useUiStore.getState().toggleFlowCloud(); }
 
   function togglePanel(id: PanelId) {
     setOpenPanels((prev) => {
@@ -85,14 +80,11 @@ export function App() {
     });
   }
 
-  function handleModeChange(m: 'edit' | 'preview') {
-    setMode(m);
-    engineRef.current?.setMode(m, surfaceMeshVisible);
-  }
+  function handleModeChange(m: 'edit' | 'preview') { useUiStore.getState().setMode(m); }
 
-  function handleToggleAxes() { const n = !showAxes; setShowAxes(n); engineRef.current?.showAxes(n); }
-  function handleToggleGrid()  { const n = !showGrid; setShowGrid(n); engineRef.current?.showGrid(n); }
-  function handleZoomFit()     { engineRef.current?.zoomToFit(); }
+  function handleToggleAxes() { useUiStore.getState().toggleAxes(); }
+  function handleToggleGrid() { useUiStore.getState().toggleGrid(); }
+  function handleZoomFit()    { engineRef.current?.zoomToFit(); }
 
   // ── Panel list ─────────────────────────────────────────────────────────────
 

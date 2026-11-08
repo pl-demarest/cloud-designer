@@ -9,10 +9,11 @@ import { FlowCloud } from './views/FlowCloud';
 import { CutGlueResult } from './views/CutGlueResult';
 import { WorkerClient, type JobOutcome } from './WorkerClient';
 import { DragController } from './DragController';
+import { computeVisibility } from './visibility';
 import { createModuleWorker, type WorkerFactory } from './workers';
 import { useCloudStore } from '../store/cloudStore';
 import { useHistoryStore } from '../store/historyStore';
-import { useUiStore } from '../store/uiStore';
+import { useUiStore, viewFlags } from '../store/uiStore';
 import type {
   CutGlueRequest,
   CutGlueResult as CutGlueWorkerResult,
@@ -28,8 +29,6 @@ export interface EditorEngineOptions {
   /** Starts each geometry worker; the default starts the module workers. */
   createWorker?: WorkerFactory;
 }
-
-export type EditorMode = 'edit' | 'preview';
 
 /** The scaffold groups the GLB exports clone. */
 export interface ScaffoldGroups {
@@ -69,8 +68,8 @@ export class EditorEngine {
   private settleDebounced: ((outcome: JobOutcome<FlowCloudResult>) => void) | null = null;
   /** The Regenerate request whose result the flow-cloud view shows; null before the first. */
   private shownFlowCloud: FlowCloudRequest | null = null;
-  /** Show/Hide: whether the user shows the flow cloud (the mode hides it in Preview as well). */
-  private flowCloudVisible = true;
+  private readonly unsubscribeView: () => void;
+  private readonly unsubscribeSpirals: () => void;
   private disposed = false;
 
   constructor(canvas: HTMLCanvasElement, options: EditorEngineOptions = {}) {
@@ -126,10 +125,44 @@ export class EditorEngine {
       onState: (state) => ui().setJob('surfaceMesh', state),
     });
 
+    // What shows follows the view flags (uiStore) and whether any spiral is flat.
+    this.unsubscribeView = useUiStore.subscribe((s, prev) => {
+      if (
+        s.mode !== prev.mode ||
+        s.showAxes !== prev.showAxes ||
+        s.showGrid !== prev.showGrid ||
+        s.showFlowCloud !== prev.showFlowCloud ||
+        s.surfaceMeshVisible !== prev.surfaceMeshVisible
+      ) {
+        this.applyVisibility();
+      }
+    });
+    this.unsubscribeSpirals = useCloudStore.subscribe((s) => s.preset.spirals, () => this.applyVisibility());
+    this.applyVisibility();
+
     if (parent && typeof ResizeObserver !== 'undefined') {
       this.resizeObserver = new ResizeObserver(() => vp.resize(parent.clientWidth, parent.clientHeight));
       this.resizeObserver.observe(parent);
     }
+  }
+
+  /** Shows and hides each part of the viewport by computeVisibility, the one place that does. */
+  private applyVisibility(): void {
+    const hasFlatSpirals = useCloudStore.getState().preset.spirals.some((s) => s.thickness === 0);
+    const v = computeVisibility({ ...viewFlags(useUiStore.getState()), hasFlatSpirals });
+    const vp = this.viewport;
+    vp.showAxes(v.axes);
+    vp.showGrid(v.grid);
+    vp.sphereGroup.visible = v.spheres;
+    vp.baseGroup.visible = v.base;
+    vp.tailGroup.visible = v.tail;
+    vp.spiralGroup.visible = v.spirals;
+    this.spirals.setHandlesVisible(v.spiralHandles);
+    vp.gizmoGroup.visible = v.gizmo;
+    vp.flowCloudGroup.visible = v.flowCloud;
+    this.flowCloud.setHandlesVisible(v.flowCloudHandle);
+    vp.cutGlueGroup.visible = v.cutGlue;
+    this.cutGlue.setSurfaceMeshVisible(v.cutGlueSurfaceMesh);
   }
 
   /**
@@ -184,54 +217,11 @@ export class EditorEngine {
       flowCloud: preset.flowCloud,
       spirals: preset.spirals,
       resolution: preset.surfaceMeshResolution,
-      includeFlowCloud: this.flowCloudVisible && this.shownFlowCloud !== null,
+      includeFlowCloud: useUiStore.getState().showFlowCloud && this.shownFlowCloud !== null,
       flowCloudInput: this.shownFlowCloud,
     });
 
     return Promise.all([cut, surface]);
-  }
-
-  /** Edit shows the scaffold and its handles; Preview shows the Cut & Glue result. */
-  setMode(mode: EditorMode, surfaceMeshVisible: boolean): void {
-    const vp = this.viewport;
-    vp.sphereGroup.visible = mode === 'edit';
-    vp.baseGroup.visible = mode === 'edit';
-    vp.tailGroup.visible = mode === 'edit';
-    // Spirals: visible in edit mode. In preview with surface mesh, only show
-    // spiralGroup if there are flat spirals (thick ones are in the SDF mesh).
-    const hasFlatSpirals = useCloudStore.getState().preset.spirals.some((s) => s.thickness === 0);
-    vp.spiralGroup.visible = mode === 'edit' || (mode === 'preview' && surfaceMeshVisible && hasFlatSpirals);
-    vp.gizmoGroup.visible = mode === 'edit';
-    vp.flowCloudGroup.visible = mode === 'edit';
-    vp.cutGlueGroup.visible = mode === 'preview';
-    this.spirals.setHandlesVisible(mode === 'edit');
-    this.flowCloud.setHandlesVisible(mode === 'edit');
-  }
-
-  /** Shows the surface mesh instead of the clipped wireframe in the Cut & Glue result. */
-  setSurfaceMeshVisible(visible: boolean, mode: EditorMode): void {
-    this.cutGlue.setSurfaceMeshVisible(visible);
-    // Thick spirals are included in the SDF surface mesh.
-    // Flat spirals (thickness=0) still need the spiralGroup workaround.
-    if (mode === 'preview') {
-      const hasFlatSpirals = useCloudStore.getState().preset.spirals.some((s) => s.thickness === 0);
-      this.viewport.spiralGroup.visible = visible && hasFlatSpirals;
-      this.spirals.setHandlesVisible(false);
-    }
-  }
-
-  /** Show/Hide for the flow cloud. */
-  setFlowCloudVisible(visible: boolean): void {
-    this.flowCloudVisible = visible;
-    this.viewport.flowCloudGroup.visible = visible;
-  }
-
-  showAxes(visible: boolean): void {
-    this.viewport.showAxes(visible);
-  }
-
-  showGrid(visible: boolean): void {
-    this.viewport.showGrid(visible);
   }
 
   zoomToFit(): void {
@@ -245,7 +235,7 @@ export class EditorEngine {
 
   /**
    * Releases everything the constructor acquired, last acquired first: the resize observer, the
-   * drag controller (ending a drag in progress, removing its pointer listeners), each view
+   * store subscriptions, the drag controller (ending a drag in progress, removing its pointer listeners), each view
    * (store subscriptions, geometries, textures), the workers, then the viewport (render loop,
    * controls, helpers, shared materials, renderer). Idempotent.
    */
@@ -255,6 +245,8 @@ export class EditorEngine {
     this.resizeObserver?.disconnect();
     if (this.regenerateTimer) clearTimeout(this.regenerateTimer);
     this.settleDebounced?.({ status: 'superseded' });
+    this.unsubscribeView();
+    this.unsubscribeSpirals();
     this.drag.dispose();
     this.cutGlue.dispose();
     this.flowCloud.dispose();

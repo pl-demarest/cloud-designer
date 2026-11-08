@@ -4,6 +4,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest
 import { EditorEngine } from '../../src/engine/EditorEngine'
 import { useCloudStore } from '../../src/store/cloudStore'
 import { useHistoryStore } from '../../src/store/historyStore'
+import { useUiStore } from '../../src/store/uiStore'
 import { installFakeWorker, isHandle } from '../helpers/scene'
 import { TEST_ENGINE_OPTIONS, installCanvas2dStub, mountCanvas } from '../helpers/engine'
 
@@ -27,6 +28,7 @@ beforeAll(() => {
 beforeEach(() => {
   store().resetToDefault()
   history().clear()
+  useUiStore.setState(useUiStore.getInitialState())
   canvas = mountCanvas()
   canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 100 }) as DOMRect
   canvas.setPointerCapture = () => {}
@@ -74,7 +76,7 @@ describe('picking', () => {
   test('gizmo-hidden-still-draggable: in Preview the hidden F anchor is not grabbed', () => {
     const front = engine.viewport.gizmoGroup.children.find((c) => c.userData.which === 'front')!
     const at = over(front)
-    engine.setMode('preview', false)
+    useUiStore.getState().setMode('preview')
     const before = structuredClone(store().preset.flowCloud.wireframe.frontPoint)
     pointer('pointerdown', at)
     pointer('pointermove', at.clone().add(new THREE.Vector2(0.1, 0.05)))
@@ -87,7 +89,7 @@ describe('picking', () => {
     store().addSpiral()
     const handle = engine.viewport.spiralGroup.children.find(isHandle)!
     const at = over(handle)
-    engine.setMode('preview', false)
+    useUiStore.getState().setMode('preview')
     const before = structuredClone(store().preset.spirals[0].position)
     pointer('pointerdown', at)
     pointer('pointermove', at.clone().add(new THREE.Vector2(0.1, 0.05)))
