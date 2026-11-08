@@ -25,7 +25,9 @@ does is in [USAGE.md](USAGE.md).
 | UI | `src/ui` | React components: `App`, `Toolbar`, the panels, the controls and hooks, import, reset and the keyboard shortcuts | model, geometry (`resolveTailSetpoints`, for Snap Back), store, engine, export | react, three (one type) |
 | Export | `src/export` | The GLB scenes, the GLB writer, the download helper | nothing | three |
 
-The rules the code follows today:
+The rules the code follows today. ESLint checks the table's "Imports from `src/`" column and
+rule 1 (`no-restricted-imports` per folder, `eslint.config.js`), so `npx eslint .` fails on an
+import that crosses a layer the wrong way.
 
 1. **The kernel, the workers and the model import nothing from three.js.** The editor's views and
    the workers run the same source, and the three worker chunks stay at 11 to 25 kB in the
