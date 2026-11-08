@@ -1,8 +1,9 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
-import { cleanup, fireEvent, render } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { BasePanel } from '../../src/ui/panels/BasePanel'
 import { TailPanel } from '../../src/ui/panels/TailPanel'
+import { Accordion } from '../../src/ui/controls/Accordion'
 import { useCloudStore } from '../../src/store/cloudStore'
 import { useHistoryStore } from '../../src/store/historyStore'
 
@@ -182,5 +183,46 @@ describe('NumberField', () => {
     fireEvent.blur(x)
     fireEvent.blur(x)
     expect(history().past).toHaveLength(1)
+  })
+})
+
+describe('Accordion', () => {
+  function Harness({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+    return (
+      <Accordion label="Spheres (3)" open={open} onToggle={onToggle}>
+        <p>body</p>
+      </Accordion>
+    )
+  }
+
+  test('closed: aria-expanded false, no region; the arrow is not part of the name', () => {
+    let toggles = 0
+    render(<Harness open={false} onToggle={() => toggles++} />)
+    const header = screen.getByRole('button', { name: 'Spheres (3)' })
+    expect(header.getAttribute('aria-expanded')).toBe('false')
+    expect(header.getAttribute('aria-controls')).toBeTruthy()
+    expect(screen.queryByRole('region')).toBeNull()
+    fireEvent.click(header)
+    expect(toggles).toBe(1)
+  })
+
+  test('open: aria-expanded true, aria-controls names the region, which the header labels', () => {
+    render(<Harness open onToggle={() => {}} />)
+    const header = screen.getByRole('button', { name: 'Spheres (3)' })
+    expect(header.getAttribute('aria-expanded')).toBe('true')
+    const region = screen.getByRole('region', { name: 'Spheres (3)' })
+    expect(region.id).toBe(header.getAttribute('aria-controls'))
+    expect(region.textContent).toBe('body')
+  })
+
+  test('two accordions get distinct ids', () => {
+    render(
+      <>
+        <Harness open onToggle={() => {}} />
+        <Accordion label="Base" open onToggle={() => {}}>x</Accordion>
+      </>,
+    )
+    const ids = screen.getAllByRole('region').map((r) => r.id)
+    expect(new Set(ids).size).toBe(2)
   })
 })

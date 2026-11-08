@@ -54,6 +54,22 @@ test.describe('accordion', () => {
     })
   }
 
+  // Audit finding a11y-accordions-sliders: the header buttons had no aria-expanded or aria-controls.
+  test('each header reports its state and names the region it opens', async ({ page }) => {
+    for (const label of PANELS) {
+      const header = accordionHeader(page, label)
+      const open = INITIALLY_OPEN.includes(label)
+      await expect(header, label).toHaveAttribute('aria-expanded', String(open))
+      const controls = await header.getAttribute('aria-controls')
+      expect(controls, label).toBeTruthy()
+      if (!open) await header.click()
+      await expect(header).toHaveAttribute('aria-expanded', 'true')
+      const region = page.getByRole('region', { name: label })
+      await expect(region).toHaveAttribute('id', controls!)
+      await expect(region).toHaveClass(/\baccordion-body\b/)
+    }
+  })
+
   test('panels open independently of each other', async ({ page }) => {
     for (const label of PANELS) await openPanel(page, label)
     for (const label of PANELS) expect(await isPanelOpen(page, label), label).toBe(true)

@@ -11,6 +11,7 @@ import { useEditorEngine } from '../engine/useEditorEngine';
 import { useCloudStore } from '../store/cloudStore';
 import { useUiStore } from '../store/uiStore';
 import { useToggleSet } from './hooks/useToggleSet';
+import { Accordion } from './controls/Accordion';
 
 type PanelId = 'spheres' | 'base' | 'tail' | 'spirals' | 'flowCloud' | 'export';
 
@@ -130,16 +131,9 @@ export function App() {
         </div>
         <div className="sidebar">
           {panels.map(({ id, label, component }) => (
-            <div key={id} className="accordion">
-              <button
-                className={`accordion-header ${openPanels.has(id) ? 'open' : ''}`}
-                onClick={() => togglePanel(id)}
-              >
-                <span>{label}</span>
-                <span>{openPanels.has(id) ? '▲' : '▼'}</span>
-              </button>
-              {openPanels.has(id) && <div className="accordion-body">{component}</div>}
-            </div>
+            <Accordion key={id} label={label} open={openPanels.has(id)} onToggle={() => togglePanel(id)}>
+              {component}
+            </Accordion>
           ))}
         </div>
       </div>
