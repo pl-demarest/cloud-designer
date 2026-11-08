@@ -165,6 +165,28 @@ describe('SliderRow', () => {
 })
 
 describe('values that round to zero (plan decision D22)', () => {
+  describe('cdx-13: pasted text the number input would alter', () => {
+    const paste = (input: HTMLInputElement, text: string) =>
+      fireEvent.paste(input, { clipboardData: { getData: (type: string) => (type === 'text' || type === 'text/plain' ? text : '') } })
+
+    test("'1,5' (a decimal comma) is taken as 1.5, not the 15 Chrome makes of it", () => {
+      const { container } = render(<BasePanel />)
+      const y = container.querySelectorAll('.control-point-row')[1].querySelectorAll<HTMLInputElement>('input')[1]
+      expect(paste(y, '1,5'), 'the paste is handled').toBe(false)
+      fireEvent.keyDown(y, { key: 'Enter' })
+      expect(store().preset.base.controlPoints[1][1]).toBe(1.5)
+    })
+
+    test("'1,234.5' (a comma and a point) is refused, and a plain number is left to the browser", () => {
+      const { container } = render(<BasePanel />)
+      const y = container.querySelectorAll('.control-point-row')[1].querySelectorAll<HTMLInputElement>('input')[1]
+      expect(paste(y, '1,234.5'), 'refused').toBe(false)
+      fireEvent.keyDown(y, { key: 'Enter' })
+      expect(store().preset.base.controlPoints[1][1]).toBe(-1)
+      expect(paste(y, ' 2.5 '), 'the browser pastes it').toBe(true)
+    })
+  })
+
   test('cdx-12: a typed -0 is stored as 0, so Export JSON then Import gives the same preset', () => {
     const { container } = render(<BasePanel />)
     const z = container.querySelectorAll('.control-point-row')[1].querySelectorAll<HTMLInputElement>('input')[2]

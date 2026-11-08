@@ -1,4 +1,4 @@
-import { useState, type KeyboardEvent } from 'react';
+import { useState, type ClipboardEvent, type KeyboardEvent } from 'react';
 import { useCloudStore } from '../../store/cloudStore';
 import { historyShortcut } from '../shortcuts';
 import { formatFixed } from './format';
@@ -23,6 +23,10 @@ interface Props {
  * again; a number is clamped to [min, max] and, if it differs from the value, goes to onChange
  * and is committed as one undo step. Escape drops the draft.
  *
+ * Pasted text that is not a number literal, which the number input would alter (Chrome drops a
+ * comma, so "1,5" became 15), is handled here: one decimal comma and no point is read as a point
+ * ("1,5" is 1.5), anything else is refused. A plain number is pasted by the browser.
+ *
  * The undo and redo keys do not reach the browser: Chrome keeps one undo list for all of a page's
  * text fields, and a field's typing leaves it once React writes the applied value, so its Ctrl+Z
  * edited another field (the cloud name). With a draft, Ctrl+Z drops it; without one, the keys
@@ -43,6 +47,14 @@ export function NumberField({ label, id, value, onChange, min = -Infinity, max =
     if (Object.is(next, value)) return;
     onChange(next);
     useCloudStore.getState().commit();
+  }
+
+  function handlePaste(e: ClipboardEvent<HTMLInputElement>) {
+    const text = e.clipboardData.getData('text').trim();
+    if (text !== '' && Number.isFinite(Number(text))) return;
+    e.preventDefault();
+    const comma = /^[+-]?\d*,\d+$/.test(text) ? text.replace(',', '.') : null;
+    if (comma !== null) setDraft(comma);
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
@@ -73,6 +85,7 @@ export function NumberField({ label, id, value, onChange, min = -Infinity, max =
       max={Number.isFinite(max) ? max : undefined}
       step={step}
       onChange={(e) => setDraft(e.target.value)}
+      onPaste={handlePaste}
       onBlur={apply}
       onKeyDown={handleKeyDown}
     />

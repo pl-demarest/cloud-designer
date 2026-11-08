@@ -370,7 +370,9 @@ run again. Reset, Import and Discard replace the whole cloud and clear them.
 - A number field shows its value with two decimals, a value that rounds to zero as 0.00 (never
   −0.00), and changes only when you press Enter or leave it. An empty or non-numeric entry is
   refused and the field shows the stored value again; a number outside the field's range is
-  clamped to it (setpoint width 0.05 to 1.5); Escape drops what you typed.
+  clamped to it (setpoint width 0.05 to 1.5); Escape drops what you typed. A pasted number with
+  a decimal comma ("1,5") is read as 1.5; pasted text that is not a number, such as "1,234.5", is
+  refused.
 
 ## Import and export
 
