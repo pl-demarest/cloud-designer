@@ -450,6 +450,9 @@ cloud from autosave (saved <date and time>)." and a **Discard** button. Discard 
 default preset as one undo step, clears the generated flow cloud and Cut & Glue result, and removes
 the save. A save that does not read as a preset is
 removed. Where the browser blocks localStorage, as some private windows do, nothing is saved.
+When a save fails, as when the browser's storage is full, the notice "Could not autosave the
+cloud: <reason>. Use Export JSON to keep a copy." says so once; after the next save that
+succeeds, a failure is reported again.
 
 The save holds the preset only, not the generated results: after a reload, Regenerate and Cut &
 Glue again.

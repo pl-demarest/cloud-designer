@@ -74,14 +74,33 @@ describe('writeAutosave and readAutosave', () => {
     }
   })
 
-  test('a failed write (quota) does not throw and warns once', () => {
+  test('a failed write (quota) does not throw: the first failure shows an error notice and warns, until a write succeeds', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const setItem = storage.setItem.bind(storage)
+    writeAutosave(storage, edited()) // a save that succeeds
     storage.setItem = () => {
-      throw new DOMException('full', 'QuotaExceededError')
+      throw new DOMException('The quota has been exceeded.', 'QuotaExceededError')
     }
     writeAutosave(storage, edited())
+    expect(useUiStore.getState().notice).toEqual({
+      tone: 'error',
+      text: 'Could not autosave the cloud: The quota has been exceeded. Use Export JSON to keep a copy.',
+    })
+    expect(warn).toHaveBeenCalledTimes(1)
+    useUiStore.getState().dismissNotice()
     writeAutosave(storage, edited())
-    expect(warn.mock.calls.length).toBeLessThanOrEqual(1)
+    expect(useUiStore.getState().notice, 'reported once').toBeNull()
+    expect(warn).toHaveBeenCalledTimes(1)
+    // A write that succeeds again re-arms the report.
+    storage.setItem = setItem
+    writeAutosave(storage, edited())
+    storage.setItem = () => {
+      throw new DOMException('The quota has been exceeded.', 'QuotaExceededError')
+    }
+    writeAutosave(storage, edited())
+    expect(useUiStore.getState().notice?.tone).toBe('error')
+    expect(warn).toHaveBeenCalledTimes(2)
+    warn.mockRestore()
   })
 })
 

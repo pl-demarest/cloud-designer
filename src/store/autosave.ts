@@ -54,21 +54,30 @@ export function readAutosave(storage: Storage): { preset: CloudPreset; savedAt: 
   }
 }
 
-let warnedWrite = false;
+/** A failed write was reported, and no write has succeeded since. */
+let failureReported = false;
 
-/** Saves `preset` now. The default preset is not saved: its save is removed instead, so opening
- *  the editor on the default shows no restore notice. A failed write (quota) is reported once. */
+/**
+ * Saves `preset` now. The default preset is not saved: its save is removed instead, so opening
+ * the editor on the default shows no restore notice. The first failed write (a full storage)
+ * after one that succeeded is reported, in the console and in an error notice, so nobody relies
+ * on a save that is not being made; later failures stay quiet until a write succeeds again.
+ */
 export function writeAutosave(storage: Storage, preset: CloudPreset, now = new Date()): void {
   try {
     if (sameValue(preset, DEFAULT_PRESET)) {
       storage.removeItem(AUTOSAVE_KEY);
-      return;
+    } else {
+      const record: AutosaveRecord = { savedAt: now.toISOString(), preset };
+      storage.setItem(AUTOSAVE_KEY, JSON.stringify(record));
     }
-    const record: AutosaveRecord = { savedAt: now.toISOString(), preset };
-    storage.setItem(AUTOSAVE_KEY, JSON.stringify(record));
+    failureReported = false;
   } catch (err) {
-    if (!warnedWrite) console.warn('Autosave: the preset could not be saved.', err);
-    warnedWrite = true;
+    if (failureReported) return;
+    failureReported = true;
+    console.warn('Autosave: the preset could not be saved.', err);
+    const reason = (err instanceof Error ? err.message : String(err)).replace(/\.$/, '');
+    useUiStore.getState().showNotice({ tone: 'error', text: `Could not autosave the cloud: ${reason}. Use Export JSON to keep a copy.` });
   }
 }
 
