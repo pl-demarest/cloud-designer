@@ -2,6 +2,8 @@
  * Clipping of line-segment sets against a solid given as an inside test, for Cut & Glue.
  */
 
+import type { Float32Builder } from './arrayBuilder';
+
 // ---------------------------------------------------------------------------
 // Bisection to find exact clip boundary
 // ---------------------------------------------------------------------------
@@ -39,14 +41,15 @@ export function findTransition(
 /**
  * Keeps the parts of each segment (x,y,z,x,y,z pairs in `edges`) that lie outside the solid.
  * Each segment is tested at initialSamples + 1 evenly spaced points, and every inside/outside
- * change between neighbours is refined by bisection. Returns the surviving pieces as pairs.
+ * change between neighbours is refined by bisection. Appends the surviving pieces to `output`
+ * as pairs.
  */
 export function clipEdgeSet(
   edges: Float32Array,
   insideFn: (x: number, y: number, z: number) => boolean,
+  output: Float32Builder,
   initialSamples: number = 8
-): number[] {
-  const output: number[] = [];
+): void {
 
   for (let i = 0; i + 5 < edges.length; i += 6) {
     const ax = edges[i],   ay = edges[i+1], az = edges[i+2];
@@ -78,10 +81,10 @@ export function clipEdgeSet(
               true, insideFn
             );
             outsideStart = -1;
-            output.push(tx, ty, tz);
+            output.push3(tx, ty, tz);
           } else {
             outsideStart = j;
-            output.push(cur.x, cur.y, cur.z);
+            output.push3(cur.x, cur.y, cur.z);
           }
         }
       } else {
@@ -92,16 +95,14 @@ export function clipEdgeSet(
             cur.x, cur.y, cur.z,
             false, insideFn
           );
-          output.push(tx, ty, tz);
+          output.push3(tx, ty, tz);
           outsideStart = null;
         }
       }
     }
 
     if (outsideStart !== null) {
-      output.push(bx, by, bz);
+      output.push3(bx, by, bz);
     }
   }
-
-  return output;
 }

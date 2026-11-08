@@ -18,6 +18,7 @@ import { insideSphere, sphereFrame } from '../../geometry/primitives/sphere';
 import { attachedTail, insideTailCapsule, sampleTailSpine } from '../../geometry/primitives/tail';
 import { buildBaseVolume, insideBase } from '../../geometry/primitives/base';
 import { clipEdgeSet } from '../../geometry/clip';
+import { Float32Builder } from '../../geometry/arrayBuilder';
 import type { CutGlueRequest, CutGlueResult } from '../protocol';
 
 export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
@@ -41,7 +42,9 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
   //
   // All containment tests use inset = 1.0 (exact visible surface boundary).
 
-  const allVerts: number[] = [];
+  // Every group's surviving pieces, in order. A growable typed array: spreading a group's
+  // output into a push() overflowed the call stack above about 120,000 floats.
+  const out = new Float32Builder();
 
   // ── Sphere edges: per-sphere self-exclusion ──────────────────────────────
   for (const { sphereId, edges } of sphereEdgeGroups) {
@@ -54,7 +57,7 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
       if (insideBase(x, y, z, baseVolume)) return true;
       return false;
     };
-    allVerts.push(...clipEdgeSet(edges, insideFn));
+    clipEdgeSet(edges, insideFn, out);
   }
 
   // ── Tail edges: clipped by spheres + base (not self) ─────────────────────
@@ -65,7 +68,7 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
     if (insideBase(x, y, z, baseVolume)) return true;
     return false;
   };
-  allVerts.push(...clipEdgeSet(tailEdges, insideForTail));
+  clipEdgeSet(tailEdges, insideForTail, out);
 
   // ── Base edges: clipped by spheres + tail (not self) ─────────────────────
   const insideForBase = (x: number, y: number, z: number): boolean => {
@@ -75,7 +78,7 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
     if (insideTailCapsule(x, y, z, tailSamples, 1.0)) return true;
     return false;
   };
-  allVerts.push(...clipEdgeSet(baseEdges, insideForBase));
+  clipEdgeSet(baseEdges, insideForBase, out);
 
   // ── Spiral edges: clipped by everything (no self-volume) ────────────────
   const insideForSpirals = (x: number, y: number, z: number): boolean => {
@@ -86,7 +89,7 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
     if (insideBase(x, y, z, baseVolume)) return true;
     return false;
   };
-  allVerts.push(...clipEdgeSet(spiralEdges, insideForSpirals));
+  clipEdgeSet(spiralEdges, insideForSpirals, out);
 
   // ── Flow cloud edges: clipped by everything ──────────────────────────────
   const insideForFlowCloud = (x: number, y: number, z: number): boolean => {
@@ -97,8 +100,7 @@ export function cutAndGlue(request: CutGlueRequest): CutGlueResult {
     if (insideBase(x, y, z, baseVolume)) return true;
     return false;
   };
-  allVerts.push(...clipEdgeSet(flowCloudEdges, insideForFlowCloud));
+  clipEdgeSet(flowCloudEdges, insideForFlowCloud, out);
 
-  const clippedEdges = new Float32Array(allVerts);
-  return { clippedEdges };
+  return { clippedEdges: out.toArray() };
 }
