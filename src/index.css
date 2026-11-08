@@ -456,101 +456,6 @@ button:disabled {
   opacity: 0.7;
 }
 
-/* Scene / unit list */
-.unit-list {
-  padding: 4px 0;
-}
-
-.unit-row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px 3px 12px;
-}
-
-.unit-activate-btn {
-  padding: 0 4px;
-  font-size: 12px;
-  border: none;
-  background: transparent;
-  color: var(--accent);
-  cursor: pointer;
-  flex-shrink: 0;
-  line-height: 1;
-}
-
-.unit-activate-btn:hover {
-  background: transparent;
-  color: var(--accent);
-}
-
-.unit-name-input {
-  flex: 1;
-  font-family: inherit;
-  font-size: 11px;
-  padding: 2px 4px;
-  border: 1px solid transparent;
-  border-radius: 3px;
-  background: transparent;
-  outline: none;
-  min-width: 0;
-}
-
-.unit-name-input:hover {
-  border-color: var(--border);
-}
-
-.unit-name-input:focus {
-  border-color: var(--accent);
-  background: #fff;
-}
-
-.unit-entry {
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.unit-entry--active {
-  background: #f0f4ff;
-}
-
-.unit-entry--active .unit-row {
-  background: transparent;
-}
-
-.unit-transform {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 8px 4px 28px;
-}
-
-.unit-transform-label {
-  font-size: 9px;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  flex-shrink: 0;
-  margin-right: 1px;
-}
-
-.unit-transform-input {
-  width: 46px !important;
-}
-
-.unit-baked-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  border: 1px solid #bbb;
-  background: transparent;
-  flex-shrink: 0;
-}
-
-.unit-baked-dot--ready {
-  background: #22c55e;
-  border-color: #16a34a;
-}
-
 /* Keyboard focus. The rules above remove the browsers' outline from the text fields, and
    :focus-visible leaves mouse clicks on buttons without one. */
 button:focus-visible,
@@ -583,14 +488,4 @@ select:focus-visible,
   text-align: center;
   padding: 6px;
   font-size: 11px;
-}
-
-.btn-export--scene {
-  background: #0f766e;
-  color: #fff;
-  border-color: #0f766e;
-}
-
-.btn-export--scene:hover:not(:disabled) {
-  background: #0d6360;
 }
