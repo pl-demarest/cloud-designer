@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Viewport } from './Viewport';
-import { useCloudStore } from '../store/cloudStore';
+import { Viewport } from '../Viewport';
+import { useCloudStore } from '../../store/cloudStore';
 
 const FRONT_MAT = new THREE.MeshBasicMaterial({ color: 0x2563eb, depthTest: false });
 const BACK_MAT = new THREE.MeshBasicMaterial({ color: 0xdc2626, depthTest: false });

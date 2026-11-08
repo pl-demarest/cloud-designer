@@ -53,11 +53,11 @@ try {
   const { generateSurfaceMesh } = await load('/src/workers/core/surfaceMesh.ts')
   const { cutAndGlue } = await load('/src/workers/core/cutAndGlue.ts')
   const { useCloudStore } = await load('/src/store/cloudStore.ts')
-  const { SphereMesh } = await load('/src/three/SphereMesh.ts')
-  const { BaseMesh } = await load('/src/three/BaseMesh.ts')
-  const { TailMesh } = await load('/src/three/TailMesh.ts')
-  const { SpiralMesh } = await load('/src/three/SpiralMesh.ts')
-  const { FlowCloud } = await load('/src/three/FlowCloud.ts')
+  const { SphereMesh } = await load('/src/engine/views/SphereMesh.ts')
+  const { BaseMesh } = await load('/src/engine/views/BaseMesh.ts')
+  const { TailMesh } = await load('/src/engine/views/TailMesh.ts')
+  const { SpiralMesh } = await load('/src/engine/views/SpiralMesh.ts')
+  const { FlowCloud } = await load('/src/engine/views/FlowCloud.ts')
 
   /** FlowCloud's worker: runs the flow-cloud core on a later task, as a real worker replies. */
   class InProcessWorker {

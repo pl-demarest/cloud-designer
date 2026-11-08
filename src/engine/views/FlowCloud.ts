@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { Viewport } from './Viewport';
-import { useCloudStore } from '../store/cloudStore';
-import type { FlowCloudRequest } from '../workers/protocol';
+import { Viewport } from '../Viewport';
+import { useCloudStore } from '../../store/cloudStore';
+import type { FlowCloudRequest } from '../../workers/protocol';
 
 const BLACK       = new THREE.LineBasicMaterial({ color: 0x000000 });
 const HANDLE_MAT  = new THREE.MeshBasicMaterial({ color: 0x06b6d4 }); // teal
@@ -53,7 +53,7 @@ export class FlowCloud {
     this.group.add(this.handle);
 
     this.worker = new Worker(
-      new URL('../workers/marchingCubes.worker.ts', import.meta.url),
+      new URL('../../workers/marchingCubes.worker.ts', import.meta.url),
       { type: 'module' }
     );
     this.worker.onmessage = this.onWorkerMessage;

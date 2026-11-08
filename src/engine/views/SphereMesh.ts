@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import type { SphereDef } from '../model/types';
-import { Viewport } from './Viewport';
-import { useCloudStore } from '../store/cloudStore';
+import type { SphereDef } from '../../model/types';
+import { Viewport } from '../Viewport';
+import { useCloudStore } from '../../store/cloudStore';
 
 const HANDLE_MAT = new THREE.MeshBasicMaterial({ color: 0x2563eb });
 const WIRE_MAT = new THREE.LineBasicMaterial({ color: 0x000000 });

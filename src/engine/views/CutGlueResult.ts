@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Viewport } from './Viewport';
+import { Viewport } from '../Viewport';
 
 const MAT = new THREE.LineBasicMaterial({ color: 0x000000 });
 

@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
 import * as THREE from 'three'
 import { afterEach, describe, expect, test } from 'vitest'
-import { BaseMesh } from '../../src/three/BaseMesh'
-import { TailMesh } from '../../src/three/TailMesh'
-import { SphereMesh } from '../../src/three/SphereMesh'
+import { BaseMesh } from '../../src/engine/views/BaseMesh'
+import { TailMesh } from '../../src/engine/views/TailMesh'
+import { SphereMesh } from '../../src/engine/views/SphereMesh'
 import { useCloudStore } from '../../src/store/cloudStore'
 import { createViewportStub, isHandle } from '../helpers/scene'
 import { runWorker } from '../helpers/workerHarness'

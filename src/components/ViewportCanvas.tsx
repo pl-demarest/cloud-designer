@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Viewport } from '../three/Viewport';
+import { Viewport } from '../engine/Viewport';
 
 interface Props {
   onViewportReady: (vp: Viewport) => void;
