@@ -111,7 +111,7 @@ it is.
 | Axes | Show or hide the axes helper: red X, green Y and blue Z lines, 1 unit long, at the origin. |
 | Grid | Show or hide the ground grid: 20 × 20 units in 1-unit squares, at y = −1. |
 | Fit | Frame the shown content ([Fit](#fit)). |
-| Reset | Ask for confirmation, then replace the cloud with the default preset as one undo step. The page does not reload: the history, the view and any generated result stay. |
+| Reset | Ask for confirmation, then replace the cloud with the default preset as one undo step. The page does not reload: the history and the view stay, and the generated flow cloud and Cut & Glue result are cleared. |
 
 ## Spheres
 
@@ -256,7 +256,8 @@ Bands and Show Flow Lines change the shown result at once.
 
 All three compute in Web Workers, off the editor's main thread. A request made while the same job
 is computing waits and runs when it finishes; of several waiting requests only the newest runs.
-None of the results follows later edits: they change only when their job runs again.
+None of the results follows later edits, undo or redo: they change only when their job runs again.
+Replacing the whole cloud (Reset, Reset to Default, Import, Discard) clears all three.
 
 ### Regenerate: the flow cloud
 
@@ -342,8 +343,8 @@ steps back; a new edit after an undo discards the steps you could have redone. T
 
 The history holds only the preset. The view (Edit or Preview, Axes, Grid, Hide or Show, the Surface
 Mesh box, which sections are open) is not part of it, and neither are the generated results: after
-Undo, Reset, Import or Discard the flow cloud and the Cut & Glue result stay on screen as they were
-until their jobs run again.
+Undo or Redo the flow cloud and the Cut & Glue result stay on screen as they were until their jobs
+run again. Reset, Import and Discard replace the whole cloud and clear them.
 
 ## Keyboard
 
@@ -390,7 +391,8 @@ completed and corrected to a version-2 preset:
 A file is refused, and the preset left as it was, when it is not valid JSON, is not an object,
 holds none of the fields above, or ends up with a base of fewer than two control points or a tail
 of fewer than two setpoints. The notice says which ("Could not import <file>: …"); a successful
-import shows "Imported <file>.". An import is one undo step. It does not regenerate anything.
+import shows "Imported <file>.". An import is one undo step. It clears the generated flow cloud and
+Cut & Glue result and regenerates nothing.
 
 ### Export
 
@@ -423,7 +425,8 @@ The default preset is not saved: reaching it removes the save.
 
 When the editor opens and a save exists, it opens on the saved preset with the notice "Restored the
 cloud from autosave (saved <date and time>)." and a **Discard** button. Discard goes back to the
-default preset as one undo step and removes the save. A save that does not read as a preset is
+default preset as one undo step, clears the generated flow cloud and Cut & Glue result, and removes
+the save. A save that does not read as a preset is
 removed. Where the browser blocks localStorage, as some private windows do, nothing is saved.
 
 The save holds the preset only, not the generated results: after a reload, Regenerate and Cut &
@@ -433,6 +436,3 @@ Glue again.
 
 - `flowCloud.tailStrength`, the tail's weight in the flow cloud's field, has no control. It can be
   set only in a preset file, then imported.
-- Undo, Reset, Import and Discard leave the generated flow cloud and Cut & Glue result on screen;
-  they show the old preset until the next Regenerate or Cut & Glue. Export Cloud GLB writes that
-  last result.

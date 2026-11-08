@@ -69,6 +69,7 @@ export class EditorEngine {
   private shownFlowCloud: FlowCloudRequest | null = null;
   private readonly unsubscribeView: () => void;
   private readonly unsubscribeSpirals: () => void;
+  private readonly unsubscribeReplacements: () => void;
   private disposed = false;
 
   constructor(canvas: HTMLCanvasElement, options: EditorEngineOptions = {}) {
@@ -138,6 +139,9 @@ export class EditorEngine {
     this.unsubscribeSpirals = useCloudStore.subscribe((s) => s.preset.spirals, () => this.applyVisibility());
     this.applyVisibility();
 
+    // Another cloud replaced the preset: what was generated from the one before goes.
+    this.unsubscribeReplacements = useCloudStore.subscribe((s) => s.replacements, () => this.clearGenerated());
+
     if (parent && typeof ResizeObserver !== 'undefined') {
       this.resizeObserver = new ResizeObserver(() => vp.resize(parent.clientWidth, parent.clientHeight));
       this.resizeObserver.observe(parent);
@@ -161,6 +165,19 @@ export class EditorEngine {
     this.flowCloud.setHandlesVisible(v.flowCloudHandle);
     vp.cutGlueGroup.visible = v.cutGlue;
     this.cutGlue.setSurfaceMeshVisible(v.cutGlueSurfaceMesh);
+  }
+
+  /**
+   * Drops what was generated from a cloud the preset no longer holds (Reset, Import, Discard, the
+   * autosave restore): the flow cloud and the inputs the surface mesh would union, the clipped
+   * wireframe and the surface mesh. The exports that need them then refuse as before the first
+   * Regenerate.
+   */
+  private clearGenerated(): void {
+    this.flowCloud.clear();
+    this.shownFlowCloud = null;
+    this.cutGlue.clear();
+    ui().setHasSurfaceMesh(false);
   }
 
   /**
@@ -247,6 +264,7 @@ export class EditorEngine {
     this.settleDebounced?.({ status: 'superseded' });
     this.unsubscribeView();
     this.unsubscribeSpirals();
+    this.unsubscribeReplacements();
     this.drag.dispose();
     this.cutGlue.dispose();
     this.flowCloud.dispose();

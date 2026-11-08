@@ -105,7 +105,7 @@ export function startAutosave(storage: Storage): () => void {
   };
 }
 
-/** The editor's default preset, as one undo step, and no saved preset. */
+/** The editor's default preset, as one undo step and another cloud, and no saved preset. */
 function discardAutosave(storage: Storage): void {
   const store = useCloudStore.getState();
   store.resetToDefault();
@@ -122,7 +122,7 @@ function discardAutosave(storage: Storage): void {
 export function restoreAutosave(storage: Storage): boolean {
   const saved = readAutosave(storage);
   if (!saved) return false;
-  useCloudStore.getState().loadPreset(saved.preset);
+  useCloudStore.getState().replacePreset(saved.preset);
   const when = Number.isNaN(saved.savedAt.getTime())
     ? ''
     : ` (saved ${saved.savedAt.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })})`;

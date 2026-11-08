@@ -79,8 +79,11 @@ Take a sphere's Radius slider:
    action.
 6. Autosave: its subscription to `preset` writes to localStorage one second after the last change.
 
-Generated geometry does not follow edits. The flow cloud, the clipped wireframe and the surface
-mesh change only when their jobs run.
+Generated geometry does not follow edits, undo or redo. The flow cloud, the clipped wireframe and
+the surface mesh change only when their jobs run, or when another cloud replaces the whole preset:
+`replacePreset` (Import, the autosave restore) and `resetToDefault` (Reset, Discard) count
+`cloudStore.replacements`, and the engine's subscription to it clears all three and the flow-cloud
+request the surface mesh would union (`shownFlowCloud`).
 
 ## From a button to a worker job
 

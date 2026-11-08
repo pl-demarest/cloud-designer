@@ -72,7 +72,8 @@ export class CutGlueResult {
     return this.edgesBuffer;
   }
 
-  dispose(): void {
+  /** Drops the clipped wireframe and the surface mesh, as before the first Cut & Glue run. */
+  clear(): void {
     for (const obj of [this.lines, this.surfaceWire]) {
       if (!obj) continue;
       this.group.remove(obj);
@@ -81,5 +82,9 @@ export class CutGlueResult {
     this.lines = null;
     this.surfaceWire = null;
     this.edgesBuffer = new Float32Array(0);
+  }
+
+  dispose(): void {
+    this.clear();
   }
 }

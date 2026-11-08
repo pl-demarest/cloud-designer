@@ -201,7 +201,8 @@ The landing page's input is the file **Export Cloud GLB** writes (`cloudScene` i
 `src/export/scenes.ts`):
 
 - **When:** after a Cut & Glue run. The file holds that run's clipped wireframe, also when the
-  preset has changed since; without a run the button refuses with an alert.
+  preset has been edited since; Reset, Import and Discard clear it. Without a run the button
+  refuses with an alert.
 - **File name:** `<name>-cloud.glb`, where `<name>` is the cloud's name made safe (lower case,
   accents dropped, other characters replaced by `-`, at most 80 characters; `cloud` when nothing
   is left).

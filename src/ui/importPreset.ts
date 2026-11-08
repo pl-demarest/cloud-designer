@@ -4,7 +4,8 @@ import { PresetFileError, parsePresetJson } from '../model/presetFile';
 
 /**
  * Loads the preset in a JSON file (the Import button, or a file dropped on the viewport) as one
- * undo step, and reports the outcome in the viewport's notice. A file that is not a preset
+ * undo step, as another cloud (replacePreset: what was generated from the one before is
+ * dropped), and reports the outcome in the viewport's notice. A file that is not a preset
  * (parsePresetJson) changes nothing; the notice says why.
  */
 export async function importPresetFile(file: File): Promise<void> {
@@ -19,7 +20,7 @@ export async function importPresetFile(file: File): Promise<void> {
   }
   const store = useCloudStore.getState();
   store.commit(); // an edit not yet recorded stays its own step
-  store.loadPreset(preset);
+  store.replacePreset(preset);
   store.commit();
   ui.showNotice({ tone: 'info', text: `Imported ${file.name}.` });
 }

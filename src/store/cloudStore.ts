@@ -46,9 +46,21 @@ interface CloudStore {
   setSurfaceMeshResolution: (resolution: number) => void;
 
   // Preset actions
-  /** Replaces the preset with normalizePreset(preset): current version, every field set. */
+  /** Replaces the preset with normalizePreset(preset): current version, every field set. Undo
+   *  and redo load their steps through it. */
   loadPreset: (preset: unknown) => void;
+  /** Loads `preset` as loadPreset does, as another cloud (Import, the autosave restore): counts a
+   *  replacement. */
+  replacePreset: (preset: unknown) => void;
+  /** Replaces the preset with the default one, as another cloud (Reset, Discard): counts a
+   *  replacement. */
   resetToDefault: () => void;
+  /**
+   * How many times another cloud has replaced the whole preset (replacePreset, resetToDefault).
+   * The engine drops what it generated from the cloud before when this changes; single edits,
+   * undo and redo leave it.
+   */
+  replacements: number;
   setPresetName: (name: string) => void;
 
   // History (the snapshots live in historyStore)
@@ -246,7 +258,11 @@ export const useCloudStore = create<CloudStore>()(
 
     loadPreset: (preset) => set({ preset: normalizePreset(preset) }),
 
-    resetToDefault: () => set({ preset: structuredClone(DEFAULT_PRESET) }),
+    replacePreset: (preset) => set((s) => ({ preset: normalizePreset(preset), replacements: s.replacements + 1 })),
+
+    resetToDefault: () => set((s) => ({ preset: structuredClone(DEFAULT_PRESET), replacements: s.replacements + 1 })),
+
+    replacements: 0,
 
     setPresetName: (name) =>
       set((s) => ({ preset: { ...s.preset, name } })),
