@@ -325,21 +325,21 @@ exports[`panel controls map to one preset field each > SpherePanel 1`] = `
     [
       "spheres.0.rotation.0",
       0.1,
-      -0.816814089933346,
+      -0.8168140899333465,
     ],
   ],
   "08 range Rotate Y": [
     [
       "spheres.0.rotation.1",
       0.2,
-      -0.816814089933346,
+      -0.8168140899333465,
     ],
   ],
   "09 range Rotate Z": [
     [
       "spheres.0.rotation.2",
       0.3,
-      -0.816814089933346,
+      -0.8168140899333465,
     ],
   ],
   "10 range Scale X": [
@@ -456,21 +456,21 @@ exports[`panel controls map to one preset field each > SpiralPanel 1`] = `
     [
       "spirals.0.rotation.0",
       0.4,
-      -0.816814089933346,
+      -0.8168140899333465,
     ],
   ],
   "13 range Rotate Y": [
     [
       "spirals.0.rotation.1",
       0.2,
-      -0.816814089933346,
+      -0.8168140899333465,
     ],
   ],
   "14 range Rotate Z": [
     [
       "spirals.0.rotation.2",
       0.1,
-      -0.816814089933346,
+      -0.8168140899333465,
     ],
   ],
 }

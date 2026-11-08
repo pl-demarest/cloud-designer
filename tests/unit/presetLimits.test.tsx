@@ -43,7 +43,8 @@ function rangesOf(container: HTMLElement, type: 'range' | 'number'): Map<string,
   return out
 }
 
-const slider = (r: NumberRange) => ({ min: r.min, max: r.max, step: r.step })
+/** A slider's input counts in its range's unit (a degree, or π). */
+const slider = (r: NumberRange) => ({ min: r.min / (r.unit ?? 1), max: r.max / (r.unit ?? 1), step: r.step / (r.unit ?? 1) })
 const axes = (prefix: string, r: NumberRange | readonly NumberRange[]) =>
   Object.fromEntries(['X', 'Y', 'Z'].map((a, i) => [`${prefix} ${a}`, slider('min' in r ? r : r[i])]))
 

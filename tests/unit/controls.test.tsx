@@ -219,6 +219,41 @@ describe('values that round to zero (plan decision D22)', () => {
   })
 })
 
+describe('angle sliders reach 0 and both ends (cd:explore CDX-08)', () => {
+  /** Whether min + k * step hits 0 (where 0 is in range) and max, k whole: the browser's range
+   *  input takes only those values. */
+  function onGrid(input: HTMLInputElement): { zero: boolean; max: boolean } {
+    const [min, max, step] = [Number(input.min), Number(input.max), Number(input.step)]
+    const whole = (x: number) => Math.abs(x - Math.round(x)) < 1e-9
+    return { zero: min > 0 || max < 0 || whole(-min / step), max: whole((max - min) / step) }
+  }
+
+  test('Rotate: 0, -180 and 180 degrees are on the grid and store 0, -pi and pi exactly', () => {
+    const { container } = render(<SpherePanel />)
+    fireEvent.click(container.querySelector('.swirl-item-header')!)
+    const rotate = slider(container, 'Rotate X')
+    expect(onGrid(rotate)).toEqual({ zero: true, max: true })
+    for (const [value, radians] of [['180', Math.PI], ['-180', -Math.PI], ['0', 0], ['90', Math.PI / 2]] as const) {
+      step(rotate, value)
+      expect(Object.is(store().preset.spheres[0].rotation[0], radians), `${value} degrees`).toBe(true)
+    }
+  })
+
+  test('Curl and Spiral Twist reach 2 pi and 4 pi', () => {
+    const tail = render(<TailPanel />)
+    const curl = slider(tail.container, 'Curl')
+    expect(onGrid(curl).max).toBe(true)
+    step(curl, curl.max)
+    expect(store().preset.tail.curlAmount).toBe(2 * Math.PI)
+    tail.unmount()
+    const fc = render(<FlowCloudPanel />)
+    const twist = slider(fc.container, 'Spiral Twist')
+    expect(onGrid(twist).max).toBe(true)
+    step(twist, twist.max)
+    expect(store().preset.flowCloud.wireframe.spiralTwist).toBe(4 * Math.PI)
+  })
+})
+
 describe('the Spheres and Spirals sections show their count once (plan decision D22)', () => {
   test('the panels leave the count to the section header', () => {
     for (const Panel of [SpherePanel, SpiralPanel]) {

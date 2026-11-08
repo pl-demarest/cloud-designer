@@ -8,8 +8,8 @@ interface Props {
   /** The accessible name, when the visible label alone is not enough ("X" under "Position"). */
   ariaLabel?: string;
   value: number;
-  /** The field's entry in the range table (src/model/ranges.ts): min, max, step, and whether it
-   *  is a whole number, whose every value is rounded. */
+  /** The field's entry in the range table (src/model/ranges.ts): min, max, step, whether it is
+   *  a whole number, whose every value is rounded, and the unit the input counts in. */
   range: NumberRange;
   onChange: (v: number) => void;
   format?: (v: number) => string;
@@ -29,7 +29,7 @@ const store = () => useCloudStore.getState();
  * nothing records nothing: commit() skips a preset equal to the newest step.
  */
 export function SliderRow({ label, ariaLabel, value, range, onChange, format }: Props) {
-  const { min, max, step, integer = false } = range;
+  const { min, max, step, integer = false, unit = 1 } = range;
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const keyHeld = useRef(false);
@@ -90,13 +90,14 @@ export function SliderRow({ label, ariaLabel, value, range, onChange, format }: 
         aria-valuetext={display}
         ref={inputRef}
         type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
+        // In multiples of `unit`, so the grid holds 0 and both ends (ranges.ts).
+        min={min / unit}
+        max={max / unit}
+        step={step / unit}
+        value={value / unit}
         onChange={(e) => {
           const v = parseFloat(e.target.value);
-          onChange(integer ? Math.round(v) : v);
+          onChange(integer ? Math.round(v) : v * unit);
         }}
         onPointerDown={handlePointerDown}
         onKeyDown={handleKeyDown}

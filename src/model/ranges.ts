@@ -18,6 +18,13 @@ export interface NumberRange {
   /** An angle in radians, min to max being one full turn: normalizePreset wraps a value from
    *  outside the range into it, which keeps the rotation it describes, instead of clamping. */
   readonly angle?: boolean;
+  /**
+   * The slider works in multiples of `unit` (a degree, or π): its input runs from min / unit to
+   * max / unit in steps of step / unit, all whole numbers or short decimals, so 0 and both ends
+   * lie on its grid. A range input only takes min + k step; with min -π and step 0.01 rad, 0 and
+   * π were off the grid.
+   */
+  readonly unit?: number;
 }
 
 function range(min: number, max: number, step: number, extra: Partial<NumberRange> = {}): NumberRange {
@@ -29,8 +36,10 @@ function count(min: number, max: number): NumberRange {
   return range(min, max, 1, { integer: true });
 }
 
-/** An Euler angle, as the Rotate sliders set it. */
-const ANGLE = range(-Math.PI, Math.PI, 0.01, { angle: true });
+const DEGREE = Math.PI / 180;
+
+/** An Euler angle, as the Rotate sliders set it: -180° to 180° in whole degrees. */
+const ANGLE = range(-Math.PI, Math.PI, DEGREE, { angle: true, unit: DEGREE });
 
 /** The Pos sliders of a sphere or a spiral, per axis. */
 const POSITION: readonly [NumberRange, NumberRange, NumberRange] = [
@@ -66,7 +75,8 @@ export const RANGES = {
     setpointPosition: COORDINATE,
     /** The Start radius and End radius sliders, and each setpoint's w field. */
     width: range(0.05, 1.5, 0.01, { fieldStep: 0.05 }),
-    curlAmount: range(0, Math.PI * 2, 0.05),
+    /** 0 to 2π in steps of 0.01π, as the slider shows it. */
+    curlAmount: range(0, Math.PI * 2, Math.PI * 0.01, { unit: Math.PI }),
     attachOffset: range(0, 1, 0.01),
     radialSegments: count(4, 24),
     lengthSegments: count(8, 64),
@@ -92,7 +102,8 @@ export const RANGES = {
     anchor: COORDINATE,
     numBands: count(4, 20),
     numFlowLines: count(4, 24),
-    spiralTwist: range(0, Math.PI * 4, 0.05),
+    /** 0 to 4π in steps of 0.01π, as the slider shows it. */
+    spiralTwist: range(0, Math.PI * 4, Math.PI * 0.01, { unit: Math.PI }),
   },
 } as const;
 

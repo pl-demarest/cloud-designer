@@ -130,7 +130,7 @@ controls, which start hidden, and × removes it.
 | Radius | 0.1 to 3 (0.05) | The radius of the drawn sphere, of its clip volume and of its part of the surface mesh. |
 | Falloff | 0.5 to 5 (0.1) | The sphere's weight in the flow cloud's field. It changes nothing else. |
 | Half | on, off | Keep only the upper dome, above the sphere's own y = 0 plane (which turns with Rotate), in the wireframe, the clip volume and the surface mesh. The flow cloud's field still counts the whole sphere. |
-| Rotate X, Y, Z | −180° to 180° (0.01 rad, shown in degrees) | Euler angles in three.js's default order XYZ, as an object's rotation, for the wireframe, the clip volume, the surface mesh and the field alike. |
+| Rotate X, Y, Z | −180° to 180° (1°) | Euler angles in three.js's default order XYZ, as an object's rotation, for the wireframe, the clip volume, the surface mesh and the field alike. |
 | Scale X, Y, Z | 0.2 to 3 (0.05) | Shown for an ellipsoid only. |
 
 ## Base
@@ -164,7 +164,7 @@ its width (at least 0.05).
 |---|---|---|
 | Start radius | 0.05 to 1.5 (0.01) | The first setpoint's width. |
 | End radius | 0.05 to 1.5 (0.01) | The last setpoint's width. |
-| Curl | 0 to 2π (0.05 rad, shown as a multiple of π) | Turns the wireframe's rings about the curve over the last 20 % of its length, from 0 at 80 % to the full angle at the tip, so the lengthwise wires twist there. The curve, the clip volume and the surface mesh do not change. |
+| Curl | 0 to 2π (0.01π, shown as a multiple of π) | Turns the wireframe's rings about the curve over the last 20 % of its length, from 0 at 80 % to the full angle at the tip, so the lengthwise wires twist there. The curve, the clip volume and the surface mesh do not change. |
 | Radial Density | 4 to 24 (1) | Vertices per ring of the wireframe. |
 | Length Density | 8 to 64 (1) | Equal arc-length steps along the curve; the clip volume and the surface mesh use the same rings. |
 | Attach | None, Base Start, Base End | Put the tail's first setpoint on the base (below). |
@@ -216,7 +216,7 @@ places a golden spiral of two turns, thickness 0.15 and corner radius 0.04 at
 | Thickness | 0 to 2 (0.01; 0 shows "flat") | 0 draws a flat ribbon. Above 0 the spiral is a coil whose cross-section is Thickness wide in the radial direction and the separation high. |
 | Corner Rnd | 0 to 1 (0.01) | Shown for a thick spiral. Rounds the corners of the cross-section rings, limited to half the thickness and half the separation. The four lengthwise wires stay at the sharp corners; the surface mesh rounds them. |
 | Pos X, Y, Z | X −8 to 8, Y and Z −4 to 4 (0.05) | The spiral's centre. |
-| Rotate X, Y, Z | −180° to 180° (0.01 rad, shown in degrees) | Euler angles in three.js's default order XYZ; they tilt the spiral's plane. |
+| Rotate X, Y, Z | −180° to 180° (1°) | Euler angles in three.js's default order XYZ; they tilt the spiral's plane. |
 
 Spirals cut nothing in Cut & Glue; the spheres, the base and the tail cut them. Only thick spirals
 are part of the surface mesh.
@@ -248,7 +248,7 @@ In Spiral mode these controls follow:
 | Show Flow Lines | Shows or hides the flow lines of the shown result at once. A Regenerate computes them either way, so turning it on shows them without one. |
 | Bands | 4 to 20 (1), shown while Generate Bands is on. Bands + 1 contours, at u = 0, 1/Bands, …, 1. |
 | Flow Lines | 4 to 24 (1). The number of flow lines, evenly spaced in angle. |
-| Spiral Twist | 0 to 4π (0.05 rad, shown as a multiple of π). How far a flow line turns about the axis from u = 0 to u = 1. |
+| Spiral Twist | 0 to 4π (0.01π, shown as a multiple of π). How far a flow line turns about the axis from u = 0 to u = 1. |
 | Front, Back | −50 to 50 (0.1) in each of X, Y and Z: the F and B anchors' coordinates. Type a value, then press Enter or leave the field ([number fields](#keyboard)), or drag the anchors in the viewport. |
 | Snap Back → Tail | Move B to where the tail starts: its first setpoint, or for an attached tail the point on the base where it meets it, within −50 to 50. One undo step. |
 

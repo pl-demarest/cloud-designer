@@ -184,9 +184,11 @@ test.describe('sliders', () => {
     await expect(curl.locator('.slider-value')).toHaveText('0.50π')
     await curl.locator('input[type=range]').focus()
     await page.keyboard.press('ArrowRight')
-    // The range input snaps the default π/2 (1.5708) to its 0.05 step grid (1.55); ArrowRight gives
-    // 1.60, and 1.60 / π = 0.509.
+    // Curl steps by 0.01 π: the default π/2 is on the grid, and ArrowRight gives 0.51 π.
     await expect(curl.locator('.slider-value')).toHaveText('0.51π')
+    // End reaches the top of the range (cd:explore CDX-08: 1.99π before).
+    await page.keyboard.press('End')
+    await expect(curl.locator('.slider-value')).toHaveText('2.00π')
 
     const flow = await openPanel(page, 'Flow Cloud')
     const lines = sliderRow(flow, 'Flow Lines')
@@ -194,6 +196,10 @@ test.describe('sliders', () => {
     await lines.locator('input[type=range]').focus()
     await page.keyboard.press('ArrowRight')
     await expect(lines.locator('.slider-value')).toHaveText('17')
+    const twist = sliderRow(flow, 'Spiral Twist')
+    await twist.locator('input[type=range]').focus()
+    await page.keyboard.press('End')
+    await expect(twist.locator('.slider-value')).toHaveText('4.00π') // 3.99π before
   })
 
   test('tail start and end radius sliders edit the first and last setpoint width', async ({ page }) => {
