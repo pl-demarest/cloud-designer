@@ -200,6 +200,28 @@ describe('normalizePreset', () => {
     expect(report.clamped).toBe(22)
   })
 
+  describe('ids are unique within each list (cd:explore CDX-02, cd:review CDR-01)', () => {
+    const ids = (items: Array<{ id: string }>) => items.map((x) => x.id)
+
+    test('a repeated id keeps its first occurrence; the later one gets a fresh id', () => {
+      const raw = structuredClone(DEFAULT_PRESET)
+      raw.spheres.push({ ...raw.spheres[1] }) // a sphere block copied by hand
+      raw.tail.setpoints[2] = { ...raw.tail.setpoints[2], id: 'tail-1' }
+      raw.spirals = [makeSpiral('s'), makeSpiral('s')]
+      const out = normalizePreset(raw)
+      expect(ids(out.spheres)).toEqual(['sphere-0', 'sphere-1', 'sphere-2', 'sphere-1-2'])
+      expect(ids(out.tail.setpoints)).toEqual(['tail-0', 'tail-1', 'tail-1-2'])
+      expect(ids(out.spirals)).toEqual(['s', 's-2'])
+      expect(normalizePreset(out), 'idempotent').toEqual(out)
+    })
+
+    test("an entry without an id gets one that no other entry's id takes, explicit ids first", () => {
+      const out = normalizePreset({ spheres: [{ radius: 2 }, { id: 'sphere-0' }, { id: 7 }], tail: { setpoints: [{}, { id: 'tail-0' }] } })
+      expect(ids(out.spheres)).toEqual(['sphere-0-2', 'sphere-0', 'sphere-2'])
+      expect(ids(out.tail.setpoints)).toEqual(['tail-0-2', 'tail-0'])
+    })
+  })
+
   test('wraps an Euler angle from outside -pi to pi by whole turns, keeping the rotation', () => {
     const raw = structuredClone(DEFAULT_PRESET)
     raw.spheres[0].rotation = [4, -7, Math.PI]

@@ -110,12 +110,40 @@ function oneOf<T extends string>(v: unknown, options: readonly T[], fallback: T)
   return options.find((o) => o === v) ?? fallback;
 }
 
-function normalizeSphere(raw: unknown, index: number, n: Ranger): SphereDef {
+/**
+ * The ids of a list's entries, unique within the list: an entry's string id at its first
+ * occurrence; a repeated id, or an entry without a string id, gets that id or `<kind>-<index>`,
+ * or else the first of `<id>-2`, `<id>-3`, ... that no entry of the list takes. The editor keys
+ * its views, edits and removals by id, so two entries with one id were drawn once and edited and
+ * removed together.
+ */
+function uniqueIds(raws: readonly unknown[], kind: string): string[] {
+  const given = raws.map((raw) => {
+    const id = fields(raw).id;
+    return typeof id === 'string' ? id : null;
+  });
+  const taken = new Set<string>();
+  const kept = given.map((id) => {
+    if (id === null || taken.has(id)) return false;
+    taken.add(id);
+    return true;
+  });
+  return given.map((id, i) => {
+    if (kept[i]) return id!;
+    const base = id ?? `${kind}-${i}`;
+    let candidate = base;
+    for (let n = 2; taken.has(candidate); n++) candidate = `${base}-${n}`;
+    taken.add(candidate);
+    return candidate;
+  });
+}
+
+function normalizeSphere(raw: unknown, id: string, n: Ranger): SphereDef {
   const r = fields(raw);
-  const d = makeSphere(`sphere-${index}`);
+  const d = makeSphere(id);
   const R = RANGES.sphere;
   return {
-    id: str(r.id, d.id),
+    id,
     position: n.vec3(r.position, d.position, R.position),
     radius: n.in(r.radius, d.radius, R.radius),
     falloff: n.in(r.falloff, d.falloff, R.falloff),
@@ -125,6 +153,12 @@ function normalizeSphere(raw: unknown, index: number, n: Ranger): SphereDef {
     rotation: n.vec3(r.rotation, d.rotation, R.rotation),
     half: bool(r.half, d.half),
   };
+}
+
+/** Each entry of a keyed list normalized with its unique id (uniqueIds). */
+function normalizeList<T>(raws: readonly unknown[], kind: string, normalize: (raw: unknown, id: string, n: Ranger) => T, n: Ranger): T[] {
+  const ids = uniqueIds(raws, kind);
+  return raws.map((raw, i) => normalize(raw, ids[i], n));
 }
 
 function normalizeBase(raw: unknown, n: Ranger): BaseDef {
@@ -144,11 +178,11 @@ function normalizeBase(raw: unknown, n: Ranger): BaseDef {
   };
 }
 
-function normalizeTailSetpoint(raw: unknown, index: number, n: Ranger): TailSetpoint {
+function normalizeTailSetpoint(raw: unknown, id: string, n: Ranger): TailSetpoint {
   const r = fields(raw);
-  const d = makeTailSetpoint(`tail-${index}`);
+  const d = makeTailSetpoint(id);
   return {
-    id: str(r.id, d.id),
+    id,
     position: n.vec3(r.position, d.position, RANGES.tail.setpointPosition),
     width: n.in(r.width, d.width, RANGES.tail.width),
   };
@@ -161,7 +195,7 @@ function normalizeTail(raw: unknown, fromVersion1: boolean, n: Ranger): TailDef 
   const attachToBase = oneOf(r.attachToBase, ['start', 'end', 'none'], d.attachToBase);
   const attachOffset = n.in(r.attachOffset, d.attachOffset, R.attachOffset);
   return {
-    setpoints: Array.isArray(r.setpoints) ? r.setpoints.map((sp, i) => normalizeTailSetpoint(sp, i, n)) : d.setpoints,
+    setpoints: Array.isArray(r.setpoints) ? normalizeList(r.setpoints, 'tail', normalizeTailSetpoint, n) : d.setpoints,
     curlAmount: n.in(r.curlAmount, d.curlAmount, R.curlAmount),
     attachToBase,
     // Version 1 attached 'start' like 'end', at attachOffset from the base's start. Version 2
@@ -172,12 +206,12 @@ function normalizeTail(raw: unknown, fromVersion1: boolean, n: Ranger): TailDef 
   };
 }
 
-function normalizeSpiral(raw: unknown, index: number, n: Ranger): SpiralDef {
+function normalizeSpiral(raw: unknown, id: string, n: Ranger): SpiralDef {
   const r = fields(raw);
-  const d = makeSpiral(`spiral-${index}`);
+  const d = makeSpiral(id);
   const R = RANGES.spiral;
   return {
-    id: str(r.id, d.id),
+    id,
     position: n.vec3(r.position, d.position, R.position),
     rotation: n.vec3(r.rotation, d.rotation, R.rotation),
     startRadius: n.in(r.startRadius, d.startRadius, R.startRadius),
@@ -231,6 +265,8 @@ function normalizeFlowCloud(raw: unknown, n: Ranger): FlowCloudSettings {
  * - A missing or invalid field (wrong type, NaN, an unknown option) gets its default from the
  *   factories in ./defaults.ts: a missing base, tail or flow cloud is the default one, missing
  *   sphere and spiral lists are empty. Unknown fields are dropped.
+ * - The ids of the spheres, the tail setpoints and the spirals are unique within each list
+ *   (uniqueIds).
  * - Every number is brought into its range in the range table (./ranges.ts): whole-number fields
  *   rounded, then clamped; Euler angles wrapped by whole turns into -pi to pi; every other number
  *   clamped; the two grid resolutions taken to the nearest value the editor offers
@@ -248,10 +284,10 @@ export function normalizePreset(raw: unknown, report?: NormalizeReport): CloudPr
   const preset: CloudPreset = {
     name: str(r.name, DEFAULT_PRESET.name),
     version: PRESET_VERSION,
-    spheres: list(r.spheres ?? r.swirls).map((sw, i) => normalizeSphere(sw, i, n)),
+    spheres: normalizeList(list(r.spheres ?? r.swirls), 'sphere', normalizeSphere, n),
     base: normalizeBase(r.base, n),
     tail: normalizeTail(r.tail, num(r.version, 1) < 2, n),
-    spirals: list(r.spirals).map((sp, i) => normalizeSpiral(sp, i, n)),
+    spirals: normalizeList(list(r.spirals), 'spiral', normalizeSpiral, n),
     flowCloud: normalizeFlowCloud(r.flowCloud ?? r.merge, n),
     surfaceMeshResolution: n.nearest(r.surfaceMeshResolution, RESOLUTIONS.surfaceMesh, DEFAULT_PRESET.surfaceMeshResolution),
   };

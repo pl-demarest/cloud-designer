@@ -388,6 +388,8 @@ completed and corrected to a version-2 preset:
 - a missing or invalid field (wrong type, a number that is not finite, an unknown option) gets its
   default, a missing base or tail the default one, missing sphere and spiral lists are empty, and
   unknown fields are dropped;
+- a sphere, tail setpoint or spiral whose id another item of its list already has (a block copied
+  by hand) gets a new one, so each is drawn, edited and removed on its own;
 - every number is brought into the range its control has (the tables in this guide; base control
   points, tail setpoints and the F and B anchors −50 to 50; `flowCloud.tailStrength` 0 to 10):
   segment counts, rung density and the band and flow-line counts are rounded, then clamped; a

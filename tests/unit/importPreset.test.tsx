@@ -105,6 +105,25 @@ describe('a file with values outside the editor\'s ranges (C4 F7, plan decision 
   })
 })
 
+describe('a file with a repeated sphere id (cd:explore CDX-02)', () => {
+  test('every sphere is drawn and exported, an edit changes one, and Remove removes one', async () => {
+    const mesh = new SphereMesh(createViewportStub())
+    try {
+      // The default preset with sphere 2 copied by hand: ids [sphere-0, sphere-1, sphere-2, sphere-1].
+      await importPresetFile(presetFile('copied.json', (p) => { p.spheres.push({ ...p.spheres[1], position: [0, 2, 0] }) }))
+      expect(store().preset.spheres).toHaveLength(4)
+      expect(mesh.getEdgesGrouped(), 'one wire per sphere').toHaveLength(4)
+      const [, second, , fourth] = store().preset.spheres
+      store().updateSphere(fourth.id, { radius: 3 })
+      expect(store().preset.spheres.map((s) => s.radius)).toEqual([1.2, 1, 0.9, 3])
+      store().removeSphere(fourth.id)
+      expect(store().preset.spheres.map((s) => s.id)).toEqual(['sphere-0', second.id, 'sphere-2'])
+    } finally {
+      mesh.dispose()
+    }
+  })
+})
+
 describe('NoticeBar', () => {
   test('shows the notice, an error as an alert, and dismisses it', () => {
     render(<NoticeBar />)
