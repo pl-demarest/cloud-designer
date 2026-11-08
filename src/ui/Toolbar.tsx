@@ -8,6 +8,7 @@ export function Toolbar() {
   const engine = useEngine();
   const name = useCloudStore((s) => s.preset.name);
   const setPresetName = useCloudStore((s) => s.setPresetName);
+  const commit = useCloudStore((s) => s.commit);
   const undo = useCloudStore((s) => s.undo);
   const redo = useCloudStore((s) => s.redo);
   const canUndo = useHistoryStore((s) => s.canUndo());
@@ -26,6 +27,11 @@ export function Toolbar() {
         aria-label="Cloud name"
         value={name}
         onChange={(e) => setPresetName(e.target.value)}
+        // The keystrokes of a rename are one undo step.
+        onBlur={() => commit()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') commit();
+        }}
         placeholder="Cloud name..."
       />
       <div className="toolbar-group">

@@ -147,6 +147,26 @@ describe('Toolbar', () => {
     expect(undo).toHaveProperty('disabled', false)
   })
 
+  test('name-not-undoable: a name edit is its own undo step, committed on blur or Enter', () => {
+    renderToolbar()
+    const name = screen.getByRole('textbox', { name: 'Cloud name' })
+    fireEvent.change(name, { target: { value: 'Storm' } })
+    fireEvent.blur(name)
+    expect(history().past.at(-1)!.name).toBe('Storm')
+    act(() => {
+      store().addSphere()
+      store().commit()
+    })
+    act(() => store().undo())
+    expect(store().preset.name, 'undoing the add keeps the name').toBe('Storm')
+    act(() => store().undo())
+    expect(store().preset.name).toBe('Default Cloud')
+
+    fireEvent.change(name, { target: { value: 'Front' } })
+    fireEvent.keyDown(name, { key: 'Enter' })
+    expect(history().past.at(-1)!.name).toBe('Front')
+  })
+
   test('Reset asks first; accepted, it resets to the default as one undo step', () => {
     renderToolbar()
     act(() => {
