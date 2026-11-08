@@ -81,7 +81,7 @@ For GitHub Pages, `BASE_PATH=/cloud-designer/ npm run build` builds with that ba
 
 | Technology | Version | Role |
 |---|---|---|
-| Vite | 8 (Rolldown) | Dev server and production build; bundles each worker as its own chunk |
+| Vite | 8 (Rolldown) | Dev server and production build; bundles each worker, three.js and GLTFExporter as chunks of their own (`vite.config.ts`) |
 | React | 19 | The toolbar, panels and controls, rendered in StrictMode |
 | TypeScript | 6 | Strict type-checking |
 | three.js | r183 | Rendering, OrbitControls, GLB export (GLTFExporter, loaded on first export) |
