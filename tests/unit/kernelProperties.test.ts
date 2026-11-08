@@ -5,6 +5,7 @@ import { CatmullRomCurve } from '../../src/geometry/catmullRom'
 import { computeFrenetFrames } from '../../src/geometry/frames'
 import { eulerXYZ } from '../../src/geometry/mat3'
 import { sphereFrame, sphereSDF } from '../../src/geometry/primitives/sphere'
+import { sampleSpiral } from '../../src/geometry/primitives/spiral'
 import { basePointAt, buildBaseVolume, sampleBasePath } from '../../src/geometry/primitives/base'
 import { attachedTail, sampleTailPath, tailWidthAt } from '../../src/geometry/primitives/tail'
 import type { PathSamples } from '../../src/geometry/path'
@@ -14,7 +15,7 @@ import { cutAndGlue } from '../../src/workers/core/cutAndGlue'
 import { normalizePreset } from '../../src/model/normalize'
 import { DEFAULT_PRESET, makeSphere } from '../../src/model/defaults'
 import type { BaseDef, CloudPreset, SphereDef, TailSetpoint } from '../../src/model/types'
-import { FIXTURE_NAMES, fixture, marchingCubesMessage, surfaceMeshMessage } from '../fixtures/presets'
+import { FIXTURE_NAMES, THICK_SPIRAL, fixture, marchingCubesMessage, surfaceMeshMessage } from '../fixtures/presets'
 import { edgeUse, signedVolume } from '../helpers/mesh'
 
 /**
@@ -91,6 +92,29 @@ describe('Euler XYZ rotation against three', () => {
     }
     expect(maxDiff).toBeLessThan(1e-12)
     expect(maxHalfDiff).toBeLessThan(1e-12)
+  })
+
+  // SpiralMesh draws a spiral in its local frame under the same Euler XYZ rotation as a sphere.
+  test("sampleSpiral rotates its samples by three's Matrix4.makeRotationFromEuler, bit for bit", () => {
+    const rnd = lcg(13)
+    for (let n = 0; n < 200; n++) {
+      const rotation: V3 = [(rnd() * 2 - 1) * Math.PI, (rnd() * 2 - 1) * Math.PI, (rnd() * 2 - 1) * Math.PI]
+      const position: V3 = [rnd() * 4 - 2, rnd() * 4 - 2, rnd() * 4 - 2]
+      const def = { ...THICK_SPIRAL, rotation, position }
+      const local = sampleSpiral({ ...def, rotation: [0, 0, 0], position: [0, 0, 0] }, 16)
+      const world = sampleSpiral(def, 16)
+      const te = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(...rotation, 'XYZ')).elements // column-major
+      expect(world).toHaveLength(local.length)
+      local.forEach((l, i) => {
+        const w = world[i]
+        for (let r = 0; r < 3; r++) {
+          const centre = te[r] * l.cx + te[4 + r] * l.cy + te[8 + r] * l.cz + position[r]
+          const radial = te[r] * l.rx + te[4 + r] * l.ry + te[8 + r] * l.rz
+          expect(Object.is([w.cx, w.cy, w.cz][r], centre), `rotation ${rotation}, sample ${i}, centre ${r}`).toBe(true)
+          expect(Object.is([w.rx, w.ry, w.rz][r], radial), `rotation ${rotation}, sample ${i}, radial ${r}`).toBe(true)
+        }
+      })
+    }
   })
 })
 

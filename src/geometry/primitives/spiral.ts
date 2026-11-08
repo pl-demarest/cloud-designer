@@ -5,6 +5,7 @@
 
 import type { SpiralDef } from '../../model/types';
 import { BOUND_SLACK, boxDistance, emptyBox, expandBox, type Box } from '../bounds';
+import { eulerXYZ } from '../mat3';
 
 export interface SpiralSample {
   cx: number; cy: number; cz: number;   // center (world space)
@@ -37,16 +38,9 @@ export function sampleSpiral(def: SpiralDef, samplesPerTurn: number): SpiralSamp
     return startR + (endR - startR) * (theta / maxTheta);
   };
 
-  // Build rotation matrix from Euler XYZ
-  // We need to rotate the local frame vectors, so build 3x3 rotation from the Euler angles.
-  const rx = def.rotation[0], ry = def.rotation[1], rz = def.rotation[2];
-  const cx1 = Math.cos(rx), sx1 = Math.sin(rx);
-  const cy1 = Math.cos(ry), sy1 = Math.sin(ry);
-  const cz1 = Math.cos(rz), sz1 = Math.sin(rz);
-  // Rotation matrix (Euler XYZ) columns:
-  const r00 = cy1*cz1, r01 = -cy1*sz1, r02 = sy1;
-  const r10 = sx1*sy1*cz1 + cx1*sz1, r11 = -sx1*sy1*sz1 + cx1*cz1, r12 = -sx1*cy1;
-  const r20 = -cx1*sy1*cz1 + sx1*sz1, r21 = cx1*sy1*sz1 + sx1*cz1, r22 = cx1*cy1;
+  // The rotation SpiralMesh applies (Euler XYZ, as three's makeRotationFromEuler computes it),
+  // row-major, for the local frame vectors.
+  const [r00, r01, r02, r10, r11, r12, r20, r21, r22] = eulerXYZ(def.rotation[0], def.rotation[1], def.rotation[2]);
 
   const ox = def.position[0], oy = def.position[1], oz = def.position[2];
 
