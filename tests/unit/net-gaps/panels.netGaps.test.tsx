@@ -9,6 +9,7 @@ import { SpiralPanel } from '../../../src/ui/panels/SpiralPanel'
 import { FlowCloudPanel } from '../../../src/ui/panels/FlowCloudPanel'
 import { useCloudStore } from '../../../src/store/cloudStore'
 import { useHistoryStore } from '../../../src/store/historyStore'
+import { useUiStore } from '../../../src/store/uiStore'
 import { THICK_SPIRAL, fixture } from '../../fixtures/presets'
 import type { CloudPreset } from '../../../src/model/types'
 
@@ -119,6 +120,8 @@ function mapControls(ui: ReactElement): Record<string, Change[]> {
 beforeEach(() => {
   store().resetToDefault()
   useHistoryStore.getState().clear()
+  // A Cut & Glue result exists, so the Surface Mesh checkbox is enabled and mapped.
+  useUiStore.setState({ ...useUiStore.getInitialState(), hasSurfaceMesh: true })
 })
 afterEach(() => cleanup())
 
@@ -128,7 +131,7 @@ describe('panel controls map to one preset field each', () => {
     ['BasePanel', () => <BasePanel />],
     ['TailPanel', () => <TailPanel />],
     ['SpiralPanel', () => <SpiralPanel />],
-    ['FlowCloudPanel', () => <FlowCloudPanel hasSurfaceMesh />],
+    ['FlowCloudPanel', () => <FlowCloudPanel />],
   ]
 
   for (const [name, ui] of panels) {

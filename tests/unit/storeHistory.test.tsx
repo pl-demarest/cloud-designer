@@ -125,18 +125,7 @@ describe('undo and redo', () => {
 
 describe('Toolbar', () => {
   function renderToolbar() {
-    const noop = () => {}
-    render(
-      <Toolbar
-        mode="edit"
-        onModeChange={noop}
-        showAxes
-        onToggleAxes={noop}
-        showGrid
-        onToggleGrid={noop}
-        onZoomFit={noop}
-      />,
-    )
+    render(<Toolbar />)
   }
 
   test('Undo and Redo run the store actions', () => {

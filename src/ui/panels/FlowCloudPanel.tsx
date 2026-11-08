@@ -1,28 +1,30 @@
 import { useCloudStore } from '../../store/cloudStore';
+import { useUiStore } from '../../store/uiStore';
+import { useEngine } from '../EngineContext';
 import { SliderRow } from '../controls/SliderRow';
 import { Vec3Field } from '../controls/Vec3Field';
 import { formatPi } from '../controls/format';
 import type { FlowCloudSettings } from '../../model/types';
 
-interface Props {
-  onRegenerate?: () => void;
-  generating?: boolean;
-  showFlowCloud?: boolean;
-  onToggleFlowCloud?: () => void;
-  onCutAndGlue?: () => void;
-  cutGlueGenerating?: boolean;
-  surfaceMeshVisible?: boolean;
-  onToggleSurfaceMesh?: (v: boolean) => void;
-  hasSurfaceMesh?: boolean;
-}
-
-export function FlowCloudPanel({ onRegenerate, generating, showFlowCloud = true, onToggleFlowCloud, onCutAndGlue, cutGlueGenerating, surfaceMeshVisible = false, onToggleSurfaceMesh, hasSurfaceMesh = false }: Props) {
+export function FlowCloudPanel() {
+  const engine = useEngine();
   const flowCloud = useCloudStore((s) => s.preset.flowCloud);
-  const preset = useCloudStore((s) => s.preset);
+  const surfaceMeshResolution = useCloudStore((s) => s.preset.surfaceMeshResolution);
   const setFlowCloud = useCloudStore((s) => s.setFlowCloud);
   const setSurfaceMeshResolution = useCloudStore((s) => s.setSurfaceMeshResolution);
   const resetToDefault = useCloudStore((s) => s.resetToDefault);
   const commit = useCloudStore((s) => s.commit);
+
+  // Job state and view flags: the engine publishes the first, the buttons below set the second.
+  const generating = useUiStore((s) => s.jobs.flowCloud.status === 'running');
+  const cutGlueGenerating = useUiStore(
+    (s) => s.jobs.cutAndGlue.status === 'running' || s.jobs.surfaceMesh.status === 'running',
+  );
+  const hasSurfaceMesh = useUiStore((s) => s.hasSurfaceMesh);
+  const showFlowCloud = useUiStore((s) => s.showFlowCloud);
+  const surfaceMeshVisible = useUiStore((s) => s.surfaceMeshVisible);
+  const toggleFlowCloud = useUiStore((s) => s.toggleFlowCloud);
+  const setSurfaceMeshVisible = useUiStore((s) => s.setSurfaceMeshVisible);
 
   function setWireframe(patch: Partial<FlowCloudSettings['wireframe']>) {
     setFlowCloud({ wireframe: { ...flowCloud.wireframe, ...patch } });
@@ -34,7 +36,7 @@ export function FlowCloudPanel({ onRegenerate, generating, showFlowCloud = true,
   }
 
   function snapBackToTail() {
-    const sp = preset.tail.setpoints;
+    const sp = useCloudStore.getState().preset.tail.setpoints;
     if (sp.length === 0) return;
     // Use the first setpoint as the posterior anchor (where tail meets the cloud body)
     const [x, y, z] = sp[0].position;
@@ -47,10 +49,10 @@ export function FlowCloudPanel({ onRegenerate, generating, showFlowCloud = true,
       <div className="panel-section-header">
         <span>Flow Cloud</span>
         <div style={{ display: 'flex', gap: '4px' }}>
-          <button onClick={onToggleFlowCloud} className="btn-regen" title={showFlowCloud ? 'Hide flow cloud' : 'Show flow cloud'}>
+          <button onClick={toggleFlowCloud} className="btn-regen" title={showFlowCloud ? 'Hide flow cloud' : 'Show flow cloud'}>
             {showFlowCloud ? 'Hide' : 'Show'}
           </button>
-          <button onClick={onRegenerate} disabled={generating} className="btn-regen">
+          <button onClick={() => void engine.current?.regenerate()} disabled={generating} className="btn-regen">
             {generating ? 'Working...' : 'Regenerate'}
           </button>
         </div>
@@ -60,7 +62,7 @@ export function FlowCloudPanel({ onRegenerate, generating, showFlowCloud = true,
           Reset to Default
         </button>
         <button
-          onClick={onCutAndGlue}
+          onClick={() => void engine.current?.cutAndGlue()}
           disabled={cutGlueGenerating}
           className="btn-regen"
           style={{ width: '100%', marginTop: '6px' }}
@@ -73,14 +75,14 @@ export function FlowCloudPanel({ onRegenerate, generating, showFlowCloud = true,
             type="checkbox"
             checked={surfaceMeshVisible}
             disabled={!hasSurfaceMesh}
-            onChange={(e) => onToggleSurfaceMesh?.(e.target.checked)}
+            onChange={(e) => setSurfaceMeshVisible(e.target.checked)}
             title={hasSurfaceMesh ? 'Toggle unified surface mesh wireframe' : 'Run Cut & Glue first'}
           />
         </div>
         <div className="field-row">
           <label>Mesh Density</label>
           <select
-            value={preset.surfaceMeshResolution}
+            value={surfaceMeshResolution}
             onChange={(e) => { setSurfaceMeshResolution(parseInt(e.target.value)); commit(); }}
           >
             <option value={32}>32 (fast)</option>

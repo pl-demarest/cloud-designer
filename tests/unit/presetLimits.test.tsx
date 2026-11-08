@@ -62,7 +62,7 @@ describe("normalizePreset's ranges are those of the editor's controls", () => {
   })
 
   test('FlowCloudPanel: Bands, Flow Lines, Resolution and Mesh Density', () => {
-    const { container } = render(<FlowCloudPanel hasSurfaceMesh />)
+    const { container } = render(<FlowCloudPanel />)
     expect(sliderRange(container, 'Bands')).toEqual({ ...COUNT_RANGES.numBands, step: 1 })
     expect(sliderRange(container, 'Flow Lines')).toEqual({ ...COUNT_RANGES.numFlowLines, step: 1 })
     expect(selectValues(container, 'Resolution')).toEqual(FLOW_CLOUD_RESOLUTIONS)

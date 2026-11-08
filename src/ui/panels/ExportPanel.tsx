@@ -1,32 +1,25 @@
 import { useCloudStore } from '../../store/cloudStore';
+import { useEngine } from '../EngineContext';
 import * as THREE from 'three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 
-interface ScaffoldGroups {
-  spheres: THREE.Group;
-  base: THREE.Group;
-  tail: THREE.Group;
-  spirals: THREE.Group;
-}
+export function ExportPanel() {
+  const engine = useEngine();
+  const getFlowCloudGroup = () => engine.current?.viewport.flowCloudGroup ?? null;
+  const getScaffoldGroups = () => engine.current?.scaffoldGroups() ?? null;
+  const getCutGlueEdges = () => engine.current?.cutGlue.getEdges() ?? new Float32Array(0);
 
-interface Props {
-  getFlowCloudGroup: () => THREE.Group | null;
-  getScaffoldGroups: () => ScaffoldGroups | null;
-  getCutGlueEdges?: () => Float32Array;
-}
-
-export function ExportPanel({ getFlowCloudGroup, getScaffoldGroups, getCutGlueEdges }: Props) {
-  const preset = useCloudStore((s) => s.preset);
-
-  const baseName = preset.name.replace(/\s+/g, '-').toLowerCase();
+  // Read when a button is pressed: the panel shows nothing of the preset.
+  const preset = () => useCloudStore.getState().preset;
+  const baseName = () => preset().name.replace(/\s+/g, '-').toLowerCase();
 
   function exportJSON() {
-    const json = JSON.stringify(preset, null, 2);
+    const json = JSON.stringify(preset(), null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${baseName}-preset.json`;
+    a.download = `${baseName()}-preset.json`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -40,7 +33,7 @@ export function ExportPanel({ getFlowCloudGroup, getScaffoldGroups, getCutGlueEd
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${baseName}${suffix}.glb`;
+        a.download = `${baseName()}${suffix}.glb`;
         a.click();
         URL.revokeObjectURL(url);
       },
@@ -150,7 +143,7 @@ export function ExportPanel({ getFlowCloudGroup, getScaffoldGroups, getCutGlueEd
   }
 
   function handleExportCloudGLB() {
-    const edges = getCutGlueEdges ? getCutGlueEdges() : new Float32Array(0);
+    const edges = getCutGlueEdges();
     if (edges.length === 0) {
       alert('Run Cut & Glue first to generate the unified cloud wireframe.');
       return;
