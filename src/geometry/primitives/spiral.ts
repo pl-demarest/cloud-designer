@@ -12,8 +12,13 @@ export interface SpiralSample {
   rx: number; ry: number; rz: number;   // radial direction (world)
   halfThick: number;
   halfSep: number;
+  /** The section's corner radius as SpiralMesh draws its rings: cornerRadius limited to half the
+   *  thickness and half the separation, and 0 (sharp) below MIN_CORNER_RADIUS. */
   cornerRadius: number;
 }
+
+/** A corner radius below this is drawn, and modelled, as a sharp corner. */
+export const MIN_CORNER_RADIUS = 0.001;
 
 /** Pre-sample a spiral into world-space cross-section frames.
  *  Only produces samples for thick spirals (thickness > 0). */
@@ -71,12 +76,13 @@ export function sampleSpiral(def: SpiralDef, samplesPerTurn: number): SpiralSamp
     const wry = r10*lrx + r11*lry + r12*lrz;
     const wrz = r20*lrx + r21*lry + r22*lrz;
 
+    const cr = Math.min(cornerR, Math.min(halfThick, sep / 2));
     samples.push({
       cx: wcx, cy: wcy, cz: wcz,
       rx: wrx, ry: wry, rz: wrz,
       halfThick,
       halfSep: sep / 2,
-      cornerRadius: Math.min(cornerR, Math.min(halfThick, sep / 2)),
+      cornerRadius: cr < MIN_CORNER_RADIUS ? 0 : cr,
     });
   }
   return samples;

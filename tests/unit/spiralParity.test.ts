@@ -259,6 +259,29 @@ describe("the surface mesh's spiral volume is the thick spiral SpiralMesh draws"
     })
   }
 
+  test('a corner radius below 0.001, whose rings SpiralMesh draws sharp, is sharp in the volume', () => {
+    for (const cornerRadius of [0.0005, 0.0009]) {
+      const v = buildSpiralVolume(sampleSpiral({ ...THICK_SPIRAL, cornerRadius }, SAMPLES_PER_TURN))
+      // At a sample halfway along, in the volume's own section frame: the radial direction made
+      // perpendicular to the tangent, and the tangent times it.
+      const i = Math.floor(v.n / 2)
+      const at = (a: Float64Array) => [a[3 * i], a[3 * i + 1], a[3 * i + 2]]
+      const [tx, ty, tz] = at(v.tangent)
+      let [rx, ry, rz] = at(v.radial)
+      const rt = rx * tx + ry * ty + rz * tz
+      rx -= rt * tx; ry -= rt * ty; rz -= rt * tz
+      const rl = Math.hypot(rx, ry, rz)
+      rx /= rl; ry /= rl; rz /= rl
+      const sx = ty * rz - tz * ry, sy = tz * rx - tx * rz, sz = tx * ry - ty * rx
+      const [cx, cy, cz] = at(v.centre)
+      const a = v.halfThick[i] - 1e-5, b = v.halfSep[i] - 1e-5
+      for (const [ka, kb] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+        const d = spiralSDF(cx + ka * a * rx + kb * b * sx, cy + ka * a * ry + kb * b * sy, cz + ka * a * rz + kb * b * sz, v)
+        expect(d, `corner radius ${cornerRadius}, corner (${ka}, ${kb})`).toBeLessThan(0)
+      }
+    }
+  })
+
   test('a flat spiral has no volume: the surface mesh is the same without it', () => {
     const without = surfaceMeshMessage(fixture('flatSpiral'))
     const withFlat = generateSurfaceMesh(without)
