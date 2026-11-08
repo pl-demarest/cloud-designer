@@ -199,7 +199,7 @@ Conventions:
    `sampleBasePath` and `sampleTailPath`; the cores build `BaseVolume` and `TailVolume` from the
    same samples (same segment count, ring centres, Frenet frames and widths), joined by straight
    pieces as the wire's lengthwise lines are. `resolveTailSetpoints` attaches the tail for
-   `TailMesh` and all three cores; `basePointAt` serves `BaseMesh.getPointAt` and the attachment.
+   `TailMesh` and all three cores, at the point `basePointAt` gives on the drawn curve.
    `tests/unit/workerParity.test.ts` reads the real views and checks that points 5 % inside the
    drawn rings are inside the workers' volumes and points 5 % outside are outside.
 2. **Spheres reproduce the drawn transform.** `SphereMesh` draws three.js's `SphereGeometry`

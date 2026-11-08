@@ -28,10 +28,4 @@ describe('known store defects (expected to fail until fixed)', () => {
     store().loadPreset(p)
     expect(store().preset.flowCloud.tailStrength).toBe(0)
   })
-
-  it('reorderSpheres-dead-unsafe: an out-of-range fromIdx leaves the spheres unchanged', () => {
-    const before = store().preset.spheres
-    store().reorderSpheres(7, 0)
-    expect(store().preset.spheres).toEqual(before)
-  })
 })

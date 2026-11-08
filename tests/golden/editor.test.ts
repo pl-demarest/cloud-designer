@@ -8,6 +8,8 @@ import { installCanvas2dStub } from '../helpers/engine'
 import { FIXTURE_NAMES, cutAndGlueMessage, fixture, surfaceMeshMessage, type PrimitiveEdges } from '../fixtures/presets'
 import { useCloudStore } from '../../src/store/cloudStore'
 import { useUiStore } from '../../src/store/uiStore'
+import { basePointAt } from '../../src/geometry/primitives/base'
+import * as THREE from 'three'
 
 /**
  * Characterization goldens for the editor side: each primitive module's wireframe
@@ -33,6 +35,24 @@ afterEach(() => {
   scene = null
 })
 
+/** Each spiral's wire in world space, in the order SpiralMesh created them (the record that
+ *  SpiralMesh.getEdgesGrouped gave before it was removed as unused). */
+function spiralEdgesGrouped(group: THREE.Group): Array<{ spiralId: string; edges: Float32Array }> {
+  const v = new THREE.Vector3()
+  return group.children
+    .filter((c): c is THREE.LineSegments => c instanceof THREE.LineSegments && !c.userData.editorOnly)
+    .map((wire) => {
+      wire.updateWorldMatrix(true, false)
+      const pos = wire.geometry.attributes.position
+      const verts: number[] = []
+      for (let i = 0; i < (pos?.count ?? 0); i++) {
+        v.fromBufferAttribute(pos, i).applyMatrix4(wire.matrixWorld)
+        verts.push(v.x, v.y, v.z)
+      }
+      return { spiralId: wire.userData.spiralId as string, edges: new Float32Array(verts) }
+    })
+}
+
 function collectEdges(s: EditorScene): PrimitiveEdges {
   // Same calls, same order as EditorEngine.cutAndGlue.
   return {
@@ -57,7 +77,8 @@ describe('editor goldens per fixture', () => {
       })
       primitives.check(`${name}/base`, {
         edges: digestArray(s.base.getEdges()),
-        pointAt: [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1].map((t) => s.base.getPointAt(t).toArray()),
+        // The attachment points on the drawn curve (basePointAt, which BaseMesh.getPointAt served).
+        pointAt: [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1].map((t) => basePointAt(useCloudStore.getState().preset.base, t)),
         group: serializeGroup(vp.baseGroup),
       })
       primitives.check(`${name}/tail`, {
@@ -65,7 +86,7 @@ describe('editor goldens per fixture', () => {
         group: serializeGroup(vp.tailGroup),
       })
       primitives.check(`${name}/spiral`, {
-        edgesGrouped: s.spiral.getEdgesGrouped().map((g) => ({ spiralId: g.spiralId, edges: digestArray(g.edges) })),
+        edgesGrouped: spiralEdgesGrouped(vp.spiralGroup).map((g) => ({ spiralId: g.spiralId, edges: digestArray(g.edges) })),
         edges: digestArray(s.spiral.getEdges()),
         group: serializeGroup(vp.spiralGroup),
       })

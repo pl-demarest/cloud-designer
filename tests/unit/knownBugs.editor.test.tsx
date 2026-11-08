@@ -6,6 +6,7 @@ import { SpherePanel } from '../../src/ui/panels/SpherePanel'
 import { BasePanel } from '../../src/ui/panels/BasePanel'
 import { BaseMesh } from '../../src/engine/views/BaseMesh'
 import { TailMesh } from '../../src/engine/views/TailMesh'
+import { basePointAt } from '../../src/geometry/primitives/base'
 import { DragController } from '../../src/engine/DragController'
 import { useCloudStore } from '../../src/store/cloudStore'
 import { useHistoryStore } from '../../src/store/historyStore'
@@ -87,8 +88,8 @@ describe('known editor defects (expected to fail until fixed)', () => {
     expect(a).not.toEqual(b)
   })
 
-  it('base-attach-curve-type-mismatch: getPointAt lies on the drawn (uniform Catmull-Rom) base curve', () => {
-    const { base } = baseAndTail(fixture('default'))
+  it('base-attach-curve-type-mismatch: the attachment point (basePointAt) lies on the drawn (uniform Catmull-Rom) base curve', () => {
+    baseAndTail(fixture('default'))
     const drawn = new THREE.CatmullRomCurve3(
       store().preset.base.controlPoints.map((p) => new THREE.Vector3(...p)),
       false,
@@ -96,7 +97,8 @@ describe('known editor defects (expected to fail until fixed)', () => {
       0.5,
     )
     for (const t of [0.1, 0.25, 0.4]) {
-      expect(base.getPointAt(t).distanceTo(drawn.getPointAt(t)), `t=${t}`).toBeLessThan(1e-6)
+      const at = new THREE.Vector3(...basePointAt(store().preset.base, t))
+      expect(at.distanceTo(drawn.getPointAt(t)), `t=${t}`).toBeLessThan(1e-6)
     }
   })
 

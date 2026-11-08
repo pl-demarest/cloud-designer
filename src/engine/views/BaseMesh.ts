@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { BaseDef } from '../../model/types';
 import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
-import { basePointAt, sampleBasePath } from '../../geometry/primitives/base';
+import { sampleBasePath } from '../../geometry/primitives/base';
 import type { DragSource, DragTarget } from '../DragController';
 import { sameValue } from '../sameValue';
 import { RANGES } from '../../model/ranges';
@@ -26,11 +26,6 @@ export class BaseMesh implements DragSource {
     );
 
     this.sync(useCloudStore.getState().preset.base);
-  }
-
-  /** The point on the drawn base curve at arc-length fraction t ∈ [0,1] (basePointAt). */
-  getPointAt(t: number): THREE.Vector3 {
-    return new THREE.Vector3(...basePointAt(useCloudStore.getState().preset.base, t));
   }
 
   private buildWireframe(def: BaseDef): THREE.BufferGeometry {

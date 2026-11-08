@@ -113,25 +113,6 @@ export class SpiralMesh implements DragSource {
     return new Float32Array(verts);
   }
 
-  /** Per-spiral edge groups for Cut & Glue self-exclusion (analogous to SphereMesh.getEdgesGrouped). */
-  getEdgesGrouped(): Array<{ spiralId: string; edges: Float32Array }> {
-    const result: Array<{ spiralId: string; edges: Float32Array }> = [];
-    const v = new THREE.Vector3();
-    for (const [id, { wire }] of this.meshes) {
-      const verts: number[] = [];
-      wire.updateWorldMatrix(true, false);
-      const pos = wire.geometry.attributes.position;
-      if (pos) {
-        for (let i = 0; i < pos.count; i++) {
-          v.fromBufferAttribute(pos, i).applyMatrix4(wire.matrixWorld);
-          verts.push(v.x, v.y, v.z);
-        }
-      }
-      result.push({ spiralId: id, edges: new Float32Array(verts) });
-    }
-    return result;
-  }
-
   dispose(): void {
     this.unsubscribe();
     this.meshes.clear();

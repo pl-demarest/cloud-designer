@@ -189,20 +189,6 @@ describe('sphere actions', () => {
     expect(after.spheres.map((s) => s.id)).toEqual(['sphere-0', 'sphere-2'])
   })
 
-  test('reorderSpheres with an index outside the list changes nothing', () => {
-    const before = preset()
-    store().reorderSpheres(0, 3)
-    store().reorderSpheres(-1, 0)
-    store().reorderSpheres(0.5, 1)
-    expect(preset()).toBe(before)
-  })
-
-  test('reorderSpheres moves one sphere from one index to another', () => {
-    const { after } = expectImmutableUpdate(() => store().reorderSpheres(0, 2))
-    expect(after.spheres.map((s) => s.id)).toEqual(['sphere-1', 'sphere-2', 'sphere-0'])
-    store().reorderSpheres(2, 0)
-    expect(preset().spheres.map((s) => s.id)).toEqual(['sphere-0', 'sphere-1', 'sphere-2'])
-  })
 })
 
 describe('base actions', () => {

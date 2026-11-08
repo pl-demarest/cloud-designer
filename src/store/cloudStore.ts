@@ -18,8 +18,6 @@ interface CloudStore {
   addSphere: () => void;
   updateSphere: (id: string, patch: Partial<SphereDef>) => void;
   removeSphere: (id: string) => void;
-  /** Moves the sphere at `fromIdx` to `toIdx`; a no-op unless both are indices of the list. */
-  reorderSpheres: (fromIdx: number, toIdx: number) => void;
 
   // Base actions
   setBase: (patch: Partial<BaseDef>) => void;
@@ -118,16 +116,6 @@ export const useCloudStore = create<CloudStore>()(
       set((s) => ({
         preset: { ...s.preset, spheres: s.preset.spheres.filter((sp) => sp.id !== id) },
       })),
-
-    reorderSpheres: (fromIdx, toIdx) =>
-      set((s) => {
-        const inRange = (i: number) => Number.isInteger(i) && i >= 0 && i < s.preset.spheres.length;
-        if (!inRange(fromIdx) || !inRange(toIdx)) return s;
-        const spheres = [...s.preset.spheres];
-        const [item] = spheres.splice(fromIdx, 1);
-        spheres.splice(toIdx, 0, item);
-        return { preset: { ...s.preset, spheres } };
-      }),
 
     setBase: (patch) =>
       set((s) => ({
