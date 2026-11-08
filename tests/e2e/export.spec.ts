@@ -237,3 +237,40 @@ test('the wireframe export carries the flow lines as line strips (THREE.Line), t
   expect(new Set(types)).toEqual(new Set(['Line', 'LineSegments']))
   expect(editorOnly).toEqual([])
 })
+
+// Audit finding snippet-mismatch: the copied snippet built a CloudLayer from a JSON preset, an API
+// githubLanding no longer has (plan decision D3: it loads the Cloud GLB), and a refused clipboard
+// write was an unhandled rejection.
+test.describe('Copy CloudLayer Snippet', () => {
+  test('copies the loadCloudLayer call for the Cloud GLB file', async ({ page }) => {
+    await page.evaluate(() => {
+      const w = window as unknown as { copied: string[] }
+      w.copied = []
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: { writeText: async (text: string) => void w.copied.push(text) },
+      })
+    })
+    await page.getByPlaceholder('Cloud name...').fill('Storm Front')
+    await openPanel(page, 'Export')
+    await exportButton(page, 'Copy CloudLayer Snippet').click()
+    await expect(page.locator('.notice')).toContainText('Copied the CloudLayer snippet')
+    const [snippet] = await page.evaluate(() => (window as unknown as { copied: string[] }).copied)
+    expect(snippet).toContain("import { loadCloudLayer } from './scene/CloudLayer';")
+    expect(snippet).toContain('await loadCloudLayer(scene, `${import.meta.env.BASE_URL}storm-front-cloud.glb`)')
+    expect(snippet).toContain('clouds.update(deltaTime);')
+    expect(snippet).not.toContain('cloud-preset.json')
+  })
+
+  test('a refused clipboard write is reported, not thrown', async ({ page }) => {
+    await page.evaluate(() =>
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: { writeText: () => Promise.reject(new DOMException('Write permission denied.', 'NotAllowedError')) },
+      }),
+    )
+    await openPanel(page, 'Export')
+    await exportButton(page, 'Copy CloudLayer Snippet').click()
+    await expect(page.getByRole('alert')).toContainText('Could not copy the snippet: Write permission denied.')
+  })
+})

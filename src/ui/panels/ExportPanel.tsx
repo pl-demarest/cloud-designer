@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import type { Object3D } from 'three';
 import { useCloudStore } from '../../store/cloudStore';
+import { useUiStore } from '../../store/uiStore';
 import { useEngine } from '../EngineContext';
 import { downloadBlob, safeFileName } from '../../export/download';
 import { cloudScene, fullScene, scaffoldScene, wireframeScene, type ExportSources } from '../../export/scenes';
@@ -75,19 +76,30 @@ export function ExportPanel() {
     void exportGLB(cloud.scene, '-cloud').finally(cloud.dispose);
   }
 
+  /** githubLanding's loader call for the file 'Export Cloud GLB' writes (src/export/scenes.ts). */
   function copySnippet() {
-    const snippet = `import { CloudLayer } from './scene/CloudLayer';
-import cloudPreset from './cloud-preset.json';
+    const file = `${fileStem()}-cloud.glb`;
+    const snippet = `import { loadCloudLayer } from './scene/CloudLayer';
 
-// In your scene init:
-const cloudLayer = new CloudLayer(cloudPreset, scene);
+// Put ${file} (Export Cloud GLB) in public/, then in your scene init:
+const clouds = await loadCloudLayer(scene, \`\${import.meta.env.BASE_URL}${file}\`);
 
 // In your animation loop:
-cloudLayer.update(deltaTime);
+clouds.update(deltaTime);
 `;
-    navigator.clipboard.writeText(snippet).then(() => {
-      alert('Snippet copied to clipboard!');
-    });
+    const { showNotice } = useUiStore.getState();
+    // Undefined outside a secure context (HTTPS or localhost).
+    if (!navigator.clipboard) {
+      showNotice({ tone: 'error', text: 'Could not copy the snippet: this page has no clipboard access.' });
+      return;
+    }
+    navigator.clipboard.writeText(snippet).then(
+      () => showNotice({ tone: 'info', text: `Copied the CloudLayer snippet for ${file}.` }),
+      (err: unknown) => {
+        const reason = err instanceof Error ? err.message : String(err);
+        showNotice({ tone: 'error', text: `Could not copy the snippet: ${reason}` });
+      },
+    );
   }
 
   return (
