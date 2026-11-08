@@ -104,13 +104,13 @@ describe('initial state and preset actions', () => {
     const p = structuredClone(DEFAULT_PRESET)
     p.flowCloud.position = [1, 2, 3]
     p.flowCloud.wireframe.generateBands = true
-    p.base.ringSegments = 5
+    p.base.ringSegments = 6 // the slider's minimum
     p.surfaceMeshResolution = 128
     p.flowCloud.tailStrength = 0.4
     store().loadPreset(p)
     expect(preset().flowCloud.position).toEqual([1, 2, 3])
     expect(preset().flowCloud.wireframe.generateBands).toBe(true)
-    expect(preset().base.ringSegments).toBe(5)
+    expect(preset().base.ringSegments).toBe(6)
     expect(preset().surfaceMeshResolution).toBe(128)
     expect(preset().flowCloud.tailStrength).toBe(0.4)
   })

@@ -10,6 +10,7 @@ import { attachedTail, sampleTailPath, tailWidthAt } from '../../src/geometry/pr
 import type { PathSamples } from '../../src/geometry/path'
 import { generateFlowCloud } from '../../src/workers/core/flowCloud'
 import { generateSurfaceMesh } from '../../src/workers/core/surfaceMesh'
+import { cutAndGlue } from '../../src/workers/core/cutAndGlue'
 import { normalizePreset } from '../../src/model/normalize'
 import { DEFAULT_PRESET, makeSphere } from '../../src/model/defaults'
 import type { BaseDef, CloudPreset, SphereDef, TailSetpoint } from '../../src/model/types'
@@ -395,7 +396,8 @@ const V1_EXPORT = exported('v1-default.json')
 /** The first commit, ad14f08: `swirls` and `merge`, without the fields later versions added. */
 const FIRST_COMMIT_EXPORT = exported('first-commit-default.json')
 
-const GARBAGE: unknown[] = [null, undefined, NaN, -1, 0, 1e9, '', 'x', true, [], {}, [1, 2], { a: 1 }]
+/** Wrong types, non-finite numbers, and numbers outside or between what the controls produce. */
+const GARBAGE: unknown[] = [null, undefined, NaN, -1, 0, 1e9, -1e9, 0.4, 2.5, -0.5, 300, '', 'x', true, [], {}, [1, 2], { a: 1 }]
 
 /** A copy of `v` with random fields deleted, replaced by garbage, or added. */
 function mutate(v: unknown, rnd: () => number): unknown {
@@ -426,6 +428,42 @@ describe('normalizePreset', () => {
       expect(twice).toEqual(once)
       expect(JSON.stringify(twice)).toBe(JSON.stringify(once))
       expect(normalizePreset(JSON.parse(JSON.stringify(once)))).toEqual(once)
+    }
+  })
+
+  // A segment count of 0 or below made the surface-mesh core throw in the curve code, and a
+  // fractional resolution made both mesh cores throw allocating the grid. Each preset runs at a
+  // resolution of 32: the resolution only sizes the grid, every value normalizePreset gives is
+  // one the editor offers (normalizePreset.test.ts), and 256 would take seconds per preset.
+  describe('no core throws on a normalized preset', () => {
+    const rnd = lcg(53)
+    const sources = [V1_EXPORT, FIRST_COMMIT_EXPORT, DEFAULT_PRESET]
+    const presets = Array.from({ length: 120 }, (_, i) => {
+      const p = normalizePreset(mutate(structuredClone(sources[i % 3]), rnd))
+      p.flowCloud.resolution = 32
+      p.surfaceMeshResolution = 32
+      return p
+    })
+    for (let first = 0; first < presets.length; first += 30) {
+      test(`mutated presets ${first} to ${first + 29}`, () => {
+        for (const p of presets.slice(first, first + 30)) {
+          const fc = generateFlowCloud(marchingCubesMessage(p))
+          generateSurfaceMesh(surfaceMeshMessage(p))
+          // Segments through every sphere, along the base and tail, and across the flow cloud.
+          const segment = (a: readonly number[], b: readonly number[]) => [a[0], a[1], a[2], b[0], b[1], b[2]]
+          const around = (c: readonly number[]) => segment([c[0] - 1, c[1], c[2]], [c[0] + 1, c[1], c[2]])
+          cutAndGlue({
+            spheres: p.spheres,
+            base: p.base,
+            tail: p.tail,
+            sphereEdgeGroups: p.spheres.map((s) => ({ sphereId: s.id, edges: new Float32Array(around(s.position)) })),
+            baseEdges: new Float32Array(p.base.controlPoints.flatMap(around)),
+            tailEdges: new Float32Array(p.tail.setpoints.flatMap((sp) => around(sp.position))),
+            spiralEdges: new Float32Array(segment([-3, -3, -3], [3, 3, 3])),
+            flowCloudEdges: fc.vertices.slice(0, 600),
+          })
+        }
+      })
     }
   })
 

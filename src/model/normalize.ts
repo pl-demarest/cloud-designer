@@ -34,6 +34,37 @@ type Vec3 = [number, number, number];
  */
 export const MIN_DIMENSION = 1e-3;
 
+/** A whole-number field's range: that of its slider in the editor (step 1). */
+export interface CountRange {
+  min: number;
+  max: number;
+}
+
+/** The whole-number fields and their sliders' ranges. Out of range, a base or tail segment count
+ *  of 0 or below made the surface-mesh core throw inside the curve code. */
+export const COUNT_RANGES = {
+  /** BasePanel 'Ring Density'. */
+  ringSegments: { min: 6, max: 32 },
+  /** BasePanel 'Length Density'. */
+  baseLengthSegments: { min: 8, max: 48 },
+  /** TailPanel 'Radial Density'. */
+  radialSegments: { min: 4, max: 24 },
+  /** TailPanel 'Length Density'. */
+  tailLengthSegments: { min: 8, max: 64 },
+  /** SpiralPanel 'Rung Density'. */
+  rungDensity: { min: 1, max: 32 },
+  /** FlowCloudPanel 'Bands'. */
+  numBands: { min: 4, max: 20 },
+  /** FlowCloudPanel 'Flow Lines'. */
+  numFlowLines: { min: 4, max: 24 },
+} satisfies Record<string, CountRange>;
+
+/** The grid resolutions FlowCloudPanel's selects offer, ascending: 'Resolution' for the flow
+ *  cloud and 'Mesh Density' for the surface mesh. A fractional resolution made the cores throw
+ *  allocating the grid. */
+export const FLOW_CLOUD_RESOLUTIONS: readonly number[] = [32, 64, 128];
+export const SURFACE_MESH_RESOLUTIONS: readonly number[] = [32, 64, 96, 128, 192, 256];
+
 type Fields = Record<string, unknown>;
 
 function fields(v: unknown): Fields {
@@ -51,6 +82,19 @@ function num(v: unknown, fallback: number): number {
 
 function dimension(v: unknown, fallback: number): number {
   return Math.max(num(v, fallback), MIN_DIMENSION);
+}
+
+/** A whole number in `range`: v rounded, then clamped. */
+function count(v: unknown, fallback: number, range: CountRange): number {
+  return Math.min(Math.max(Math.round(num(v, fallback)), range.min), range.max);
+}
+
+/** The value in `values` (ascending) nearest to v, the smaller of two equally near. */
+function nearest(v: unknown, values: readonly number[], fallback: number): number {
+  const x = num(v, fallback);
+  let best = values[0];
+  for (const value of values) if (Math.abs(value - x) < Math.abs(best - x)) best = value;
+  return best;
 }
 
 function bool(v: unknown, fallback: boolean): boolean {
@@ -99,8 +143,8 @@ function normalizeBase(raw: unknown): BaseDef {
     crossSectionHeight: dimension(r.crossSectionHeight, d.crossSectionHeight),
     crossSectionShape: oneOf(r.crossSectionShape, ['oval', 'rect'], d.crossSectionShape),
     closed: bool(r.closed, d.closed),
-    ringSegments: num(r.ringSegments, d.ringSegments),
-    lengthSegments: num(r.lengthSegments, d.lengthSegments),
+    ringSegments: count(r.ringSegments, d.ringSegments, COUNT_RANGES.ringSegments),
+    lengthSegments: count(r.lengthSegments, d.lengthSegments, COUNT_RANGES.baseLengthSegments),
   };
 }
 
@@ -126,8 +170,8 @@ function normalizeTail(raw: unknown, fromVersion1: boolean): TailDef {
     // Version 1 attached 'start' like 'end', at attachOffset from the base's start. Version 2
     // measures 'start' from the other end, so the offset flips to keep the tail where it was.
     attachOffset: fromVersion1 && attachToBase === 'start' ? 1 - attachOffset : attachOffset,
-    radialSegments: num(r.radialSegments, d.radialSegments),
-    lengthSegments: num(r.lengthSegments, d.lengthSegments),
+    radialSegments: count(r.radialSegments, d.radialSegments, COUNT_RANGES.radialSegments),
+    lengthSegments: count(r.lengthSegments, d.lengthSegments, COUNT_RANGES.tailLengthSegments),
   };
 }
 
@@ -143,7 +187,7 @@ function normalizeSpiral(raw: unknown, index: number): SpiralDef {
     turns: num(r.turns, d.turns),
     separation: num(r.separation, d.separation),
     taperPower: num(r.taperPower, d.taperPower),
-    rungDensity: num(r.rungDensity, d.rungDensity),
+    rungDensity: count(r.rungDensity, d.rungDensity, COUNT_RANGES.rungDensity),
     spiralType: oneOf(r.spiralType, ['archimedean', 'golden'], d.spiralType),
     thickness: num(r.thickness, d.thickness),
     cornerRadius: num(r.cornerRadius, d.cornerRadius),
@@ -156,8 +200,8 @@ function normalizeWireframe(raw: unknown, d: WireframeStyle): WireframeStyle {
     mode: oneOf(r.mode, ['edges', 'spiral'], d.mode),
     frontPoint: vec3(r.frontPoint, d.frontPoint),
     backPoint: vec3(r.backPoint, d.backPoint),
-    numBands: num(r.numBands, d.numBands),
-    numFlowLines: num(r.numFlowLines, d.numFlowLines),
+    numBands: count(r.numBands, d.numBands, COUNT_RANGES.numBands),
+    numFlowLines: count(r.numFlowLines, d.numFlowLines, COUNT_RANGES.numFlowLines),
     spiralTwist: num(r.spiralTwist, d.spiralTwist),
     generateBands: bool(r.generateBands, d.generateBands),
     showBands: bool(r.showBands, d.showBands),
@@ -169,7 +213,7 @@ function normalizeFlowCloud(raw: unknown): FlowCloudSettings {
   const r = fields(raw);
   const d = makeFlowCloud();
   return {
-    resolution: num(r.resolution, d.resolution),
+    resolution: nearest(r.resolution, FLOW_CLOUD_RESOLUTIONS, d.resolution),
     threshold: num(r.threshold, d.threshold),
     smooth: bool(r.smooth, d.smooth),
     tailStrength: num(r.tailStrength, d.tailStrength),
@@ -189,6 +233,10 @@ function normalizeFlowCloud(raw: unknown): FlowCloudSettings {
  *   sphere and spiral lists are empty. Unknown fields are dropped.
  * - Base cross-section width and height, sphere scale components and tail widths are at least
  *   MIN_DIMENSION.
+ * - Segment counts, rung density and the band and flow-line counts are rounded and clamped to
+ *   their sliders' ranges (COUNT_RANGES); the two grid resolutions become the nearest value the
+ *   editor offers (FLOW_CLOUD_RESOLUTIONS, SURFACE_MESH_RESOLUTIONS). Every value the editor's
+ *   controls produce is kept as it is.
  *
  * Throws a TypeError when `raw` is not an object.
  */
@@ -205,6 +253,6 @@ export function normalizePreset(raw: unknown): CloudPreset {
     tail: normalizeTail(r.tail, num(r.version, 1) < 2),
     spirals: list(r.spirals).map(normalizeSpiral),
     flowCloud: normalizeFlowCloud(r.flowCloud ?? r.merge),
-    surfaceMeshResolution: num(r.surfaceMeshResolution, DEFAULT_PRESET.surfaceMeshResolution),
+    surfaceMeshResolution: nearest(r.surfaceMeshResolution, SURFACE_MESH_RESOLUTIONS, DEFAULT_PRESET.surfaceMeshResolution),
   };
 }

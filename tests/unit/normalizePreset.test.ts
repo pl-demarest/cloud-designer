@@ -1,6 +1,12 @@
 import { describe, expect, test } from 'vitest'
-import { DEFAULT_PRESET, PRESET_VERSION, makeBase, makeFlowCloud, makeTail } from '../../src/model/defaults'
-import { MIN_DIMENSION, normalizePreset } from '../../src/model/normalize'
+import { DEFAULT_PRESET, PRESET_VERSION, makeBase, makeFlowCloud, makeSpiral, makeTail } from '../../src/model/defaults'
+import {
+  COUNT_RANGES,
+  FLOW_CLOUD_RESOLUTIONS,
+  MIN_DIMENSION,
+  SURFACE_MESH_RESOLUTIONS,
+  normalizePreset,
+} from '../../src/model/normalize'
 
 /** Every object and array reachable from `v`. */
 function containers(v: unknown, out = new Set<object>()): Set<object> {
@@ -172,6 +178,71 @@ describe('normalizePreset', () => {
     expect(out.base.crossSectionHeight).toBe(1e-3)
     expect(out.spheres[0].scale).toEqual([1, 1e-3, 1e-3])
     expect(out.tail.setpoints.map((s) => s.width)).toEqual([0.8, 0.4, 1e-3])
+  })
+
+  test("rounds the whole-number fields and clamps them to their sliders' ranges", () => {
+    const raw = structuredClone(DEFAULT_PRESET)
+    Object.assign(raw.base, { ringSegments: 7.6, lengthSegments: 0 })
+    Object.assign(raw.tail, { radialSegments: 0.4, lengthSegments: 1e9 })
+    raw.spirals = [makeSpiral('s', { rungDensity: -3 })]
+    Object.assign(raw.flowCloud.wireframe, { numBands: 2.5, numFlowLines: 24.4 })
+    const out = normalizePreset(raw)
+    expect(out.base).toMatchObject({ ringSegments: 8, lengthSegments: 8 })
+    expect(out.tail).toMatchObject({ radialSegments: 4, lengthSegments: 64 })
+    expect(out.spirals[0].rungDensity).toBe(1)
+    expect(out.flowCloud.wireframe).toMatchObject({ numBands: 4, numFlowLines: 24 })
+  })
+
+  test('takes each grid resolution to the nearest value the editor offers, the smaller of two equally near', () => {
+    const resolutions = (flowCloud: number, surfaceMesh: number) => {
+      const out = normalizePreset({
+        ...DEFAULT_PRESET,
+        flowCloud: { ...DEFAULT_PRESET.flowCloud, resolution: flowCloud },
+        surfaceMeshResolution: surfaceMesh,
+      })
+      return [out.flowCloud.resolution, out.surfaceMeshResolution]
+    }
+    expect(resolutions(100, 100)).toEqual([128, 96])
+    expect(resolutions(96, 160)).toEqual([64, 128])
+    expect(resolutions(48, 48)).toEqual([32, 32])
+    expect(resolutions(64.4, 191.5)).toEqual([64, 192])
+    expect(resolutions(1e9, 1e9)).toEqual([128, 256])
+    expect(resolutions(0, -5)).toEqual([32, 32])
+  })
+
+  test("keeps every value the editor's controls produce", () => {
+    const raw = structuredClone(DEFAULT_PRESET)
+    raw.spirals = [makeSpiral('s')]
+    const fields: Array<[keyof typeof COUNT_RANGES, string]> = [
+      ['ringSegments', 'base.ringSegments'],
+      ['baseLengthSegments', 'base.lengthSegments'],
+      ['radialSegments', 'tail.radialSegments'],
+      ['tailLengthSegments', 'tail.lengthSegments'],
+      ['rungDensity', 'spirals.0.rungDensity'],
+      ['numBands', 'flowCloud.wireframe.numBands'],
+      ['numFlowLines', 'flowCloud.wireframe.numFlowLines'],
+    ]
+    /** The object that holds the field at `path`, and the field's key. */
+    const at = (preset: unknown, path: string): [Record<string, unknown>, string] => {
+      const keys = path.split('.')
+      const key = keys.pop()!
+      return [keys.reduce((o, k) => (o as Record<string, unknown>)[k], preset) as Record<string, unknown>, key]
+    }
+    for (const [range, path] of fields) {
+      for (let n = COUNT_RANGES[range].min; n <= COUNT_RANGES[range].max; n++) {
+        const p = structuredClone(raw)
+        const [owner, key] = at(p, path)
+        owner[key] = n
+        const [out, outKey] = at(normalizePreset(p), path)
+        expect(out[outKey], `${path} = ${n}`).toBe(n)
+      }
+    }
+    for (const resolution of FLOW_CLOUD_RESOLUTIONS) {
+      expect(normalizePreset({ ...raw, flowCloud: { ...raw.flowCloud, resolution } }).flowCloud.resolution).toBe(resolution)
+    }
+    for (const resolution of SURFACE_MESH_RESOLUTIONS) {
+      expect(normalizePreset({ ...raw, surfaceMeshResolution: resolution }).surfaceMeshResolution).toBe(resolution)
+    }
   })
 
   test('rejects a value that is not an object', () => {
