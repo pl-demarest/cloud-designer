@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import type { CloudPreset, SphereDef, BaseDef, TailDef, SpiralDef, FlowCloudSettings } from '../model/types';
-import { DEFAULT_PRESET } from '../model/defaults';
+import { DEFAULT_PRESET, makeTailSetpoint } from '../model/defaults';
 import { normalizePreset } from '../model/normalize';
 import { sameValue } from '../engine/sameValue';
 import { useHistoryStore } from './historyStore';
@@ -17,6 +17,7 @@ interface CloudStore {
   addSphere: () => void;
   updateSphere: (id: string, patch: Partial<SphereDef>) => void;
   removeSphere: (id: string) => void;
+  /** Moves the sphere at `fromIdx` to `toIdx`; a no-op unless both are indices of the list. */
   reorderSpheres: (fromIdx: number, toIdx: number) => void;
 
   // Base actions
@@ -27,6 +28,8 @@ interface CloudStore {
 
   // Tail actions
   setTail: (patch: Partial<TailDef>) => void;
+  /** Inserts a setpoint after `afterIdx` (clamped to the list; default the last), or the first
+   *  setpoint of an empty tail. */
   addTailSetpoint: (afterIdx?: number) => void;
   removeTailSetpoint: (id: string) => void;
   updateTailSetpoint: (id: string, patch: { position?: [number, number, number]; width?: number }) => void;
@@ -104,6 +107,8 @@ export const useCloudStore = create<CloudStore>()(
 
     reorderSpheres: (fromIdx, toIdx) =>
       set((s) => {
+        const inRange = (i: number) => Number.isInteger(i) && i >= 0 && i < s.preset.spheres.length;
+        if (!inRange(fromIdx) || !inRange(toIdx)) return s;
         const spheres = [...s.preset.spheres];
         const [item] = spheres.splice(fromIdx, 1);
         spheres.splice(toIdx, 0, item);
@@ -148,7 +153,15 @@ export const useCloudStore = create<CloudStore>()(
     addTailSetpoint: (afterIdx) =>
       set((s) => {
         const pts = s.preset.tail.setpoints;
-        const idx = afterIdx !== undefined ? afterIdx : pts.length - 1;
+        if (pts.length === 0) {
+          const first = makeTailSetpoint(`tail-${nanoid()}`);
+          return { preset: { ...s.preset, tail: { ...s.preset.tail, setpoints: [first] } } };
+        }
+        const last = pts.length - 1;
+        const idx =
+          afterIdx === undefined || !Number.isFinite(afterIdx)
+            ? last
+            : Math.min(Math.max(Math.trunc(afterIdx), 0), last);
         const a = pts[idx];
         const b = pts[idx + 1];
         const newPt = b

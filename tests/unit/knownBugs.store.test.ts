@@ -12,13 +12,13 @@ beforeEach(() => {
 })
 
 describe('known store defects (expected to fail until fixed)', () => {
-  it.fails('addTailSetpoint-empty: addTailSetpoint on an empty setpoints array does not throw', () => {
+  it('addTailSetpoint-empty: addTailSetpoint on an empty setpoints array does not throw', () => {
     store().setTail({ setpoints: [] })
     expect(() => store().addTailSetpoint()).not.toThrow()
     expect(store().preset.tail.setpoints).toHaveLength(1)
   })
 
-  it.fails('addTailSetpoint-empty: an out-of-range afterIdx does not throw', () => {
+  it('addTailSetpoint-empty: an out-of-range afterIdx does not throw', () => {
     expect(() => store().addTailSetpoint(10)).not.toThrow()
   })
 
@@ -29,7 +29,7 @@ describe('known store defects (expected to fail until fixed)', () => {
     expect(store().preset.flowCloud.tailStrength).toBe(0)
   })
 
-  it.fails('reorderSpheres-dead-unsafe: an out-of-range fromIdx leaves the spheres unchanged', () => {
+  it('reorderSpheres-dead-unsafe: an out-of-range fromIdx leaves the spheres unchanged', () => {
     const before = store().preset.spheres
     store().reorderSpheres(7, 0)
     expect(store().preset.spheres).toEqual(before)

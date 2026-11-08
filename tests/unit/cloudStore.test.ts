@@ -173,6 +173,14 @@ describe('sphere actions', () => {
     expect(after.spheres.map((s) => s.id)).toEqual(['sphere-0', 'sphere-2'])
   })
 
+  test('reorderSpheres with an index outside the list changes nothing', () => {
+    const before = preset()
+    store().reorderSpheres(0, 3)
+    store().reorderSpheres(-1, 0)
+    store().reorderSpheres(0.5, 1)
+    expect(preset()).toBe(before)
+  })
+
   test('reorderSpheres moves one sphere from one index to another', () => {
     const { after } = expectImmutableUpdate(() => store().reorderSpheres(0, 2))
     expect(after.spheres.map((s) => s.id)).toEqual(['sphere-1', 'sphere-2', 'sphere-0'])
@@ -242,6 +250,23 @@ describe('tail actions', () => {
     expect(mid.position).toEqual([3.0, -0.6000000000000001, 0.25])
     expect(mid.width).toBeCloseTo(0.6, 12)
     expect(after.tail.setpoints[2].id).toBe('tail-1')
+  })
+
+  test('addTailSetpoint clamps afterIdx to the list: past the end appends, below 0 inserts after the first', () => {
+    store().addTailSetpoint(10)
+    expect(preset().tail.setpoints).toHaveLength(4)
+    expect(preset().tail.setpoints.slice(0, 3).map((s) => s.id)).toEqual(['tail-0', 'tail-1', 'tail-2'])
+    expect(preset().tail.setpoints[3].position[0]).toBeCloseTo(5.0, 12)
+    store().addTailSetpoint(-3)
+    expect(preset().tail.setpoints[1].position).toEqual([3.0, -0.6000000000000001, 0.25])
+  })
+
+  test('addTailSetpoint on an empty tail adds one default setpoint', () => {
+    store().setTail({ setpoints: [] })
+    store().addTailSetpoint()
+    const [only] = preset().tail.setpoints
+    expect({ ...only, id: 'x' }).toEqual({ id: 'x', position: [0, 0, 0], width: 0.5 })
+    expect(only.id).toMatch(/^tail-[a-z0-9]{1,8}$/)
   })
 
   test('removeTailSetpoint removes by id', () => {
