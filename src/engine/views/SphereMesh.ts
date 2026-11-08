@@ -48,7 +48,7 @@ export class SphereMesh implements DragSource {
     const handleGeo = new THREE.BoxGeometry(0.18, 0.18, 0.18);
     const handle = new THREE.Mesh(handleGeo, materials.sphereHandle);
     handle.userData.sphereId = def.id;
-    handle.userData.isHandle = true;
+    handle.userData.editorOnly = true;
 
     this.applyTransform(wire, handle, def);
     geo.dispose();

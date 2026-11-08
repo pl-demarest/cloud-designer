@@ -119,7 +119,7 @@ export class BaseMesh implements DragSource {
       const geo = new THREE.SphereGeometry(0.1, 8, 6);
       const mesh = new THREE.Mesh(geo, this.viewport.materials.baseHandle);
       mesh.position.set(...pt);
-      mesh.userData.isBaseHandle = true;
+      mesh.userData.editorOnly = true;
       mesh.userData.cpIdx = i;
       this.group.add(mesh);
       return mesh;
@@ -147,7 +147,7 @@ export class BaseMesh implements DragSource {
     const verts: number[] = [];
     const v = new THREE.Vector3();
     this.group.traverse((obj) => {
-      if ((obj instanceof THREE.LineSegments || obj instanceof THREE.Line) && !obj.userData.isHandle) {
+      if ((obj instanceof THREE.LineSegments || obj instanceof THREE.Line) && !obj.userData.editorOnly) {
         obj.updateWorldMatrix(true, false);
         const pos = obj.geometry.attributes.position;
         if (!pos) return;

@@ -108,7 +108,7 @@ export class TailMesh implements DragSource {
       const hGeo = new THREE.SphereGeometry(0.08, 8, 6);
       const mesh = new THREE.Mesh(hGeo, this.viewport.materials.tailHandle);
       mesh.position.set(...sp.position);
-      mesh.userData.isTailHandle = true;
+      mesh.userData.editorOnly = true;
       mesh.userData.spId = tail.setpoints[i]?.id ?? sp.id;
       this.group.add(mesh);
       return mesh;
@@ -139,7 +139,7 @@ export class TailMesh implements DragSource {
     const verts: number[] = [];
     const v = new THREE.Vector3();
     this.group.traverse((obj) => {
-      if ((obj instanceof THREE.LineSegments || obj instanceof THREE.Line) && !obj.userData.isHandle) {
+      if ((obj instanceof THREE.LineSegments || obj instanceof THREE.Line) && !obj.userData.editorOnly) {
         obj.updateWorldMatrix(true, false);
         const pos = obj.geometry.attributes.position;
         if (!pos) return;

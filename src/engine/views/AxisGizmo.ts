@@ -16,7 +16,7 @@ export class AxisGizmo implements DragSource {
 
     const hGeo = new THREE.SphereGeometry(0.2, 12, 8);
     this.frontHandle = new THREE.Mesh(hGeo, viewport.materials.gizmoFront);
-    this.frontHandle.userData.isAxisGizmo = true;
+    this.frontHandle.userData.editorOnly = true;
     this.frontHandle.userData.which = 'front';
     this.frontHandle.renderOrder = 999;
 
@@ -24,13 +24,14 @@ export class AxisGizmo implements DragSource {
     this.frontHandle.add(this.makeLabel('F'));
 
     this.backHandle = new THREE.Mesh(hGeo.clone(), viewport.materials.gizmoBack);
-    this.backHandle.userData.isAxisGizmo = true;
+    this.backHandle.userData.editorOnly = true;
     this.backHandle.userData.which = 'back';
     this.backHandle.renderOrder = 999;
     this.backHandle.add(this.makeLabel('B'));
 
     const dir = new THREE.Vector3(0, 0, -1);
     this.arrow = new THREE.ArrowHelper(dir, new THREE.Vector3(), 1, 0x888888, 0.3, 0.15);
+    this.arrow.userData.editorOnly = true;
 
     this.group.add(this.frontHandle, this.backHandle, this.arrow);
 

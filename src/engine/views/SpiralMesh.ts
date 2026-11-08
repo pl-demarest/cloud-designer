@@ -55,7 +55,7 @@ export class SpiralMesh implements DragSource {
     const handle = new THREE.Mesh(handleGeo, materials.spiralHandle);
     handle.position.set(...def.position);
     handle.userData.spiralId = def.id;
-    handle.userData.isHandle = true;
+    handle.userData.editorOnly = true;
 
     return { wire, handle, objects: [wire, handle] };
   }
@@ -308,7 +308,7 @@ export class SpiralMesh implements DragSource {
     const verts: number[] = [];
     const v = new THREE.Vector3();
     this.group.traverse((obj) => {
-      if ((obj instanceof THREE.LineSegments || obj instanceof THREE.Line) && !obj.userData.isHandle) {
+      if ((obj instanceof THREE.LineSegments || obj instanceof THREE.Line) && !obj.userData.editorOnly) {
         obj.updateWorldMatrix(true, false);
         const pos = obj.geometry.attributes.position;
         if (!pos) return;

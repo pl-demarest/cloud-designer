@@ -15,12 +15,12 @@ const MAX_PIXEL_RATIO = 2;
 const FIT_DIRECTION = new THREE.Vector3(0, 0.4, 1.4).normalize();
 
 /**
- * Whether `obj` or an ancestor is a handle or the axis gizmo: drawn for editing, not part of the
- * cloud.
+ * Whether `obj` or an ancestor carries userData.editorOnly: every handle, the axis gizmo and the
+ * grid and axes helpers, drawn for editing and not part of the cloud.
  */
-function isEditorOnly(obj: THREE.Object3D, gizmoGroup: THREE.Object3D): boolean {
+export function isEditorOnly(obj: THREE.Object3D): boolean {
   for (let o: THREE.Object3D | null = obj; o; o = o.parent) {
-    if (o === gizmoGroup || o.userData.isHandle || o.userData.isBaseHandle || o.userData.isTailHandle) return true;
+    if (o.userData.editorOnly === true) return true;
   }
   return false;
 }
@@ -77,12 +77,14 @@ export class Viewport {
     // Grid helper
     const grid = new THREE.GridHelper(20, 20, 0xcccccc, 0xeeeeee);
     grid.position.y = -1;
+    grid.userData.editorOnly = true;
     this.scene.add(grid);
     this.grid = grid;
 
     // Axes helper (small, toggleable via showAxes)
     const axes = new THREE.AxesHelper(1);
     axes.name = 'axesHelper';
+    axes.userData.editorOnly = true;
     this.scene.add(axes);
     this.axes = axes;
 
@@ -114,6 +116,7 @@ export class Viewport {
 
     this.gizmoGroup = new THREE.Group();
     this.gizmoGroup.name = 'gizmoGroup';
+    this.gizmoGroup.userData.editorOnly = true;
     this.activeUnitGroup.add(this.gizmoGroup);
 
     // Cut & Glue output lives directly on the scene (not inside activeUnitGroup)
@@ -189,7 +192,7 @@ export class Viewport {
       // traverseVisible skips hidden subtrees; both roots hang off the always-visible scene.
       root.traverseVisible((obj) => {
         if (!(obj instanceof THREE.Mesh || obj instanceof THREE.Line || obj instanceof THREE.Points)) return;
-        if (isEditorOnly(obj, this.gizmoGroup)) return;
+        if (isEditorOnly(obj)) return;
         const geometry = obj.geometry as THREE.BufferGeometry;
         if (!geometry.getAttribute('position')) return;
         if (!geometry.boundingBox) geometry.computeBoundingBox();

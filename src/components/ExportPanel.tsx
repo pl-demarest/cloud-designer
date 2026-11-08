@@ -79,7 +79,7 @@ export function ExportPanel({ getFlowCloudGroup, getScaffoldGroups, getCutGlueEd
 
   function handleExportWireframe() {
     const flowCloudGroup = getFlowCloudGroup();
-    const hasContent = flowCloudGroup?.children.some((c) => !c.userData.isHandle);
+    const hasContent = flowCloudGroup?.children.some((c) => !c.userData.editorOnly);
     if (!flowCloudGroup || !hasContent) {
       alert('No flow cloud geometry. Click Regenerate first.');
       return;
@@ -93,7 +93,7 @@ export function ExportPanel({ getFlowCloudGroup, getScaffoldGroups, getCutGlueEd
     bodyClone.name = 'body';
     bodyClone.position.copy(flowCloudGroup.position);
     flowCloudGroup.children
-      .filter((c) => !c.userData.isHandle)
+      .filter((c) => !c.userData.editorOnly)
       .forEach((c) => bodyClone.add(c.clone()));
     combined.add(bodyClone);
 
@@ -106,9 +106,9 @@ export function ExportPanel({ getFlowCloudGroup, getScaffoldGroups, getCutGlueEd
         scaffoldGroups.tail.children.forEach((c) => tailClone.add(c.clone()));
         combined.add(tailClone);
       }
-      // Exclude orange handle boxes (userData.isHandle)
+      // Exclude orange handle boxes (userData.editorOnly)
       const spiralWires = scaffoldGroups.spirals.children.filter(
-        (c) => !c.userData.isHandle
+        (c) => !c.userData.editorOnly
       );
       if (spiralWires.length > 0) {
         const spiralClone = new THREE.Group();
@@ -124,7 +124,7 @@ export function ExportPanel({ getFlowCloudGroup, getScaffoldGroups, getCutGlueEd
   function handleExportBoth() {
     const flowCloudGroup = getFlowCloudGroup();
     const scaffold       = buildScaffoldGroup();
-    const hasContent = flowCloudGroup?.children.some((c) => !c.userData.isHandle);
+    const hasContent = flowCloudGroup?.children.some((c) => !c.userData.editorOnly);
 
     if (!hasContent && (!scaffold || scaffold.children.every((g) => (g as THREE.Group).children.length === 0))) {
       alert('Nothing to export.');
@@ -141,7 +141,7 @@ export function ExportPanel({ getFlowCloudGroup, getScaffoldGroups, getCutGlueEd
       flowCloudClone.name = 'wireframe';
       flowCloudClone.position.copy(flowCloudGroup.position);
       flowCloudGroup.children
-        .filter((c) => !c.userData.isHandle)
+        .filter((c) => !c.userData.editorOnly)
         .forEach((c) => flowCloudClone.add(c.clone()));
       combined.add(flowCloudClone);
     }

@@ -98,11 +98,11 @@ describe('known editor defects (expected to fail until fixed)', () => {
     }
   })
 
-  it.fails('export-includes-handles: base and tail handles carry the userData.isHandle tag the exporter filters on', () => {
+  it('export-includes-handles: base and tail handles carry the userData.editorOnly flag the exporter filters on', () => {
     const { vp } = baseAndTail(fixture('default'))
     const handles = [...vp.baseGroup.children, ...vp.tailGroup.children].filter((c) => c instanceof THREE.Mesh)
     expect(handles.length).toBeGreaterThan(0)
-    for (const h of handles) expect(h.userData.isHandle, h.type).toBe(true)
+    for (const h of handles) expect(h.userData.editorOnly, h.type).toBe(true)
   })
 
   describe('hidden-handles-raycastable', () => {

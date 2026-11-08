@@ -122,9 +122,9 @@ export function installFakeWorker(): void {
 
 // ── Scene serialization ──────────────────────────────────────────────────────
 
-/** Handles carry one of three tags today; Stage B may unify them. */
+/** Handles, like the gizmo and the helpers, carry userData.editorOnly. */
 export function isHandle(obj: THREE.Object3D): boolean {
-  return Boolean(obj.userData.isHandle || obj.userData.isBaseHandle || obj.userData.isTailHandle)
+  return obj.userData.editorOnly === true
 }
 
 /** -0 and 0 print alike in JSON; normalize so a sign flip on zero is not a golden change. */

@@ -30,7 +30,7 @@ export class FlowCloud implements DragSource {
     // Drag handle lives at local [0,0,0] of flowCloudGroup, moves with it
     const handleGeo = new THREE.BoxGeometry(0.25, 0.25, 0.25);
     this.handle = new THREE.Mesh(handleGeo, viewport.materials.flowCloudHandle);
-    this.handle.userData.isHandle = true;
+    this.handle.userData.editorOnly = true;
     this.handle.visible = false; // shown only after first Regenerate
     this.group.add(this.handle);
 
@@ -177,7 +177,7 @@ export class FlowCloud implements DragSource {
     // (LineSegments extends Line in three.js, so the LineSegments check must come first.)
     const traverseVisible = (obj: THREE.Object3D) => {
       if (!obj.visible) return;
-      if (!obj.userData.isHandle) {
+      if (!obj.userData.editorOnly) {
         if (obj instanceof THREE.LineSegments) {
           obj.updateWorldMatrix(true, false);
           const pos = obj.geometry.attributes.position;

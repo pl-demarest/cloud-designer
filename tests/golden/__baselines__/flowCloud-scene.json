@@ -19,7 +19,7 @@
         "role": "handle",
         "visible": true,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -1113,7 +1113,7 @@
         "role": "handle",
         "visible": false,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -1188,7 +1188,7 @@
         "role": "handle",
         "visible": true,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -2056,7 +2056,7 @@
         "role": "handle",
         "visible": false,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -2131,7 +2131,7 @@
         "role": "handle",
         "visible": true,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -2999,7 +2999,7 @@
         "role": "handle",
         "visible": false,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -3074,7 +3074,7 @@
         "role": "handle",
         "visible": true,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -4662,7 +4662,7 @@
         "role": "handle",
         "visible": false,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -4737,7 +4737,7 @@
         "role": "handle",
         "visible": true,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -4856,7 +4856,7 @@
         "role": "handle",
         "visible": false,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -4931,7 +4931,7 @@
         "role": "handle",
         "visible": true,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -5799,7 +5799,7 @@
         "role": "handle",
         "visible": false,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -5874,7 +5874,7 @@
         "role": "handle",
         "visible": true,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -6742,7 +6742,7 @@
         "role": "handle",
         "visible": false,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -6817,7 +6817,7 @@
         "role": "handle",
         "visible": true,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -7685,7 +7685,7 @@
         "role": "handle",
         "visible": false,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -7760,7 +7760,7 @@
         "role": "handle",
         "visible": true,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -8628,7 +8628,7 @@
         "role": "handle",
         "visible": false,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -8703,7 +8703,7 @@
         "role": "handle",
         "visible": true,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -9571,7 +9571,7 @@
         "role": "handle",
         "visible": false,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -9646,7 +9646,7 @@
         "role": "handle",
         "visible": true,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -10514,7 +10514,7 @@
         "role": "handle",
         "visible": false,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -10589,7 +10589,7 @@
         "role": "handle",
         "visible": true,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,
@@ -11457,7 +11457,7 @@
         "role": "handle",
         "visible": false,
         "userData": {
-          "isHandle": true
+          "editorOnly": true
         },
         "position": [
           0,

@@ -340,10 +340,10 @@ describe('Viewport.zoomToFit', () => {
     hidden.visible = false
     vp.baseGroup.add(hidden)
     const handle = mesh(0.25, [0, 20, 0]) // like the flow cloud's handle
-    handle.userData.isHandle = true
+    handle.userData.editorOnly = true
     vp.flowCloudGroup.add(handle)
     const tailHandle = mesh(0.2, [0, -20, 0])
-    tailHandle.userData.isTailHandle = true
+    tailHandle.userData.editorOnly = true
     vp.tailGroup.add(tailHandle)
     vp.gizmoGroup.add(mesh(1, [0, 0, 40]))
     vp.zoomToFit()
