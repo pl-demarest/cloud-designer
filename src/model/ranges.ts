@@ -103,9 +103,10 @@ export const RESOLUTIONS = {
   surfaceMesh: [32, 64, 96, 128, 192, 256],
 } as const satisfies Record<string, readonly number[]>;
 
-/** `v` clamped into `range`. */
+/** `v` clamped into `range`, and -0 as 0 (adding 0 changes nothing else): JSON writes -0 as 0,
+ *  so a preset that held -0 would not come back from Export JSON and Import unchanged. */
 export function clampTo(range: NumberRange, v: number): number {
-  return Math.min(Math.max(v, range.min), range.max);
+  return Math.min(Math.max(v, range.min), range.max) + 0;
 }
 
 /** Each component of `v` clamped into its range: one range for all three, or one per axis. */

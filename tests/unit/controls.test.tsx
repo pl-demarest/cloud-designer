@@ -7,6 +7,7 @@ import { FlowCloudPanel } from '../../src/ui/panels/FlowCloudPanel'
 import { SpherePanel } from '../../src/ui/panels/SpherePanel'
 import { SpiralPanel } from '../../src/ui/panels/SpiralPanel'
 import { formatPi } from '../../src/ui/controls/format'
+import { parsePresetJson } from '../../src/model/presetFile'
 import { Accordion } from '../../src/ui/controls/Accordion'
 import { useCloudStore } from '../../src/store/cloudStore'
 import { useHistoryStore } from '../../src/store/historyStore'
@@ -164,6 +165,15 @@ describe('SliderRow', () => {
 })
 
 describe('values that round to zero (plan decision D22)', () => {
+  test('cdx-12: a typed -0 is stored as 0, so Export JSON then Import gives the same preset', () => {
+    const { container } = render(<BasePanel />)
+    const z = container.querySelectorAll('.control-point-row')[1].querySelectorAll<HTMLInputElement>('input')[2]
+    fireEvent.change(z, { target: { value: '-0' } })
+    fireEvent.keyDown(z, { key: 'Enter' })
+    expect(Object.is(store().preset.base.controlPoints[1][2], 0), 'stored +0').toBe(true)
+    expect(parsePresetJson(JSON.stringify(store().preset, null, 2))).toEqual(store().preset)
+  })
+
   test('a number field shows 0.00 for -0, -0.001 and -1.1e-16, never -0.00', () => {
     for (const y of [-0, -0.001, -1.1e-16]) {
       const p = structuredClone(store().preset)

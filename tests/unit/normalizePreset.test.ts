@@ -237,6 +237,15 @@ describe('normalizePreset', () => {
     expect(f).toBe(-Math.PI)
   })
 
+  test('cdx-12: a -0 becomes 0, which JSON writes it as anyway', () => {
+    const raw = structuredClone(DEFAULT_PRESET)
+    raw.base.controlPoints[0] = [-0, -0.8, -0]
+    raw.spheres[0].rotation = [-0, 0, 0]
+    const out = normalizePreset(raw)
+    expect(out.base.controlPoints[0].map((v) => Object.is(v, -0))).toEqual([false, false, false])
+    expect(Object.is(out.spheres[0].rotation[0], 0)).toBe(true)
+  })
+
   test('an imported spiral of 30,000 turns gets the Turns maximum, 6 (cd:review CDR-05)', () => {
     const out = normalizePreset({ ...DEFAULT_PRESET, spirals: [makeSpiral('s', { turns: 30000 })] })
     expect(out.spirals[0].turns).toBe(RANGES.spiral.turns.max)

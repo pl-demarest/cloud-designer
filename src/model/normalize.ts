@@ -63,9 +63,10 @@ class Ranger {
   clamped = 0;
 
   /** A number in `range`: a whole-number field rounded, then clamped; an angle wrapped by whole
-   *  turns; any other clamped. A value that is not a finite number gets `fallback`. */
+   *  turns; any other clamped. A value that is not a finite number gets `fallback`, and -0 is 0
+   *  (adding 0 changes nothing else), which is what Export JSON writes for it. */
   in(v: unknown, fallback: number, range: NumberRange): number {
-    const x = range.integer ? Math.round(num(v, fallback)) : num(v, fallback);
+    const x = (range.integer ? Math.round(num(v, fallback)) : num(v, fallback)) + 0;
     if (x >= range.min && x <= range.max) return x;
     this.clamped++;
     if (range.angle) {

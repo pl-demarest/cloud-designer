@@ -37,8 +37,10 @@ export function NumberField({ label, id, value, onChange, min = -Infinity, max =
     const text = draft.trim();
     const parsed = text === '' ? NaN : Number(text);
     if (!Number.isFinite(parsed)) return;
-    const next = Math.min(Math.max(parsed, min), max);
-    if (next === value) return;
+    // A typed -0 is stored as 0, which is what Export JSON writes for it (adding 0 changes no
+    // other value).
+    const next = Math.min(Math.max(parsed, min), max) + 0;
+    if (Object.is(next, value)) return;
     onChange(next);
     useCloudStore.getState().commit();
   }
