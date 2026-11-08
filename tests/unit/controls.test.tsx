@@ -277,4 +277,19 @@ describe('FlowCloudPanel', () => {
     expect(z).toBeCloseTo(0, 9)
     expect(history().past).toHaveLength(3)
   })
+
+  test('the F and B anchors have number fields: a typed coordinate moves the anchor, as one undo step', () => {
+    render(<FlowCloudPanel />)
+    const fields = ['Front X', 'Front Y', 'Front Z', 'Back X', 'Back Y', 'Back Z'].map((name) =>
+      screen.getByRole<HTMLInputElement>('spinbutton', { name }),
+    )
+    expect(fields.map((f) => f.value)).toEqual(['-2.00', '0.00', '0.00', '2.50', '0.00', '0.00'])
+    fireEvent.change(fields[1], { target: { value: '0.5' } })
+    fireEvent.keyDown(fields[1], { key: 'Enter' })
+    fireEvent.change(fields[5], { target: { value: '-1' } })
+    fireEvent.blur(fields[5])
+    const { frontPoint, backPoint } = store().preset.flowCloud.wireframe
+    expect([frontPoint, backPoint]).toEqual([[-2, 0.5, 0], [2.5, 0, -1]])
+    expect(history().past, 'one step per field').toHaveLength(3)
+  })
 })

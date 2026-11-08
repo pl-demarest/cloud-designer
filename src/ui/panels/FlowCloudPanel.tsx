@@ -5,9 +5,17 @@ import { confirmAndResetPreset } from '../resetPreset';
 import { SliderRow } from '../controls/SliderRow';
 import { FieldRow } from '../controls/FieldRow';
 import { Vec3Field } from '../controls/Vec3Field';
+import { NumberField } from '../controls/NumberField';
+import { AXES, withAxis } from '../controls/vec3';
 import { formatPi } from '../controls/format';
 import type { FlowCloudSettings } from '../../model/types';
 import { resolveTailSetpoints } from '../../geometry/primitives/tail';
+
+/** The flow-line axis's anchors, the gizmo's F and B: also fields, so the keyboard can set them. */
+const ANCHORS = [
+  { key: 'frontPoint', label: 'Front' },
+  { key: 'backPoint', label: 'Back' },
+] as const;
 
 export function FlowCloudPanel() {
   const engine = useEngine();
@@ -39,6 +47,11 @@ export function FlowCloudPanel() {
 
   function setWireframe(patch: Partial<FlowCloudSettings['wireframe']>) {
     setFlowCloud({ wireframe: { ...flowCloud.wireframe, ...patch } });
+  }
+
+  function setAnchor(key: (typeof ANCHORS)[number]['key'], axis: number, v: number) {
+    const wf = useCloudStore.getState().preset.flowCloud.wireframe;
+    setFlowCloud({ wireframe: { ...wf, [key]: withAxis(wf[key], axis, v) } });
   }
 
   function snapBackToTail() {
@@ -210,15 +223,23 @@ export function FlowCloudPanel() {
               format={formatPi}
             />
             <div className="axis-coords">
-              <div>
-                <span>Front</span>
-                <span>[{flowCloud.wireframe.frontPoint.map((v) => v.toFixed(1)).join(', ')}]</span>
-              </div>
-              <div>
-                <span>Back</span>
-                <span>[{flowCloud.wireframe.backPoint.map((v) => v.toFixed(1)).join(', ')}]</span>
-              </div>
-            <div className="axis-hint">Drag F/B gizmos in viewport to adjust</div>
+              {ANCHORS.map(({ key, label }) => (
+                <div key={key}>
+                  <span>{label}</span>
+                  <span className="axis-anchor-fields">
+                    {AXES.map((axis, ai) => (
+                      <NumberField
+                        key={axis}
+                        label={`${label} ${axis}`}
+                        value={flowCloud.wireframe[key][ai]}
+                        step={0.1}
+                        onChange={(v) => setAnchor(key, ai, v)}
+                      />
+                    ))}
+                  </span>
+                </div>
+              ))}
+              <div className="axis-hint">Or drag F/B gizmos in viewport to adjust</div>
               <button onClick={snapBackToTail} className="btn-regen" style={{ marginTop: 4 }}>
                 Snap Back → Tail
               </button>

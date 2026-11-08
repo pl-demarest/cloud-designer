@@ -241,7 +241,7 @@ In Spiral mode these controls follow:
 | Bands | 4 to 20 (1), shown while Generate Bands is on. Bands + 1 contours, at u = 0, 1/Bands, …, 1. |
 | Flow Lines | 4 to 24 (1). The number of flow lines, evenly spaced in angle. |
 | Spiral Twist | 0 to 4π (0.05 rad, shown as a multiple of π). How far a flow line turns about the axis from u = 0 to u = 1. |
-| Front, Back | The F and B anchors' coordinates, to one decimal. Drag the anchors in the viewport to change them; they have no input fields. |
+| Front, Back | Any number (0.1) in each of X, Y and Z: the F and B anchors' coordinates. Type a value, then press Enter or leave the field ([number fields](#keyboard)), or drag the anchors in the viewport. |
 | Snap Back → Tail | Move B to where the tail starts: its first setpoint, or for an attached tail the point on the base where it meets it. One undo step. |
 
 The F/B anchors, Resolution, Threshold, Mode, Generate Bands, Bands, Flow Lines and Spiral Twist,
@@ -432,8 +432,6 @@ Glue again.
 - In Preview the flow cloud is hidden, so a Cut & Glue run started there leaves the flow-cloud
   wires out of the clipped wireframe, although the surface mesh includes the flow cloud. Run Cut &
   Glue in Edit mode.
-- The F and B anchors have no input fields. They move only by dragging (B also with Snap Back →
-  Tail) or through an imported preset, so they cannot be set from the keyboard.
 - Undo, Reset, Import and Discard leave the generated flow cloud and Cut & Glue result on screen;
   they show the old preset until the next Regenerate or Cut & Glue. Export Cloud GLB writes that
   last result.

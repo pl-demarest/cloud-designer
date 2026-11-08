@@ -225,6 +225,48 @@ exports[`panel controls map to one preset field each > FlowCloudPanel 1`] = `
       4.649557127312894,
     ],
   ],
+  "14 number ": [
+    [
+      "flowCloud.wireframe.frontPoint.0",
+      -2,
+      -1.63,
+    ],
+  ],
+  "15 number ": [
+    [
+      "flowCloud.wireframe.frontPoint.1",
+      0,
+      0.37,
+    ],
+  ],
+  "16 number ": [
+    [
+      "flowCloud.wireframe.frontPoint.2",
+      0,
+      0.37,
+    ],
+  ],
+  "17 number ": [
+    [
+      "flowCloud.wireframe.backPoint.0",
+      2.5,
+      2.87,
+    ],
+  ],
+  "18 number ": [
+    [
+      "flowCloud.wireframe.backPoint.1",
+      0,
+      0.37,
+    ],
+  ],
+  "19 number ": [
+    [
+      "flowCloud.wireframe.backPoint.2",
+      0,
+      0.37,
+    ],
+  ],
 }
 `;
 

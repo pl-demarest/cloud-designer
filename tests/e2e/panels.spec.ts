@@ -300,9 +300,9 @@ test.describe('selects', () => {
     await y.press('Enter')
     const body = await openPanel(page, 'Flow Cloud')
     await body.getByRole('button', { name: 'Snap Back → Tail' }).click()
-    // The default tail attaches at the base's end (offset 1), P3, now at (2.5, 0.5, 0); the curve
-    // gives z = -1e-16 there, which shows as -0.0.
-    await expect(body.locator('.axis-coords')).toContainText(/Back\[2\.5, 0\.5, -?0\.0\]/)
+    // The default tail attaches at the base's end (offset 1), P3, now at (2.5, 0.5, 0).
+    await expect(body.getByRole('spinbutton', { name: 'Back X' })).toHaveValue('2.50')
+    await expect(body.getByRole('spinbutton', { name: 'Back Y' })).toHaveValue('0.50')
   })
 
   test('flow cloud resolution and mesh density selects', async ({ page }) => {

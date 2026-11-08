@@ -429,6 +429,12 @@ button:disabled {
 .axis-coords > div {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+}
+
+.axis-anchor-fields {
+  display: flex;
+  gap: 4px;
 }
 
 .axis-hint {

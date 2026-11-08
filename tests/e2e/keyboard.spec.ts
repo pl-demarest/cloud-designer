@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test'
-import { accordionHeader, expect, openApp, openPanel, sliderRow, test, toolbarButton } from './helpers'
+import { accordionHeader, canvasPixels, expect, openApp, openPanel, sliderRow, test, toolbarButton } from './helpers'
 
 // Accessibility (audit findings a11y-accordions-sliders and css-focus-removed): every control has
 // a name, keyboard focus is visible, and the editor works from the keyboard alone. The walkthrough
@@ -123,6 +123,22 @@ test('keyboard-only walkthrough: toolbar, panels, list items, sliders, fields an
   expect(download.suggestedFilename()).toBe('default-cloud-preset.json')
   await tabTo(page, 'Import JSON Preset', true)
   await expectFocusRing(page, 'an export panel button')
+})
+
+// The F and B anchors could only be dragged in the viewport, with no keyboard alternative (WCAG
+// 2.1.1); every other handle has fields or sliders in its panel.
+test('the F and B anchors can be set from the keyboard', async ({ page }) => {
+  const before = await canvasPixels(page)
+  await tabTo(page, 'Back Y')
+  await expectFocusRing(page, 'an anchor field')
+  await page.keyboard.press('ControlOrMeta+a')
+  await page.keyboard.type('1.5')
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('spinbutton', { name: 'Back Y' })).toHaveValue('1.50')
+  expect(await canvasPixels(page), 'the B anchor moved').not.toEqual(before)
+  await page.keyboard.press('ControlOrMeta+z')
+  await expect(page.getByRole('spinbutton', { name: 'Back Y' })).toHaveValue('0.00')
+  expect(await canvasPixels(page), 'Ctrl+Z puts it back').toEqual(before)
 })
 
 test('every control has an accessible name', async ({ page }) => {
