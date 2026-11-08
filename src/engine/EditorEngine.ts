@@ -8,8 +8,10 @@ import { AxisGizmo } from './views/AxisGizmo';
 import { FlowCloud } from './views/FlowCloud';
 import { CutGlueResult } from './views/CutGlueResult';
 import { WorkerClient, type JobOutcome } from './WorkerClient';
+import { DragController } from './DragController';
 import { createModuleWorker, type WorkerFactory } from './workers';
 import { useCloudStore } from '../store/cloudStore';
+import { useHistoryStore } from '../store/historyStore';
 import { useUiStore } from '../store/uiStore';
 import type {
   CutGlueRequest,
@@ -57,6 +59,7 @@ export class EditorEngine {
   readonly gizmo: AxisGizmo;
   readonly flowCloud: FlowCloud;
   readonly cutGlue: CutGlueResult;
+  readonly drag: DragController;
 
   private readonly flowCloudJob: WorkerClient<FlowCloudRequest, FlowCloudResult>;
   private readonly cutGlueJob: WorkerClient<CutGlueRequest, CutGlueWorkerResult>;
@@ -79,8 +82,6 @@ export class EditorEngine {
     if (parent) vp.resize(parent.clientWidth, parent.clientHeight);
     vp.start();
 
-    // Construction order is drag priority until the DragController: the first view whose
-    // handle is under the pointer takes the drag.
     this.spheres = new SphereMesh(vp);
     this.base = new BaseMesh(vp);
     this.tail = new TailMesh(vp);
@@ -89,6 +90,17 @@ export class EditorEngine {
 
     this.flowCloud = new FlowCloud(vp);
     this.cutGlue = new CutGlueResult(vp);
+
+    // Every handle drags through one controller. A drag that moved something is one undo step:
+    // the preset is committed to the history once, when the drag ends.
+    this.drag = new DragController(vp, {
+      onDragEnd: (moved) => {
+        if (moved) useHistoryStore.getState().push(useCloudStore.getState().preset);
+      },
+    });
+    for (const source of [this.spheres, this.base, this.tail, this.spirals, this.gizmo, this.flowCloud]) {
+      this.drag.register(source);
+    }
 
     // Each job's state in the uiStore follows its latest request (WorkerClient).
     this.flowCloudJob = new WorkerClient(createWorker('flowCloud'), {
@@ -232,9 +244,10 @@ export class EditorEngine {
   }
 
   /**
-   * Releases everything the constructor acquired, last acquired first: the resize observer, each
-   * view (store subscriptions, pointer listeners, geometries, materials, textures), the workers,
-   * then the viewport (render loop, controls, helpers, renderer). Idempotent.
+   * Releases everything the constructor acquired, last acquired first: the resize observer, the
+   * drag controller (ending a drag in progress, removing its pointer listeners), each view
+   * (store subscriptions, geometries, textures), the workers, then the viewport (render loop,
+   * controls, helpers, shared materials, renderer). Idempotent.
    */
   dispose(): void {
     if (this.disposed) return;
@@ -242,6 +255,7 @@ export class EditorEngine {
     this.resizeObserver?.disconnect();
     if (this.regenerateTimer) clearTimeout(this.regenerateTimer);
     this.settleDebounced?.({ status: 'superseded' });
+    this.drag.dispose();
     this.cutGlue.dispose();
     this.flowCloud.dispose();
     this.gizmo.dispose();

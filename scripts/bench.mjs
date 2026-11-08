@@ -78,7 +78,6 @@ try {
     const camera = new THREE.PerspectiveCamera(50, 1, 0.01, 1000)
     camera.position.set(0, 4, 10)
     camera.lookAt(0, 0, 0)
-    let claimed = false
     return {
       scene,
       camera,
@@ -88,10 +87,6 @@ try {
       renderer: { domElement: new EventTarget() },
       materials: createEditorMaterials(),
       controls: { enabled: true },
-      claimDrag: () => (claimed ? false : (claimed = true)),
-      releaseDrag: () => {
-        claimed = false
-      },
       onTick: () => {},
     }
   }

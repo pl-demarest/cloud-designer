@@ -24,10 +24,10 @@ import { createRendererStub, mountCanvas } from './engine'
 // ── Viewport stub ────────────────────────────────────────────────────────────
 
 /**
- * The parts of Viewport the mesh modules touch: the eight groups (with the same
- * scene hierarchy as the real Viewport, so matrixWorld is identical), the camera,
- * the canvas, the shared materials, OrbitControls' `enabled` flag and drag
- * arbitration. No WebGL.
+ * The parts of Viewport the views and the DragController touch: the eight groups
+ * (with the same scene hierarchy as the real Viewport, so matrixWorld is identical),
+ * the camera, the canvas, the shared materials and OrbitControls' `enabled` flag.
+ * No WebGL.
  */
 export function createViewportStub(): Viewport {
   const scene = new THREE.Scene()
@@ -51,7 +51,6 @@ export function createViewportStub(): Viewport {
   camera.position.set(0, 4, 10)
   camera.lookAt(0, 0, 0)
 
-  let claimed = false
   const stub = {
     scene,
     camera,
@@ -61,10 +60,6 @@ export function createViewportStub(): Viewport {
     renderer: { domElement: document.createElement('canvas') },
     materials: createEditorMaterials(),
     controls: { enabled: true },
-    claimDrag: () => (claimed ? false : (claimed = true)),
-    releaseDrag: () => {
-      claimed = false
-    },
     onTick: () => {},
   }
   return stub as unknown as Viewport

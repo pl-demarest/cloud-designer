@@ -3,20 +3,14 @@ import type { BaseDef } from '../../model/types';
 import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import { basePointAt, sampleBasePath } from '../../geometry/primitives/base';
+import type { DragSource, DragTarget } from '../DragController';
 
-export class BaseMesh {
+export class BaseMesh implements DragSource {
   private group: THREE.Group;
   private viewport: Viewport;
   private wire: THREE.LineSegments | null = null;
   private handles: THREE.Mesh[] = [];
   private unsubscribe: () => void;
-
-  // Drag state
-  private dragIdx: number = -1;
-  private dragPlane = new THREE.Plane();
-  private raycaster = new THREE.Raycaster();
-  private pointer = new THREE.Vector2();
-  private dragOffset = new THREE.Vector3();
 
   constructor(viewport: Viewport) {
     this.viewport = viewport;
@@ -28,12 +22,6 @@ export class BaseMesh {
     );
 
     this.sync(useCloudStore.getState().preset.base);
-
-    const canvas = viewport.renderer.domElement;
-    canvas.addEventListener('pointerdown', this.onPointerDown);
-    canvas.addEventListener('pointermove', this.onPointerMove);
-    canvas.addEventListener('pointerup', this.onPointerUp);
-    window.addEventListener('pointerup', this.onWindowPointerUp);
   }
 
   /** The point on the drawn base curve at arc-length fraction t ∈ [0,1] (basePointAt). */
@@ -138,61 +126,22 @@ export class BaseMesh {
     });
   }
 
-  private getPointer(e: PointerEvent): void {
-    const rect = this.viewport.renderer.domElement.getBoundingClientRect();
-    this.pointer.set(
-      ((e.clientX - rect.left) / rect.width) * 2 - 1,
-      -((e.clientY - rect.top) / rect.height) * 2 + 1
-    );
+  // ── Dragging (DragController) ───────────────────────────────────────────────
+
+  dragHandles(): THREE.Object3D[] {
+    return this.handles;
   }
 
-  private onPointerDown = (e: PointerEvent): void => {
-    this.getPointer(e);
-    this.raycaster.setFromCamera(this.pointer, this.viewport.camera);
-    const hits = this.raycaster.intersectObjects(this.handles);
-    if (hits.length === 0) return;
-    if (!this.viewport.claimDrag()) return;
-
-    const hit = hits[0];
-    this.dragIdx = hit.object.userData.cpIdx as number;
-    this.viewport.controls.enabled = false;
-
-    const normal = this.viewport.camera.position.clone().sub(hit.point).normalize();
-    this.dragPlane.setFromNormalAndCoplanarPoint(normal, hit.point);
-    const pts = useCloudStore.getState().preset.base.controlPoints;
-    const localPos = new THREE.Vector3(...pts[this.dragIdx]);
-    this.dragOffset.copy(hit.point).sub(this.viewport.activeUnitGroup.localToWorld(localPos));
-
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-  };
-
-  private onPointerMove = (e: PointerEvent): void => {
-    if (this.dragIdx < 0) return;
-    this.getPointer(e);
-    this.raycaster.setFromCamera(this.pointer, this.viewport.camera);
-    const target = new THREE.Vector3();
-    this.raycaster.ray.intersectPlane(this.dragPlane, target);
-    target.sub(this.dragOffset);
-    this.viewport.activeUnitGroup.worldToLocal(target);
-    useCloudStore.getState().updateBasePoint(this.dragIdx, [target.x, target.y, target.z]);
-  };
-
-  private onPointerUp = (e: PointerEvent): void => {
-    if (this.dragIdx >= 0) {
-      this.dragIdx = -1;
-      this.viewport.controls.enabled = true;
-      this.viewport.releaseDrag();
-      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-    }
-  };
-
-  private onWindowPointerUp = (): void => {
-    if (this.dragIdx >= 0) {
-      this.dragIdx = -1;
-      this.viewport.controls.enabled = true;
-      this.viewport.releaseDrag();
-    }
-  };
+  dragTarget(handle: THREE.Object3D): DragTarget {
+    const idx = handle.userData.cpIdx as number;
+    return {
+      position: () => useCloudStore.getState().preset.base.controlPoints[idx],
+      moveTo: (position) => {
+        useCloudStore.getState().updateBasePoint(idx, position);
+        return true;
+      },
+    };
+  }
 
   getEdges(): Float32Array {
     const verts: number[] = [];
@@ -221,10 +170,5 @@ export class BaseMesh {
       this.group.remove(h);
       h.geometry.dispose();
     }
-    const canvas = this.viewport.renderer.domElement;
-    canvas.removeEventListener('pointerdown', this.onPointerDown);
-    canvas.removeEventListener('pointermove', this.onPointerMove);
-    canvas.removeEventListener('pointerup', this.onPointerUp);
-    window.removeEventListener('pointerup', this.onWindowPointerUp);
   }
 }

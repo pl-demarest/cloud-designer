@@ -4,19 +4,14 @@ import type { BaseDef, TailDef, TailSetpoint } from '../../model/types';
 import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import { resolveTailSetpoints, sampleTailPath } from '../../geometry/primitives/tail';
+import type { DragSource, DragTarget } from '../DragController';
 
-export class TailMesh {
+export class TailMesh implements DragSource {
   private group: THREE.Group;
   private viewport: Viewport;
   private wire: THREE.LineSegments | null = null;
   private handles: THREE.Mesh[] = [];
   private unsubscribe: () => void;
-
-  private dragId: string | null = null;
-  private dragPlane = new THREE.Plane();
-  private raycaster = new THREE.Raycaster();
-  private pointer = new THREE.Vector2();
-  private dragOffset = new THREE.Vector3();
 
   constructor(viewport: Viewport) {
     this.viewport = viewport;
@@ -31,12 +26,6 @@ export class TailMesh {
 
     const { tail, base } = useCloudStore.getState().preset;
     this.sync(tail, base);
-
-    const canvas = viewport.renderer.domElement;
-    canvas.addEventListener('pointerdown', this.onPointerDown);
-    canvas.addEventListener('pointermove', this.onPointerMove);
-    canvas.addEventListener('pointerup', this.onPointerUp);
-    window.addEventListener('pointerup', this.onWindowPointerUp);
   }
 
   private buildWireframe(tail: TailDef, setpoints: TailSetpoint[]): THREE.BufferGeometry {
@@ -126,68 +115,25 @@ export class TailMesh {
     });
   }
 
-  private getPointer(e: PointerEvent): void {
-    const rect = this.viewport.renderer.domElement.getBoundingClientRect();
-    this.pointer.set(
-      ((e.clientX - rect.left) / rect.width) * 2 - 1,
-      -((e.clientY - rect.top) / rect.height) * 2 + 1
-    );
+  // ── Dragging (DragController) ───────────────────────────────────────────────
+
+  dragHandles(): THREE.Object3D[] {
+    return this.handles;
   }
 
-  private onPointerDown = (e: PointerEvent): void => {
-    this.getPointer(e);
-    this.raycaster.setFromCamera(this.pointer, this.viewport.camera);
-    const hits = this.raycaster.intersectObjects(this.handles);
-    if (hits.length === 0) return;
-    if (!this.viewport.claimDrag()) return;
-
-    const hit = hits[0];
-    this.dragId = hit.object.userData.spId as string;
-    this.viewport.controls.enabled = false;
-
-    const normal = this.viewport.camera.position.clone().sub(hit.point).normalize();
-    this.dragPlane.setFromNormalAndCoplanarPoint(normal, hit.point);
-    const sp = useCloudStore.getState().preset.tail.setpoints.find((p) => p.id === this.dragId);
-    const localPos = new THREE.Vector3(...(sp?.position ?? [0, 0, 0]));
-    this.dragOffset.copy(hit.point).sub(this.viewport.activeUnitGroup.localToWorld(localPos));
-
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-  };
-
-  private onPointerMove = (e: PointerEvent): void => {
-    if (!this.dragId) return;
-    this.getPointer(e);
-    this.raycaster.setFromCamera(this.pointer, this.viewport.camera);
-    const target = new THREE.Vector3();
-    this.raycaster.ray.intersectPlane(this.dragPlane, target);
-    target.sub(this.dragOffset);
-
-    // Don't drag attached setpoints
-    const tail = useCloudStore.getState().preset.tail;
-    if (tail.attachToBase !== 'none' && tail.setpoints[0]?.id === this.dragId) return;
-
-    this.viewport.activeUnitGroup.worldToLocal(target);
-    useCloudStore.getState().updateTailSetpoint(this.dragId, {
-      position: [target.x, target.y, target.z],
-    });
-  };
-
-  private onPointerUp = (e: PointerEvent): void => {
-    if (this.dragId) {
-      this.dragId = null;
-      this.viewport.controls.enabled = true;
-      this.viewport.releaseDrag();
-      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-    }
-  };
-
-  private onWindowPointerUp = (): void => {
-    if (this.dragId) {
-      this.dragId = null;
-      this.viewport.controls.enabled = true;
-      this.viewport.releaseDrag();
-    }
-  };
+  dragTarget(handle: THREE.Object3D): DragTarget {
+    const id = handle.userData.spId as string;
+    return {
+      position: () => useCloudStore.getState().preset.tail.setpoints.find((p) => p.id === id)?.position ?? [0, 0, 0],
+      moveTo: (position) => {
+        // An attached tail's first setpoint sits on the base: the press holds it, but it stays.
+        const tail = useCloudStore.getState().preset.tail;
+        if (tail.attachToBase !== 'none' && tail.setpoints[0]?.id === id) return false;
+        useCloudStore.getState().updateTailSetpoint(id, { position });
+        return true;
+      },
+    };
+  }
 
   getEdges(): Float32Array {
     const verts: number[] = [];
@@ -216,10 +162,5 @@ export class TailMesh {
       this.group.remove(h);
       h.geometry.dispose();
     }
-    const canvas = this.viewport.renderer.domElement;
-    canvas.removeEventListener('pointerdown', this.onPointerDown);
-    canvas.removeEventListener('pointermove', this.onPointerMove);
-    canvas.removeEventListener('pointerup', this.onPointerUp);
-    window.removeEventListener('pointerup', this.onWindowPointerUp);
   }
 }

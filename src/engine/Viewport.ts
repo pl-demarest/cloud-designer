@@ -29,7 +29,6 @@ export class Viewport {
 
   private tickCallbacks: Array<(dt: number) => void> = [];
   private timer = new THREE.Timer();
-  private _claimedDrag = false;
   private grid: THREE.GridHelper;
   private axes: THREE.AxesHelper;
   private lights: THREE.Light[];
@@ -107,22 +106,6 @@ export class Viewport {
     this.scene.add(this.cutGlueGroup);
 
     window.addEventListener('resize', this.handleResize);
-  }
-
-  /**
-   * Called by a drag-handling module when it finds a hit and wants to start a drag.
-   * Returns true if the drag was successfully claimed (no other module is dragging).
-   * Returns false if another module already owns the current drag — caller should bail out.
-   */
-  claimDrag(): boolean {
-    if (this._claimedDrag) return false;
-    this._claimedDrag = true;
-    return true;
-  }
-
-  /** Called by a drag-handling module when its drag ends (pointerup or window pointerup). */
-  releaseDrag(): void {
-    this._claimedDrag = false;
   }
 
   onTick(cb: (dt: number) => void): void {

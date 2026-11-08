@@ -1,0 +1,141 @@
+// @vitest-environment happy-dom
+import * as THREE from 'three'
+import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest'
+import { EditorEngine } from '../../src/engine/EditorEngine'
+import { useCloudStore } from '../../src/store/cloudStore'
+import { useHistoryStore } from '../../src/store/historyStore'
+import { installFakeWorker, isHandle } from '../helpers/scene'
+import { TEST_ENGINE_OPTIONS, installCanvas2dStub, mountCanvas } from '../helpers/engine'
+
+/**
+ * Dragging in the assembled editor (every view, as EditorEngine registers them), on a 100 x 100
+ * canvas: the nearest handle under the pointer wins, hidden handles are not grabbed, a cancelled
+ * pointer ends the drag, and a drag that moved something is one undo step.
+ */
+
+const store = () => useCloudStore.getState()
+const history = () => useHistoryStore.getState()
+
+let engine: EditorEngine
+let canvas: HTMLCanvasElement
+
+beforeAll(() => {
+  installFakeWorker()
+  installCanvas2dStub()
+})
+
+beforeEach(() => {
+  store().resetToDefault()
+  history().clear()
+  canvas = mountCanvas()
+  canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 100 }) as DOMRect
+  canvas.setPointerCapture = () => {}
+  canvas.releasePointerCapture = () => {}
+  engine = new EditorEngine(canvas, TEST_ENGINE_OPTIONS)
+  engine.viewport.resize(100, 100)
+})
+
+afterEach(() => engine.dispose())
+
+/** The pointer position (normalized device coordinates) over `obj`'s centre. */
+function over(obj: THREE.Object3D): THREE.Vector2 {
+  engine.viewport.scene.updateMatrixWorld(true)
+  engine.viewport.camera.updateMatrixWorld()
+  const p = obj.getWorldPosition(new THREE.Vector3()).project(engine.viewport.camera)
+  return new THREE.Vector2(p.x, p.y)
+}
+
+function pointer(type: string, ndc: THREE.Vector2, target: EventTarget = canvas): void {
+  target.dispatchEvent(new PointerEvent(type, { clientX: (ndc.x + 1) * 50, clientY: (1 - ndc.y) * 50, pointerId: 1 }))
+}
+
+const orbitEnabled = () => engine.viewport.controls.enabled
+const baseHandles = () => engine.viewport.baseGroup.children.filter(isHandle)
+const sphereHandle = (id: string) => engine.viewport.sphereGroup.children.find((c) => isHandle(c) && c.userData.sphereId === id)!
+
+describe('picking', () => {
+  test('drag-arbitration-first-listener: the nearest handle under the pointer wins, not the first view registered', () => {
+    // Put sphere 2's handle on the camera ray through base point 1, behind it.
+    const cp = new THREE.Vector3(...store().preset.base.controlPoints[1])
+    const behind = cp.clone().add(cp.clone().sub(engine.viewport.camera.position).multiplyScalar(0.3))
+    store().updateSphere('sphere-2', { position: [behind.x, behind.y, behind.z] })
+    const before = structuredClone(store().preset)
+
+    const at = over(baseHandles()[1])
+    expect(over(sphereHandle('sphere-2')).distanceTo(at), 'the two handles overlap on screen').toBeLessThan(1e-9)
+    pointer('pointerdown', at)
+    pointer('pointermove', at.clone().add(new THREE.Vector2(0.1, 0)))
+    pointer('pointerup', at)
+
+    expect(store().preset.spheres[2].position, 'the farther sphere handle did not move').toEqual(before.spheres[2].position)
+    expect(store().preset.base.controlPoints[1], 'the nearer base handle moved').not.toEqual(before.base.controlPoints[1])
+  })
+
+  test('gizmo-hidden-still-draggable: in Preview the hidden F anchor is not grabbed', () => {
+    const front = engine.viewport.gizmoGroup.children.find((c) => c.userData.which === 'front')!
+    const at = over(front)
+    engine.setMode('preview', false)
+    const before = structuredClone(store().preset.flowCloud.wireframe.frontPoint)
+    pointer('pointerdown', at)
+    pointer('pointermove', at.clone().add(new THREE.Vector2(0.1, 0.05)))
+    expect(store().preset.flowCloud.wireframe.frontPoint).toEqual(before)
+    expect(orbitEnabled(), 'the press orbits').toBe(true)
+    pointer('pointerup', at)
+  })
+
+  test('in Preview the hidden spiral handles are not grabbed', () => {
+    store().addSpiral()
+    const handle = engine.viewport.spiralGroup.children.find(isHandle)!
+    const at = over(handle)
+    engine.setMode('preview', false)
+    const before = structuredClone(store().preset.spirals[0].position)
+    pointer('pointerdown', at)
+    pointer('pointermove', at.clone().add(new THREE.Vector2(0.1, 0.05)))
+    expect(store().preset.spirals[0].position).toEqual(before)
+    expect(orbitEnabled()).toBe(true)
+    pointer('pointerup', at)
+  })
+})
+
+describe('ending a drag', () => {
+  for (const type of ['pointercancel', 'lostpointercapture'] as const) {
+    test(`no-pointercancel: ${type} ends the drag and re-enables the orbit controls`, () => {
+      const at = over(sphereHandle('sphere-1'))
+      pointer('pointerdown', at)
+      pointer('pointermove', at.clone().add(new THREE.Vector2(0.1, 0)))
+      expect(orbitEnabled()).toBe(false)
+      pointer(type, at)
+      expect(orbitEnabled(), 'orbit re-enabled').toBe(true)
+      const after = structuredClone(store().preset.spheres[1].position)
+      pointer('pointermove', at.clone().add(new THREE.Vector2(0.2, 0)))
+      expect(store().preset.spheres[1].position, 'no drag after the cancel').toEqual(after)
+    })
+  }
+})
+
+describe('history', () => {
+  test('drags-not-in-history: a viewport drag is one undo step', () => {
+    history().push(store().preset) // App pushes the opening preset
+    const before = structuredClone(store().preset)
+    const at = over(sphereHandle('sphere-1'))
+    pointer('pointerdown', at)
+    for (let i = 1; i <= 3; i++) pointer('pointermove', at.clone().add(new THREE.Vector2(0.05 * i, 0)))
+    pointer('pointerup', at)
+    const dragged = structuredClone(store().preset)
+    expect(dragged.spheres[1].position).not.toEqual(before.spheres[1].position)
+
+    expect(history().past, 'one entry for the whole drag').toHaveLength(2)
+    expect(history().past[1]).toEqual(dragged)
+    store().loadPreset(history().undo())
+    expect(store().preset.spheres[1].position).toEqual(before.spheres[1].position)
+  })
+
+  test('a press and release without moving adds no undo step', () => {
+    history().push(store().preset)
+    const at = over(sphereHandle('sphere-1'))
+    pointer('pointerdown', at)
+    expect(orbitEnabled(), 'the press holds the handle').toBe(false)
+    pointer('pointerup', at)
+    expect(history().past).toHaveLength(1)
+  })
+})

@@ -3,6 +3,7 @@ import type { SpiralDef } from '../../model/types';
 import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import { KeyedMeshSet } from '../KeyedMeshSet';
+import type { DragSource, DragTarget } from '../DragController';
 
 /** Smooth curve samples per full 360° turn. 64 gives sub-pixel smoothness at normal zoom. */
 const SAMPLES_PER_TURN = 64;
@@ -13,18 +14,11 @@ interface SpiralEntry {
   objects: readonly THREE.Object3D[];
 }
 
-export class SpiralMesh {
+export class SpiralMesh implements DragSource {
   private group: THREE.Group;
   private viewport: Viewport;
   private meshes: KeyedMeshSet<SpiralDef, SpiralEntry>;
   private unsubscribe: () => void;
-
-  // Drag state
-  private dragId: string | null = null;
-  private dragPlane = new THREE.Plane();
-  private raycaster = new THREE.Raycaster();
-  private pointer = new THREE.Vector2();
-  private dragOffset = new THREE.Vector3();
 
   constructor(viewport: Viewport) {
     this.viewport = viewport;
@@ -39,12 +33,6 @@ export class SpiralMesh {
       (spirals) => this.sync(spirals)
     );
     this.sync(useCloudStore.getState().preset.spirals);
-
-    const canvas = viewport.renderer.domElement;
-    canvas.addEventListener('pointerdown', this.onPointerDown);
-    canvas.addEventListener('pointermove', this.onPointerMove);
-    canvas.addEventListener('pointerup', this.onPointerUp);
-    window.addEventListener('pointerup', this.onWindowPointerUp);
   }
 
   /** Call with false in preview mode to hide handles while keeping spiral geometry visible. */
@@ -299,67 +287,22 @@ export class SpiralMesh {
     return geo;
   }
 
-  // ── Pointer / drag interaction ──────────────────────────────────────────────
+  // ── Dragging (DragController) ───────────────────────────────────────────────
 
-  private getPointer(e: PointerEvent): void {
-    const rect = this.viewport.renderer.domElement.getBoundingClientRect();
-    this.pointer.set(
-      ((e.clientX - rect.left) / rect.width) * 2 - 1,
-      -((e.clientY - rect.top) / rect.height) * 2 + 1
-    );
+  dragHandles(): THREE.Object3D[] {
+    return Array.from(this.meshes.values(), (entry) => entry.handle);
   }
 
-  private onPointerDown = (e: PointerEvent): void => {
-    this.getPointer(e);
-    this.raycaster.setFromCamera(this.pointer, this.viewport.camera);
-    const handles = Array.from(this.meshes.values()).map((v) => v.handle);
-    const hits = this.raycaster.intersectObjects(handles);
-    if (hits.length === 0) return;
-    if (!this.viewport.claimDrag()) return;
-
-    const hit = hits[0];
-    const id = hit.object.userData.spiralId as string;
-    this.dragId = id;
-    this.viewport.controls.enabled = false;
-
-    const normal = this.viewport.camera.position.clone().sub(hit.point).normalize();
-    this.dragPlane.setFromNormalAndCoplanarPoint(normal, hit.point);
-    const sp = useCloudStore.getState().preset.spirals.find((s) => s.id === id)!;
-    const localPos = new THREE.Vector3(...sp.position);
-    this.dragOffset.copy(hit.point).sub(this.viewport.activeUnitGroup.localToWorld(localPos));
-
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-  };
-
-  private onPointerMove = (e: PointerEvent): void => {
-    if (!this.dragId) return;
-    this.getPointer(e);
-    this.raycaster.setFromCamera(this.pointer, this.viewport.camera);
-    const target = new THREE.Vector3();
-    this.raycaster.ray.intersectPlane(this.dragPlane, target);
-    target.sub(this.dragOffset);
-    this.viewport.activeUnitGroup.worldToLocal(target);
-    useCloudStore.getState().updateSpiral(this.dragId, {
-      position: [target.x, target.y, target.z],
-    });
-  };
-
-  private onPointerUp = (e: PointerEvent): void => {
-    if (this.dragId) {
-      this.dragId = null;
-      this.viewport.controls.enabled = true;
-      this.viewport.releaseDrag();
-      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-    }
-  };
-
-  private onWindowPointerUp = (): void => {
-    if (this.dragId) {
-      this.dragId = null;
-      this.viewport.controls.enabled = true;
-      this.viewport.releaseDrag();
-    }
-  };
+  dragTarget(handle: THREE.Object3D): DragTarget {
+    const id = handle.userData.spiralId as string;
+    return {
+      position: () => useCloudStore.getState().preset.spirals.find((s) => s.id === id)!.position,
+      moveTo: (position) => {
+        useCloudStore.getState().updateSpiral(id, { position });
+        return true;
+      },
+    };
+  }
 
   getEdges(): Float32Array {
     const verts: number[] = [];
@@ -400,11 +343,5 @@ export class SpiralMesh {
   dispose(): void {
     this.unsubscribe();
     this.meshes.clear();
-
-    const canvas = this.viewport.renderer.domElement;
-    canvas.removeEventListener('pointerdown', this.onPointerDown);
-    canvas.removeEventListener('pointermove', this.onPointerMove);
-    canvas.removeEventListener('pointerup', this.onPointerUp);
-    window.removeEventListener('pointerup', this.onWindowPointerUp);
   }
 }

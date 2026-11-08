@@ -2,12 +2,13 @@ import * as THREE from 'three';
 import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import type { FlowCloudResult } from '../../workers/protocol';
+import type { DragSource, DragTarget } from '../DragController';
 
 /**
  * The generated flow cloud: shows each result of the flow-cloud worker (EditorEngine runs the
  * job), moves with flowCloud.position, and offers a drag handle once something is shown.
  */
-export class FlowCloud {
+export class FlowCloud implements DragSource {
   private viewport: Viewport;
   private group: THREE.Group;
   private currentObjects: THREE.Object3D[] = [];
@@ -21,12 +22,6 @@ export class FlowCloud {
   private hasGeometry = false;
   private handlesVisible = true;
 
-  // Drag state
-  private isDragging = false;
-  private dragPlane = new THREE.Plane();
-  private raycaster = new THREE.Raycaster();
-  private pointer = new THREE.Vector2();
-  private dragOffset = new THREE.Vector3();
 
   constructor(viewport: Viewport) {
     this.viewport = viewport;
@@ -59,12 +54,6 @@ export class FlowCloud {
         this.group.position.set(p[0], p[1], p[2]);
       }
     );
-
-    const canvas = viewport.renderer.domElement;
-    canvas.addEventListener('pointerdown', this.onPointerDown);
-    canvas.addEventListener('pointermove', this.onPointerMove);
-    canvas.addEventListener('pointerup',   this.onPointerUp);
-    window.addEventListener('pointerup',   this.onWindowPointerUp);
   }
 
   /** Show or hide the drag handle. Pass false in preview mode. */
@@ -134,61 +123,22 @@ export class FlowCloud {
     }
   }
 
-  // ── Pointer / drag interaction ──────────────────────────────────────────────
+  // ── Dragging (DragController) ───────────────────────────────────────────────
 
-  private getPointer(e: PointerEvent): void {
-    const rect = this.viewport.renderer.domElement.getBoundingClientRect();
-    this.pointer.set(
-      ((e.clientX - rect.left) / rect.width)  *  2 - 1,
-      -((e.clientY - rect.top)  / rect.height) *  2 + 1
-    );
+  /** The handle, which is visible (so draggable) once something is shown, in Edit mode. */
+  dragHandles(): THREE.Object3D[] {
+    return [this.handle];
   }
 
-  private onPointerDown = (e: PointerEvent): void => {
-    if (!this.handle.visible) return;
-    this.getPointer(e);
-    this.raycaster.setFromCamera(this.pointer, this.viewport.camera);
-    const hits = this.raycaster.intersectObject(this.handle);
-    if (hits.length === 0) return;
-    if (!this.viewport.claimDrag()) return;
-
-    this.isDragging = true;
-    this.viewport.controls.enabled = false;
-
-    const hit    = hits[0];
-    const normal = this.viewport.camera.position.clone().sub(hit.point).normalize();
-    this.dragPlane.setFromNormalAndCoplanarPoint(normal, hit.point);
-    this.dragOffset.copy(hit.point).sub(this.group.position);
-
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-  };
-
-  private onPointerMove = (e: PointerEvent): void => {
-    if (!this.isDragging) return;
-    this.getPointer(e);
-    this.raycaster.setFromCamera(this.pointer, this.viewport.camera);
-    const target = new THREE.Vector3();
-    if (!this.raycaster.ray.intersectPlane(this.dragPlane, target)) return;
-    target.sub(this.dragOffset);
-    useCloudStore.getState().setFlowCloud({ position: [target.x, target.y, target.z] });
-  };
-
-  private onPointerUp = (e: PointerEvent): void => {
-    if (this.isDragging) {
-      this.isDragging = false;
-      this.viewport.controls.enabled = true;
-      this.viewport.releaseDrag();
-      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-    }
-  };
-
-  private onWindowPointerUp = (): void => {
-    if (this.isDragging) {
-      this.isDragging = false;
-      this.viewport.controls.enabled = true;
-      this.viewport.releaseDrag();
-    }
-  };
+  dragTarget(): DragTarget {
+    return {
+      position: () => useCloudStore.getState().preset.flowCloud.position,
+      moveTo: (position) => {
+        useCloudStore.getState().setFlowCloud({ position });
+        return true;
+      },
+    };
+  }
 
   // ── Internal helpers ────────────────────────────────────────────────────────
 
@@ -267,11 +217,5 @@ export class FlowCloud {
     this.clearScene();
     this.group.remove(this.handle);
     this.handle.geometry.dispose();
-
-    const canvas = this.viewport.renderer.domElement;
-    canvas.removeEventListener('pointerdown', this.onPointerDown);
-    canvas.removeEventListener('pointermove', this.onPointerMove);
-    canvas.removeEventListener('pointerup',   this.onPointerUp);
-    window.removeEventListener('pointerup',   this.onWindowPointerUp);
   }
 }

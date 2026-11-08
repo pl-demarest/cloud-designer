@@ -6,6 +6,7 @@ import { SpherePanel } from '../../src/components/SpherePanel'
 import { BasePanel } from '../../src/components/BasePanel'
 import { BaseMesh } from '../../src/engine/views/BaseMesh'
 import { TailMesh } from '../../src/engine/views/TailMesh'
+import { DragController } from '../../src/engine/DragController'
 import { useCloudStore } from '../../src/store/cloudStore'
 import { useHistoryStore } from '../../src/store/historyStore'
 import { createViewportStub, isHandle } from '../helpers/scene'
@@ -35,7 +36,11 @@ function baseAndTail(preset: CloudPreset) {
   const vp = createViewportStub()
   const base = new BaseMesh(vp)
   const tail = new TailMesh(vp)
+  const drag = new DragController(vp)
+  drag.register(base)
+  drag.register(tail)
   disposers.push(() => {
+    drag.dispose()
     tail.dispose()
     base.dispose()
   })
@@ -121,7 +126,7 @@ describe('known editor defects (expected to fail until fixed)', () => {
       expect(pressOverBaseHandle(true)).toBe(false)
     })
 
-    it.fails('a hidden base handle (Preview mode) does not start a drag', () => {
+    it('a hidden base handle (Preview mode) does not start a drag', () => {
       expect(pressOverBaseHandle(false)).toBe(true)
     })
   })

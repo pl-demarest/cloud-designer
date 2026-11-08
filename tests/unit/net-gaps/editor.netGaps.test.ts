@@ -8,6 +8,7 @@ import { TailMesh } from '../../../src/engine/views/TailMesh'
 import { SpiralMesh } from '../../../src/engine/views/SpiralMesh'
 import { FlowCloud } from '../../../src/engine/views/FlowCloud'
 import { CutGlueResult } from '../../../src/engine/views/CutGlueResult'
+import { DragController, type DragSource } from '../../../src/engine/DragController'
 import { useCloudStore } from '../../../src/store/cloudStore'
 import { createViewportStub, isHandle, serializeGroup, showFlowCloud } from '../../helpers/scene'
 import { THICK_SPIRAL, fixture } from '../../fixtures/presets'
@@ -18,8 +19,8 @@ import type { CloudPreset } from '../../../src/model/types'
  * Editor behaviour the goldens do not exercise, found by mutation testing (Stage A
  * net check, 2026-11-07): viewport dragging of every primitive, repeated Regenerate
  * and Cut & Glue runs, visibility-aware edge collection, and Viewport.zoomToFit.
- * Stage C replaces the five drag implementations with one DragController; these
- * tests pin what each does today.
+ * Since Stage C every view drags through the one DragController; these tests pin
+ * the movement each view's handles apply.
  */
 
 const store = () => useCloudStore.getState()
@@ -42,6 +43,14 @@ function viewport(preset: CloudPreset): Vp {
   canvas.releasePointerCapture = () => {}
   vp.camera.updateMatrixWorld()
   return vp
+}
+
+/** The engine's drag pipeline over the given views, disposed after the test. */
+function dragOver(vp: Vp, ...sources: DragSource[]): DragController {
+  const drag = new DragController(vp)
+  for (const source of sources) drag.register(source)
+  disposers.push(() => drag.dispose())
+  return drag
 }
 
 function pointer(vp: Vp, type: string, ndc: THREE.Vector2, target: EventTarget = vp.renderer.domElement): void {
@@ -87,10 +96,9 @@ function expectMovedBy(after: number[], before: number[], delta: THREE.Vector3):
   expect(delta.length()).toBeGreaterThan(0.1)
 }
 
-function expectDragReleased(vp: Vp): void {
+function expectDragReleased(vp: Vp, drag: DragController): void {
   expect(vp.controls.enabled, 'orbit controls re-enabled').toBe(true)
-  expect(vp.claimDrag(), 'the drag claim was released').toBe(true)
-  vp.releaseDrag()
+  expect(drag.dragging, 'the drag ended').toBe(false)
 }
 
 describe('viewport dragging', () => {
@@ -98,6 +106,7 @@ describe('viewport dragging', () => {
     const vp = viewport(fixture('default'))
     const m = new SphereMesh(vp)
     disposers.push(() => m.dispose())
+    const drag = dragOver(vp, m)
     const handle = vp.sphereGroup.children.find((c) => isHandle(c) && c.userData.sphereId === 'sphere-1')!
     const before = [...store().preset.spheres[1].position]
     const { expectedDelta, end } = dragHandle(vp, handle)
@@ -105,13 +114,14 @@ describe('viewport dragging', () => {
     expectMovedBy(store().preset.spheres[1].position, before, expectedDelta)
     expect(store().preset.spheres[0].position).toEqual([0, 0, 0])
     pointer(vp, 'pointerup', end)
-    expectDragReleased(vp)
+    expectDragReleased(vp, drag)
   })
 
   test('BaseMesh: dragging a control point moves only that point, and pointer up ends the drag', () => {
     const vp = viewport(fixture('default'))
     const m = new BaseMesh(vp)
     disposers.push(() => m.dispose())
+    const drag = dragOver(vp, m)
     const handle = vp.baseGroup.children.filter(isHandle)[1]
     const before = structuredClone(store().preset.base.controlPoints)
     const { expectedDelta, end } = dragHandle(vp, handle)
@@ -119,16 +129,17 @@ describe('viewport dragging', () => {
     expectMovedBy(after[1], before[1], expectedDelta)
     expect([after[0], after[2], after[3]]).toEqual([before[0], before[2], before[3]])
     pointer(vp, 'pointerup', end)
-    expectDragReleased(vp)
+    expectDragReleased(vp, drag)
   })
 
   test('BaseMesh: a window pointer up (released outside the canvas) also ends the drag', () => {
     const vp = viewport(fixture('default'))
     const m = new BaseMesh(vp)
     disposers.push(() => m.dispose())
+    const drag = dragOver(vp, m)
     const { end } = dragHandle(vp, vp.baseGroup.children.filter(isHandle)[2])
     pointer(vp, 'pointerup', end, window)
-    expectDragReleased(vp)
+    expectDragReleased(vp, drag)
     const before = structuredClone(store().preset.base.controlPoints)
     pointer(vp, 'pointermove', end.clone().add(new THREE.Vector2(0.2, 0)))
     expect(store().preset.base.controlPoints, 'no drag after release').toEqual(before)
@@ -146,27 +157,28 @@ describe('viewport dragging', () => {
       tail.dispose()
       base.dispose()
     })
+    const drag = dragOver(vp, base, tail)
     const handles = vp.tailGroup.children.filter(isHandle)
-    return { vp, handles }
+    return { vp, drag, handles }
   }
 
   test('TailMesh: an unattached first setpoint is draggable', () => {
-    const { vp, handles } = tailScene('none')
+    const { vp, drag, handles } = tailScene('none')
     const before = [...store().preset.tail.setpoints[0].position]
     const { expectedDelta, end } = dragHandle(vp, handles[0])
     expectMovedBy(store().preset.tail.setpoints[0].position, before, expectedDelta)
     pointer(vp, 'pointerup', end)
-    expectDragReleased(vp)
+    expectDragReleased(vp, drag)
   })
 
   test('TailMesh: the first setpoint of an attached tail does not move, but the others do', () => {
-    const { vp, handles } = tailScene('end')
+    const { vp, drag, handles } = tailScene('end')
     const before = structuredClone(store().preset.tail.setpoints)
     const first = dragHandle(vp, handles[0])
     expect(vp.controls.enabled, 'the press still claims the drag').toBe(false)
     expect(store().preset.tail.setpoints).toEqual(before)
     pointer(vp, 'pointerup', first.end)
-    expectDragReleased(vp)
+    expectDragReleased(vp, drag)
 
     const second = dragHandle(vp, handles[1])
     expectMovedBy(store().preset.tail.setpoints[1].position, before[1].position, second.expectedDelta)
@@ -177,18 +189,20 @@ describe('viewport dragging', () => {
     const vp = viewport(fixture('flatSpiral'))
     const m = new SpiralMesh(vp)
     disposers.push(() => m.dispose())
+    const drag = dragOver(vp, m)
     const handle = vp.spiralGroup.children.find(isHandle)!
     const before = [...store().preset.spirals[0].position]
     const { expectedDelta, end } = dragHandle(vp, handle)
     expectMovedBy(store().preset.spirals[0].position, before, expectedDelta)
     pointer(vp, 'pointerup', end)
-    expectDragReleased(vp)
+    expectDragReleased(vp, drag)
   })
 
   test('FlowCloud: after Regenerate the handle drags flowCloud.position', async () => {
     const vp = viewport(fixture('default'))
     const fc = new FlowCloud(vp)
     disposers.push(() => fc.dispose())
+    const drag = dragOver(vp, fc)
     await showFlowCloud(fc)
     const handle = vp.flowCloudGroup.children.find(isHandle)!
     expect(handle.visible).toBe(true)
@@ -197,7 +211,7 @@ describe('viewport dragging', () => {
     expectMovedBy(store().preset.flowCloud.position, before, expectedDelta)
     expect(vp.flowCloudGroup.position.toArray()).toEqual(store().preset.flowCloud.position)
     pointer(vp, 'pointerup', end)
-    expectDragReleased(vp)
+    expectDragReleased(vp, drag)
   })
 })
 
