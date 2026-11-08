@@ -78,7 +78,7 @@ moved something is one undo step.
 |---|---|
 | Blue box | A sphere's centre |
 | Green ball | A base control point |
-| Red ball | A tail setpoint. The first setpoint of an attached tail sits on the base and does not move. |
+| Red ball | A tail setpoint. The first setpoint of an attached tail sits on the base, follows it, and takes no press: a press there orbits the camera or grabs a handle behind it. |
 | Orange box | A spiral's position |
 | Teal box | The flow cloud's position. It appears after the first Regenerate. |
 | Blue ball "F", red ball "B", grey arrow F to B | The front and back anchors of the flow-line axis ([Flow Cloud](#flow-cloud)). They are drawn over everything. |
@@ -185,8 +185,9 @@ base towards the other end. On a closed base, fraction 1 is the point where the 
 is the first control point, so Base End at offset 1 attaches there.
 
 While the tail is attached, the first setpoint's stored position is not used: its handle sits on
-the base and does not follow a drag, and its X, Y and Z fields edit the stored position, which
-takes effect when Attach is set to None. The attachment point follows every edit of the base.
+the base and cannot be dragged, and its X, Y and Z fields edit the stored position, which takes
+effect when Attach is set to None. The attachment point, and the handle with it, follows every
+edit of the base.
 
 A version-1 preset (saved before Base Start was fixed to measure from its own end) keeps its tail
 where version 1 drew it: on import its Base Start offset becomes 1 − offset.

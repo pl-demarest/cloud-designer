@@ -172,11 +172,12 @@ describe('viewport dragging', () => {
     expectDragReleased(vp, drag)
   })
 
-  test('TailMesh: the first setpoint of an attached tail does not move, but the others do', () => {
+  test('TailMesh: the first setpoint of an attached tail takes no press and does not move, but the others drag', () => {
     const { vp, drag, handles } = tailScene('end')
     const before = structuredClone(store().preset.tail.setpoints)
     const first = dragHandle(vp, handles[0])
-    expect(vp.controls.enabled, 'the press still claims the drag').toBe(false)
+    expect(vp.controls.enabled, 'the press goes to the orbit controls').toBe(true)
+    expect(drag.dragging, 'no drag').toBe(false)
     expect(store().preset.tail.setpoints).toEqual(before)
     pointer(vp, 'pointerup', first.end)
     expectDragReleased(vp, drag)

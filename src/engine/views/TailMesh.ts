@@ -147,8 +147,11 @@ export class TailMesh implements DragSource {
 
   // ── Dragging (DragController) ───────────────────────────────────────────────
 
+  /** Every setpoint's handle, except an attached tail's first: that one sits on the base and
+   *  follows it, so it takes no press (a press there orbits, or grabs a handle behind it). */
   dragHandles(): THREE.Object3D[] {
-    return this.handles;
+    const attached = useCloudStore.getState().preset.tail.attachToBase !== 'none';
+    return attached ? this.handles.slice(1) : this.handles;
   }
 
   dragTarget(handle: THREE.Object3D): DragTarget {
@@ -156,9 +159,6 @@ export class TailMesh implements DragSource {
     return {
       position: () => useCloudStore.getState().preset.tail.setpoints.find((p) => p.id === id)?.position ?? [0, 0, 0],
       moveTo: (position) => {
-        // An attached tail's first setpoint sits on the base: the press holds it, but it stays.
-        const tail = useCloudStore.getState().preset.tail;
-        if (tail.attachToBase !== 'none' && tail.setpoints[0]?.id === id) return false;
         useCloudStore.getState().updateTailSetpoint(id, { position });
         return true;
       },
