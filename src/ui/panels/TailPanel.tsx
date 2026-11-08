@@ -106,6 +106,8 @@ export function TailPanel() {
                   key={axis}
                   label={`SP ${i} ${axis}`}
                   value={sp.position[ai]}
+                  min={R.setpointPosition.min}
+                  max={R.setpointPosition.max}
                   step={R.setpointPosition.step}
                   onChange={(v) => updateTailSetpoint(sp.id, { position: withAxis(sp.position, ai, v) })}
                 />

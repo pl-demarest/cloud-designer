@@ -76,6 +76,8 @@ export function BasePanel() {
                 key={axis}
                 label={`P${i} ${axis}`}
                 value={pt[ai]}
+                min={R.controlPoint.min}
+                max={R.controlPoint.max}
                 step={R.controlPoint.step}
                 onChange={(v) => updateBasePoint(i, withAxis(pt, ai, v))}
               />

@@ -3,6 +3,7 @@ import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import type { FlowCloudResult } from '../../workers/protocol';
 import type { DragSource, DragTarget } from '../DragController';
+import { RANGES } from '../../model/ranges';
 
 /**
  * The generated flow cloud: shows each result of the flow-cloud worker (EditorEngine runs the
@@ -139,6 +140,7 @@ export class FlowCloud implements DragSource {
   dragTarget(): DragTarget {
     return {
       position: () => useCloudStore.getState().preset.flowCloud.position,
+      range: RANGES.flowCloud.position,
       moveTo: (position) => {
         useCloudStore.getState().setFlowCloud({ position });
         return true;

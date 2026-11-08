@@ -102,3 +102,17 @@ export const RESOLUTIONS = {
   flowCloud: [32, 64, 128],
   surfaceMesh: [32, 64, 96, 128, 192, 256],
 } as const satisfies Record<string, readonly number[]>;
+
+/** `v` clamped into `range`. */
+export function clampTo(range: NumberRange, v: number): number {
+  return Math.min(Math.max(v, range.min), range.max);
+}
+
+/** Each component of `v` clamped into its range: one range for all three, or one per axis. */
+export function clampVec3(
+  range: NumberRange | readonly NumberRange[],
+  v: readonly [number, number, number],
+): [number, number, number] {
+  const r = (i: number) => ('min' in range ? range : range[i]);
+  return [clampTo(r(0), v[0]), clampTo(r(1), v[1]), clampTo(r(2), v[2])];
+}

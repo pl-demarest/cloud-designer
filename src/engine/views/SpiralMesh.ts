@@ -6,6 +6,7 @@ import { KeyedMeshSet } from '../KeyedMeshSet';
 import { sameValue } from '../sameValue';
 import type { DragSource, DragTarget } from '../DragController';
 import { sampleSpiral, spiralWire } from '../../geometry/primitives/spiral';
+import { RANGES } from '../../model/ranges';
 
 interface SpiralEntry {
   wire: THREE.LineSegments;
@@ -90,6 +91,7 @@ export class SpiralMesh implements DragSource {
     const id = handle.userData.spiralId as string;
     return {
       position: () => useCloudStore.getState().preset.spirals.find((s) => s.id === id)!.position,
+      range: RANGES.spiral.position,
       moveTo: (position) => {
         useCloudStore.getState().updateSpiral(id, { position });
         return true;

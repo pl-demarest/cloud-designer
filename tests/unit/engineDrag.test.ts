@@ -7,6 +7,8 @@ import { useHistoryStore } from '../../src/store/historyStore'
 import { useUiStore } from '../../src/store/uiStore'
 import { installFakeWorker, isHandle } from '../helpers/scene'
 import { TEST_ENGINE_OPTIONS, installCanvas2dStub, mountCanvas } from '../helpers/engine'
+import { RANGES } from '../../src/model/ranges'
+import { parsePresetJson } from '../../src/model/presetFile'
 
 /**
  * Dragging in the assembled editor (every view, as EditorEngine registers them), on a 100 x 100
@@ -131,6 +133,40 @@ describe('picking', () => {
     expect(store().preset.spirals[0].position).toEqual(before)
     expect(orbitEnabled()).toBe(true)
     pointer('pointerup', at)
+  })
+})
+
+describe('a drag stays inside the range table (plan decision D11)', () => {
+  test('outofrange: a sphere dragged far to the right stops at Pos X 8, and Export JSON then Import gives the same preset', () => {
+    const at = over(sphereHandle('sphere-1'))
+    pointer('pointerdown', at)
+    for (let i = 1; i <= 12; i++) pointer('pointermove', at.clone().add(new THREE.Vector2(0.15 * i, 0)))
+    pointer('pointerup', at)
+    const x = store().preset.spheres[1].position[0]
+    expect(x, 'the drag reached the end of the range').toBe(RANGES.sphere.position[0].max)
+    const exported = JSON.stringify(store().preset, null, 2)
+    expect(parsePresetJson(exported)).toEqual(store().preset)
+  })
+
+  test('the flow-cloud handle stops at Position 20, a base handle at 50', async () => {
+    expect((await engine.regenerate()).status).toBe('done')
+    store().updateSphere('sphere-0', { position: [0, 2, 0] }) // off the flow-cloud handle
+    // From 200 units away, a drag plane faces the camera along z, and the pointer reaches x = 50.
+    const { camera } = engine.viewport
+    camera.position.set(0, 4, 200)
+    camera.lookAt(0, 0, 0)
+    camera.updateMatrixWorld()
+    const fcAt = over(engine.viewport.flowCloudGroup.children.find(isHandle)!)
+    pointer('pointerdown', fcAt)
+    pointer('pointermove', fcAt.clone().add(new THREE.Vector2(0.5, 0)))
+    pointer('pointerup', fcAt)
+    expect(store().preset.flowCloud.position[0]).toBe(RANGES.flowCloud.position.max)
+    // Base point P3; the flow-cloud handle no longer covers it.
+    const at = over(baseHandles()[3])
+    pointer('pointerdown', at)
+    pointer('pointermove', at.clone().add(new THREE.Vector2(1, 0)))
+    pointer('pointerup', at)
+    expect(store().preset.base.controlPoints[3][0]).toBe(RANGES.base.controlPoint.max)
   })
 })
 

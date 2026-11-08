@@ -229,6 +229,27 @@ describe('NumberField', () => {
     expect(store().preset.tail.setpoints[1].width).toBe(0.05)
   })
 
+  test('a typed coordinate is clamped to -50 to 50: base points, tail setpoints, F and B (plan decision D11)', () => {
+    const base = render(<BasePanel />)
+    const x = pointInput(base.container, 1, 0)
+    fireEvent.change(x, { target: { value: '1e200' } })
+    fireEvent.keyDown(x, { key: 'Enter' })
+    expect(store().preset.base.controlPoints[1][0]).toBe(50)
+    base.unmount()
+    const tail = render(<TailPanel />)
+    const z = tail.container.querySelectorAll('.setpoint-row')[2].querySelectorAll<HTMLInputElement>('input')[2]
+    fireEvent.change(z, { target: { value: '-1e308' } })
+    fireEvent.blur(z)
+    expect(store().preset.tail.setpoints[2].position[2]).toBe(-50)
+    tail.unmount()
+    const fc = render(<FlowCloudPanel />)
+    const front = screen.getByRole('spinbutton', { name: 'Front Y' })
+    fireEvent.change(front, { target: { value: '99' } })
+    fireEvent.blur(front)
+    expect(store().preset.flowCloud.wireframe.frontPoint[1]).toBe(50)
+    fc.unmount()
+  })
+
   test('the history keys stay in the field: without a draft they undo and redo the preset, with one Ctrl+Z drops it', () => {
     const { container } = render(<BasePanel />)
     const x = pointInput(container, 0, 0)
@@ -315,6 +336,18 @@ describe('FlowCloudPanel', () => {
     expect(y).toBeCloseTo(0.5, 9)
     expect(z).toBeCloseTo(0, 9)
     expect(history().past).toHaveLength(3)
+  })
+
+  test('Snap Back → Tail keeps B inside -50 to 50 where the base curve overshoots its control points (plan decision D11)', () => {
+    const p = structuredClone(store().preset)
+    // A hairpin at x = 50: the curve reaches x = 50.5 halfway, where the tail attaches.
+    p.base.controlPoints = [[46, 0, 0], [50, 0, 0], [50, 0.2, 0], [46, 0.2, 0]]
+    p.tail.attachToBase = 'end'
+    p.tail.attachOffset = 0.5
+    store().loadPreset(p)
+    render(<FlowCloudPanel />)
+    fireEvent.click(screen.getByRole('button', { name: 'Snap Back → Tail' }))
+    expect(store().preset.flowCloud.wireframe.backPoint[0]).toBe(50)
   })
 
   test('the F and B anchors have number fields: a typed coordinate moves the anchor, as one undo step', () => {

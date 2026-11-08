@@ -6,6 +6,7 @@ import { useCloudStore } from '../../store/cloudStore';
 import { resolveTailSetpoints, sampleTailPath } from '../../geometry/primitives/tail';
 import type { DragSource, DragTarget } from '../DragController';
 import { sameValue } from '../sameValue';
+import { RANGES } from '../../model/ranges';
 
 /** What the tail's wire and handles are built from: the attachment folds into the setpoints. */
 interface TailInputs {
@@ -158,6 +159,7 @@ export class TailMesh implements DragSource {
     const id = handle.userData.spId as string;
     return {
       position: () => useCloudStore.getState().preset.tail.setpoints.find((p) => p.id === id)?.position ?? [0, 0, 0],
+      range: RANGES.tail.setpointPosition,
       moveTo: (position) => {
         useCloudStore.getState().updateTailSetpoint(id, { position });
         return true;

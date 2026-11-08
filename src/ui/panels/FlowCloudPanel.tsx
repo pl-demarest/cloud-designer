@@ -10,7 +10,7 @@ import { AXES, withAxis } from '../controls/vec3';
 import { formatPi } from '../controls/format';
 import type { FlowCloudSettings } from '../../model/types';
 import { resolveTailSetpoints } from '../../geometry/primitives/tail';
-import { RANGES, RESOLUTIONS } from '../../model/ranges';
+import { RANGES, RESOLUTIONS, clampVec3 } from '../../model/ranges';
 
 const R = RANGES.flowCloud;
 
@@ -74,8 +74,8 @@ export function FlowCloudPanel() {
     // which an attached tail takes from the base (resolveTailSetpoints), not the stored one.
     const start = resolveTailSetpoints(tail, base)[0];
     if (!start) return;
-    const [x, y, z] = start.position;
-    setWireframe({ backPoint: [x, y, z] });
+    // The base curve can overshoot its control points: B stays inside its range.
+    setWireframe({ backPoint: clampVec3(R.anchor, start.position) });
     commit();
   }
 
@@ -243,6 +243,8 @@ export function FlowCloudPanel() {
                         key={axis}
                         label={`${label} ${axis}`}
                         value={flowCloud.wireframe[key][ai]}
+                        min={R.anchor.min}
+                        max={R.anchor.max}
                         step={R.anchor.step}
                         onChange={(v) => setAnchor(key, ai, v)}
                       />

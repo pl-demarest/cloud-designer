@@ -3,6 +3,7 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import type { CloudPreset, SphereDef, BaseDef, TailDef, SpiralDef, FlowCloudSettings } from '../model/types';
 import { DEFAULT_PRESET, makeTailSetpoint } from '../model/defaults';
 import { normalizePreset } from '../model/normalize';
+import { RANGES, clampTo, clampVec3 } from '../model/ranges';
 import { sameValue } from '../engine/sameValue';
 import { useHistoryStore } from './historyStore';
 
@@ -88,9 +89,10 @@ export const useCloudStore = create<CloudStore>()(
     addSphere: () =>
       set((s) => {
         const last = s.preset.spheres[s.preset.spheres.length - 1];
-        const pos: [number, number, number] = last
-          ? [last.position[0] + 1.2, last.position[1], last.position[2]]
-          : [0, 0, 0];
+        const pos = clampVec3(
+          RANGES.sphere.position,
+          last ? [last.position[0] + 1.2, last.position[1], last.position[2]] : [0, 0, 0],
+        );
         const newSphere: SphereDef = {
           id: `sphere-${nanoid()}`,
           position: pos,
@@ -136,7 +138,7 @@ export const useCloudStore = create<CloudStore>()(
       set((s) => {
         const pts = s.preset.base.controlPoints;
         const last = pts[pts.length - 1] ?? [0, 0, 0];
-        const newPt: [number, number, number] = [last[0] + 1, last[1], last[2]];
+        const newPt = clampVec3(RANGES.base.controlPoint, [last[0] + 1, last[1], last[2]]);
         return {
           preset: {
             ...s.preset,
@@ -188,8 +190,8 @@ export const useCloudStore = create<CloudStore>()(
             }
           : {
               id: `tail-${nanoid()}`,
-              position: [a.position[0] + 0.8, a.position[1] + 0.4, a.position[2]] as [number, number, number],
-              width: a.width * 0.6,
+              position: clampVec3(RANGES.tail.setpointPosition, [a.position[0] + 0.8, a.position[1] + 0.4, a.position[2]]),
+              width: clampTo(RANGES.tail.width, a.width * 0.6),
             };
         const newPts = [...pts];
         newPts.splice(idx + 1, 0, newPt);
@@ -218,7 +220,7 @@ export const useCloudStore = create<CloudStore>()(
         const existingCount = s.preset.spirals.length;
         const newSpiral: SpiralDef = {
           id: `spiral-${nanoid()}`,
-          position: [existingCount * 0.5, 3, 0],
+          position: clampVec3(RANGES.spiral.position, [existingCount * 0.5, 3, 0]),
           rotation: [0, 0, 0],
           startRadius: 0.1,
           endRadius: 1.5,

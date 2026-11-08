@@ -5,6 +5,7 @@ import { useCloudStore } from '../../store/cloudStore';
 import { basePointAt, sampleBasePath } from '../../geometry/primitives/base';
 import type { DragSource, DragTarget } from '../DragController';
 import { sameValue } from '../sameValue';
+import { RANGES } from '../../model/ranges';
 
 export class BaseMesh implements DragSource {
   private group: THREE.Group;
@@ -149,6 +150,7 @@ export class BaseMesh implements DragSource {
     const idx = handle.userData.cpIdx as number;
     return {
       position: () => useCloudStore.getState().preset.base.controlPoints[idx],
+      range: RANGES.base.controlPoint,
       moveTo: (position) => {
         useCloudStore.getState().updateBasePoint(idx, position);
         return true;

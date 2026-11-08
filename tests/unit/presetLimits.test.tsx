@@ -52,8 +52,8 @@ function expectRanges(container: HTMLElement, type: 'range' | 'number', want: Re
   expect(got).toEqual(want)
 }
 
-/** A coordinate number field: the table's step; with no range on the field yet, no min or max. */
-const coordinateField = (r: NumberRange) => ({ min: NaN, max: NaN, step: r.step })
+/** A coordinate number field: the table's min, max and step. */
+const coordinateField = (r: NumberRange) => ({ min: r.min, max: r.max, step: r.step })
 
 describe('the panels take every range from the range table', () => {
   test('SpherePanel', () => {

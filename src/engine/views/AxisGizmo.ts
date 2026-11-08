@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import type { DragSource, DragTarget } from '../DragController';
+import { RANGES } from '../../model/ranges';
 
 export class AxisGizmo implements DragSource {
   private frontHandle: THREE.Mesh;
@@ -86,6 +87,7 @@ export class AxisGizmo implements DragSource {
     const point = handle.userData.which === 'front' ? 'frontPoint' : 'backPoint';
     return {
       position: () => useCloudStore.getState().preset.flowCloud.wireframe[point],
+      range: RANGES.flowCloud.anchor,
       moveTo: (position) => {
         const wf = useCloudStore.getState().preset.flowCloud.wireframe;
         useCloudStore.getState().setFlowCloud({ wireframe: { ...wf, [point]: position } });

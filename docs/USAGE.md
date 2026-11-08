@@ -154,7 +154,8 @@ setpoints. A setpoint's width is the tube's radius at that setpoint; between set
 changes linearly with the curve parameter, so each setpoint's own width is met exactly.
 
 The section's first line shows the number of setpoints ("Tail (3 pts)"). **+ Point** adds a
-setpoint after the last: 0.8 units along +x and 0.4 along +y from it, with 0.6 times its width.
+setpoint after the last: 0.8 units along +x and 0.4 along +y from it (up to 50), with 0.6 times
+its width (at least 0.05).
 
 | Control | Range (step) | Effect |
 |---|---|---|
@@ -246,7 +247,7 @@ In Spiral mode these controls follow:
 | Flow Lines | 4 to 24 (1). The number of flow lines, evenly spaced in angle. |
 | Spiral Twist | 0 to 4π (0.05 rad, shown as a multiple of π). How far a flow line turns about the axis from u = 0 to u = 1. |
 | Front, Back | Any number (0.1) in each of X, Y and Z: the F and B anchors' coordinates. Type a value, then press Enter or leave the field ([number fields](#keyboard)), or drag the anchors in the viewport. |
-| Snap Back → Tail | Move B to where the tail starts: its first setpoint, or for an attached tail the point on the base where it meets it. One undo step. |
+| Snap Back → Tail | Move B to where the tail starts: its first setpoint, or for an attached tail the point on the base where it meets it, within −50 to 50. One undo step. |
 
 The F/B anchors, Resolution, Threshold, Mode, Generate Bands, Bands, Flow Lines and Spiral Twist,
 like every sphere and tail edit, take effect at the next Regenerate. Position, Hide and Show, Show

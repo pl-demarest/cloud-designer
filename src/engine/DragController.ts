@@ -1,11 +1,15 @@
 import * as THREE from 'three';
 import type { Viewport } from './Viewport';
+import { clampVec3, type NumberRange } from '../model/ranges';
 
 /** One draggable item: a sphere, a base control point, a tail setpoint, a spiral, the flow
  *  cloud or a gizmo anchor. Positions are activeUnitGroup coordinates, as the preset holds them. */
 export interface DragTarget {
   /** Where the item is now. */
   position(): readonly [number, number, number];
+  /** The position field's range in the range table (src/model/ranges.ts), one for all three
+   *  axes or one per axis: a drag stops at it, so the preset stays inside the table. */
+  range: NumberRange | readonly NumberRange[];
   /** Moves the item; returns whether the preset changed. */
   moveTo(position: [number, number, number]): boolean;
 }
@@ -46,8 +50,8 @@ export function isWorldVisible(obj: THREE.Object3D): boolean {
  * all registered views in one pass and the nearest world-visible hit wins, except that a source
  * that yields its press (the flow cloud's handle) wins only where no other handle is under the
  * pointer. Only a primary-button press drags; other buttons go to OrbitControls. The drag moves
- * its item on a camera-facing plane through the grab point, keeping the grab offset, with pointer
- * capture and OrbitControls disabled. pointerup (on the canvas or the window), pointercancel,
+ * its item on a camera-facing plane through the grab point, keeping the grab offset, within the
+ * item's range, with pointer capture and OrbitControls disabled. pointerup (on the canvas or the window), pointercancel,
  * lostpointercapture and a window blur end it and re-enable the controls.
  */
 export class DragController {
@@ -150,7 +154,7 @@ export class DragController {
     if (!this.raycaster.ray.intersectPlane(this.plane, target)) return;
     target.sub(this.offset);
     this.viewport.activeUnitGroup.worldToLocal(target);
-    if (drag.target.moveTo([target.x, target.y, target.z])) drag.moved = true;
+    if (drag.target.moveTo(clampVec3(drag.target.range, [target.x, target.y, target.z]))) drag.moved = true;
   };
 
   private onPointerEnd = (e: PointerEvent): void => {

@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, test } from 'vitest'
 import { useCloudStore } from '../../src/store/cloudStore'
 import { DEFAULT_PRESET } from '../../src/model/defaults'
 import type { BaseDef, CloudPreset, TailDef } from '../../src/model/types'
+import { RANGES } from '../../src/model/ranges'
+import { normalizePreset } from '../../src/model/normalize'
 
 /**
  * Pins every cloudStore action as it behaves today. Defects are pinned separately,
@@ -146,6 +148,20 @@ describe('sphere actions', () => {
     store().loadPreset({ ...structuredClone(DEFAULT_PRESET), spheres: [] })
     store().addSphere()
     expect(preset().spheres[0].position).toEqual([0, 0, 0])
+  })
+
+  test('+ Add and + Point stay inside the range table (plan decision D11)', () => {
+    for (let i = 0; i < 12; i++) store().addSphere()
+    expect(Math.max(...preset().spheres.map((s) => s.position[0]))).toBe(RANGES.sphere.position[0].max)
+    for (let i = 0; i < 60; i++) store().addBasePoint()
+    expect(preset().base.controlPoints.at(-1)![0]).toBe(RANGES.base.controlPoint.max)
+    for (let i = 0; i < 80; i++) store().addTailSetpoint()
+    const last = preset().tail.setpoints.at(-1)!
+    expect(last.width).toBe(RANGES.tail.width.min)
+    expect(last.position[0]).toBe(RANGES.tail.setpointPosition.max)
+    for (let i = 0; i < 20; i++) store().addSpiral()
+    expect(Math.max(...preset().spirals.map((s) => s.position[0]))).toBe(RANGES.spiral.position[0].max)
+    expect(normalizePreset(preset()), 'every value in range').toEqual(preset())
   })
 
   test('addSphere ids are distinct', () => {
