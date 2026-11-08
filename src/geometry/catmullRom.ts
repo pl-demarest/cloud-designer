@@ -3,7 +3,8 @@
  * and tension 0.5, open or closed, with the arc-length parametrisation of three's Curve
  * (getLengths, getUtoTmapping, getPointAt) and its tangents (getTangent, getTangentAt). Ported
  * from three r183 (src/extras/curves/CatmullRomCurve3.js, src/extras/core/Curve.js) operation
- * for operation, so every value equals three's to the bit, without three in the workers.
+ * for operation, so every value equals three's to the bit, without three in the workers. The one
+ * difference is the open two-point curve, which three bends backwards at its start (phantom).
  */
 
 import { distance, normalize, sub, type Vec3 } from './vec3';
@@ -34,17 +35,14 @@ function cubic(x0: number, x1: number, x2: number, x3: number, w: number): numbe
 }
 
 /**
- * The phantom point past an open curve's end, which three keeps in one module-level vector: the
- * end point reflected through its neighbour, (end - next) + end. A two-point curve needs both
- * phantoms in one evaluation; the second overwrites the first, so both are 2 P1 - P0, as in three.
+ * The phantom point past an open curve's end: the end point reflected through its neighbour,
+ * (end - next) + end, as three computes it. three keeps both ends' phantoms in one module-level
+ * vector, so on a two-point curve, which needs both in one evaluation, the second overwrites the
+ * first and the curve leaves P0 backwards. Here each end has its own: a two-point curve is the
+ * straight segment from P0 to P1, and longer curves are three's.
  */
-const phantom: Vec3 = { x: 0, y: 0, z: 0 };
-
-function setPhantom(end: Vec3, next: Vec3): Vec3 {
-  phantom.x = end.x - next.x + end.x;
-  phantom.y = end.y - next.y + end.y;
-  phantom.z = end.z - next.z + end.z;
-  return phantom;
+function phantom(end: Vec3, next: Vec3): Vec3 {
+  return { x: end.x - next.x + end.x, y: end.y - next.y + end.y, z: end.z - next.z + end.z };
 }
 
 export class CatmullRomCurve {
@@ -75,10 +73,10 @@ export class CatmullRomCurve {
       weight = 1;
     }
 
-    const p0 = this.closed || intPoint > 0 ? points[(intPoint - 1) % l] : setPhantom(points[0], points[1]);
+    const p0 = this.closed || intPoint > 0 ? points[(intPoint - 1) % l] : phantom(points[0], points[1]);
     const p1 = points[intPoint % l];
     const p2 = points[(intPoint + 1) % l];
-    const p3 = this.closed || intPoint + 2 < l ? points[(intPoint + 2) % l] : setPhantom(points[l - 1], points[l - 2]);
+    const p3 = this.closed || intPoint + 2 < l ? points[(intPoint + 2) % l] : phantom(points[l - 1], points[l - 2]);
 
     return {
       x: cubic(p0.x, p1.x, p2.x, p3.x, weight),

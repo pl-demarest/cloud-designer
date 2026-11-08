@@ -7,6 +7,7 @@ import { eulerXYZ } from '../../src/geometry/mat3'
 import { sphereFrame, sphereSDF } from '../../src/geometry/primitives/sphere'
 import { basePointAt, buildBaseVolume, sampleBasePath } from '../../src/geometry/primitives/base'
 import { attachedTail, sampleTailPath, tailWidthAt } from '../../src/geometry/primitives/tail'
+import type { PathSamples } from '../../src/geometry/path'
 import { generateFlowCloud } from '../../src/workers/core/flowCloud'
 import { generateSurfaceMesh } from '../../src/workers/core/surfaceMesh'
 import { normalizePreset } from '../../src/model/normalize'
@@ -139,9 +140,17 @@ describe('Catmull-Rom paths and Frenet frames against three', () => {
     ['tailNone', fixture('tailNone').tail.setpoints],
     ...Array.from({ length: 30 }, (_, i) => [`random tail ${i}`, randomSetpoints(rnd)] as [string, TailSetpoint[]]),
   ]
+  const tailSegments = tails.map(() => 8 + Math.floor(rnd() * 40))
 
-  test('sampleBasePath, basePointAt and buildBaseVolume equal a fresh CatmullRomCurve3, bit for bit', () => {
-    for (const [name, base] of bases) {
+  // three's CatmullRomCurve3 keeps both phantom ends of a two-point curve in one vector, so both
+  // are 2 P1 - P0 and its curve first runs backwards from P0. The kernel's are 2 P0 - P1 and
+  // 2 P1 - P0: a straight segment. With three points or more the curves are the same.
+  const threeOrMore = (n: number) => n >= 3
+
+  test('three or more points: sampleBasePath, basePointAt and buildBaseVolume equal a fresh CatmullRomCurve3, bit for bit', () => {
+    const checked = bases.filter(([, base]) => threeOrMore(base.controlPoints.length))
+    expect(checked.length).toBeGreaterThan(30)
+    for (const [name, base] of checked) {
       const n = base.lengthSegments
       const ref = threeCurve(base.controlPoints, base.closed)
       const frames = ref.computeFrenetFrames(n, base.closed)
@@ -169,18 +178,18 @@ describe('Catmull-Rom paths and Frenet frames against three', () => {
     }
   })
 
-  // Branches the kernel's own curves rarely reach: the closed two-point curve, coincident points
-  // (zero-length chords, equal entries in the arc-length table), a curve of zero length (zero
-  // tangents) and signed zeros.
-  const EDGE_CASES: Array<[string, V3[]]> = [
-    ['two points', [[0, 0, 0], [1, 0.5, -0.25]]],
-    ['coincident points', [[0, 0, 0], [0, 0, 0], [1, 1, 0], [1, 1, 0], [2, 0, 1]]],
-    ['zero length', [[1, 2, 3], [1, 2, 3], [1, 2, 3]]],
-    ['doubling back', [[0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 1, 0]]],
-    ['signed zeros', [[-0, 0, -0], [0, -1, -0], [-0, -2, 0], [0, -3, -0]]],
+  // Branches the kernel's own curves rarely reach: the closed two-point curve (closed, it has no
+  // phantom ends), coincident points (zero-length chords, equal entries in the arc-length table),
+  // a curve of zero length (zero tangents) and signed zeros.
+  const EDGE_CASES: Array<[string, V3[], boolean[]]> = [
+    ['two points', [[0, 0, 0], [1, 0.5, -0.25]], [true]],
+    ['coincident points', [[0, 0, 0], [0, 0, 0], [1, 1, 0], [1, 1, 0], [2, 0, 1]], [false, true]],
+    ['zero length', [[1, 2, 3], [1, 2, 3], [1, 2, 3]], [false, true]],
+    ['doubling back', [[0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 1, 0]], [false, true]],
+    ['signed zeros', [[-0, 0, -0], [0, -1, -0], [-0, -2, 0], [0, -3, -0]], [false, true]],
   ]
-  for (const [name, points] of EDGE_CASES) {
-    for (const closed of [false, true]) {
+  for (const [name, points, closings] of EDGE_CASES) {
+    for (const closed of closings) {
       test(`CatmullRomCurve and computeFrenetFrames equal three on ${name}, ${closed ? 'closed' : 'open'}, bit for bit`, () => {
         const ref = threeCurve(points, closed)
         const curve = new CatmullRomCurve(points.map(([x, y, z]) => ({ x, y, z })), closed)
@@ -202,9 +211,10 @@ describe('Catmull-Rom paths and Frenet frames against three', () => {
     }
   }
 
-  test('sampleTailPath equals a fresh open CatmullRomCurve3, bit for bit, with widths at its curve parameter', () => {
-    for (const [name, setpoints] of tails) {
-      const segs = 8 + Math.floor(rnd() * 40)
+  test('three or more setpoints: sampleTailPath equals a fresh open CatmullRomCurve3, bit for bit, with widths at its curve parameter', () => {
+    const checked = tails.map((t, i) => [...t, tailSegments[i]] as const).filter(([, setpoints]) => threeOrMore(setpoints.length))
+    expect(checked.length).toBeGreaterThan(20)
+    for (const [name, setpoints, segs] of checked) {
       const ref = threeCurve(setpoints.map((s) => s.position), false)
       const frames = ref.computeFrenetFrames(segs, false)
       const got = sampleTailPath(setpoints, segs)
@@ -222,6 +232,41 @@ describe('Catmull-Rom paths and Frenet frames against three', () => {
         const k = Math.min(Math.floor(s), setpoints.length - 2)
         const linear = setpoints[k].width + (s - k) * (setpoints[k + 1].width - setpoints[k].width)
         expect(Math.abs(got.widths[i] - linear), `${name} width ${i}`).toBeLessThan(1e-12)
+      }
+    }
+  })
+
+  test('a two-point base or tail is the straight segment between its points: in order, evenly spaced, one tangent', () => {
+    const { controlPoints } = fixture('default').base
+    const endsBase: BaseDef = { ...fixture('default').base, controlPoints: [controlPoints[0], controlPoints[3]] }
+    const { setpoints } = fixture('default').tail
+    const endsTail = [setpoints[0], setpoints[2]]
+    const cases: Array<[string, V3[], number, PathSamples]> = [
+      ['the default base cut to its end points', endsBase.controlPoints, 24, sampleBasePath(endsBase, 24)],
+      ['the default tail cut to its end setpoints', endsTail.map((s) => s.position), 32, sampleTailPath(endsTail, 32)],
+    ]
+    for (const [name, base] of bases) {
+      if (base.controlPoints.length === 2) cases.push([name, base.controlPoints, base.lengthSegments, sampleBasePath(base, base.lengthSegments)])
+    }
+    tails.forEach(([name, sp], i) => {
+      if (sp.length === 2) cases.push([name, sp.map((s) => s.position), tailSegments[i], sampleTailPath(sp, tailSegments[i])])
+    })
+    expect(cases.length).toBeGreaterThanOrEqual(10)
+
+    for (const [name, [a, b], n, path] of cases) {
+      const d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]]
+      const len = Math.hypot(d[0], d[1], d[2])
+      const dir = d.map((c) => c / len)
+      let along = -Infinity
+      for (let i = 0; i <= n; i++) {
+        const p = path.points[i]
+        const next = (p.x - a[0]) * dir[0] + (p.y - a[1]) * dir[1] + (p.z - a[2]) * dir[2]
+        expect(next, `${name}: point ${i} lies past point ${i - 1}`).toBeGreaterThan(along)
+        along = next
+        const f = i / n
+        expect(Math.hypot(p.x - a[0] - f * d[0], p.y - a[1] - f * d[1], p.z - a[2] - f * d[2]), `${name} point ${i}`).toBeLessThan(1e-9)
+        const t = path.tangents[i]
+        expect(Math.hypot(t.x - dir[0], t.y - dir[1], t.z - dir[2]), `${name} tangent ${i}`).toBeLessThan(1e-9)
       }
     }
   })

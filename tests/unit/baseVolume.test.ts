@@ -87,11 +87,12 @@ describe('baseSDF', () => {
 })
 
 describe('a centre line that turns back within one segment', () => {
-  // three's CatmullRomCurve3 extrapolates both ends of a two-point curve into one shared vector,
-  // so such a curve first runs backwards from its first point and turns round within one
-  // segment. Removing two of the default base's four points in the Base panel gives one. A
-  // control polygon that doubles back does the same in the middle of the base.
+  // A control polygon that doubles back makes the curve turn round within one segment (here
+  // pieces 10 and 16 of 24), oval or rectangular. A two-point curve did the same at its start
+  // while the kernel used three's CatmullRomCurve3, which puts both of its phantom ends at
+  // 2 P1 - P0; it is now straight, and the two-point cuts of the default base stay as cases.
   const pts = fixture('default').base.controlPoints
+  const DOUBLING_BACK: [number, number, number][] = [[-2, -1, 0], [1.5, -1, 0], [-0.5, -0.9, 0.05], [2, -1, 0.1]]
   const TURNING: Array<[string, BaseDef]> = [
     ...([[0, 1], [0, 2], [1, 3], [2, 3]] as const).map(
       ([a, b]) => [`the default base cut to P${a} and P${b}`, { ...fixture('default').base, controlPoints: [pts[a], pts[b]] }] as [string, BaseDef],
@@ -99,8 +100,9 @@ describe('a centre line that turns back within one segment', () => {
     ['a rectangular base whose control polygon doubles back', {
       ...fixture('default').base,
       crossSectionShape: 'rect',
-      controlPoints: [[-2, -1, 0], [1.5, -1, 0], [-0.5, -0.9, 0.05], [2, -1, 0.1]],
+      controlPoints: DOUBLING_BACK,
     }],
+    ['an oval base whose control polygon doubles back', { ...fixture('default').base, controlPoints: DOUBLING_BACK }],
   ]
 
   /** Distance from (x, y, z) to the nearest straight piece between two of the volume's samples. */

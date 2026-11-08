@@ -104,9 +104,16 @@ const RECT_LOOP: BaseDef = {
   }),
 }
 
+/** The default base with only its end points: a straight two-point base. */
+const ENDS_BASE: BaseDef = {
+  ...fixture('default').base,
+  controlPoints: [fixture('default').base.controlPoints[0], fixture('default').base.controlPoints[3]],
+}
+
 // [name, base, open (its end rings lie on the volume's caps, so they are skipped)]
 const BASES: Array<[string, BaseDef, boolean]> = [
   ['the default base', fixture('default').base, true],
+  ['the default base cut to its end points', ENDS_BASE, true],
   // three's first Frenet normal is (0, 0, -1) here: the drawn 0.4 height runs along z.
   ['a straight base along x', STRAIGHT_BASE, true],
   ['the default base with a rectangular section', { ...fixture('default').base, crossSectionShape: 'rect' }, true],
@@ -161,8 +168,9 @@ describe('base: the surface mesh is the drawn base, closed by flat caps in its e
     expect(z).toBeLessThanOrEqual(0.2 + 1e-6)
   })
 
-  // The Base panel removes points down to two. A two-point curve turns back on itself at its
-  // start (see baseVolume.test.ts), which must not put solid anywhere but near the drawn base.
+  // The Base panel removes points down to two. A two-point base is a straight segment. While it
+  // turned back on itself at its start (three's shared phantom end), the base volume there was
+  // unbounded and cut the surface mesh open at the grid boundary (see baseVolume.test.ts).
   test('the default preset with its base cut to P0 and P1: the surface mesh is closed', async () => {
     const p = fixture('default')
     p.base.controlPoints = p.base.controlPoints.slice(0, 2)
@@ -359,11 +367,18 @@ describe('tail: the workers share TailMesh’s spine and width profile', () => {
     return message.clippedEdges.length / 6
   }
 
+  /** The default preset with its tail cut to the first and last setpoints: a straight tail. */
+  function endsTail(): CloudPreset {
+    const p = fixture('default')
+    p.tail.setpoints = [p.tail.setpoints[0], p.tail.setpoints[2]]
+    return p
+  }
+
   // The capsules through the drawn rings are what the workers model. Where the width falls fast
   // they bulge past the drawn tube (up to 9% of the radius on the default tail, 13% on tailNone),
   // so points just outside a ring can be inside a neighbouring capsule; the test sorts the
   // points with the model and expects the worker to agree with it on every one.
-  for (const [name, preset] of TAILS) {
+  for (const [name, preset] of [...TAILS, ['a two-point tail', endsTail()] as const]) {
     test(`${name}: the Cut & Glue tail is the chain of capsules through TailMesh's rings`, async () => {
       const rings = drawnTailRings(preset)
       const centres = rings.map((r) => r.centre)

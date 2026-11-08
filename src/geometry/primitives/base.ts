@@ -157,13 +157,12 @@ function pieceSDF(x: number, y: number, z: number, v: BaseVolume, k: number): nu
     d = Math.min(Math.max(d, h), 0) + Math.sqrt(od * od + oh * oh);
   }
 
-  // Rings more than 90 degrees apart: the centre line turns back within this piece (a two-point
-  // curve does at its start, since three extrapolates both of its ends into one shared vector).
-  // The blended tangent then nearly vanishes, the two ring planes face each other, and the
-  // region between them is unbounded. Every drawn ring vertex lies within `reach` of its ring's
-  // centre (the larger half-size of the oval, the corner of the rectangle), and the wire runs
-  // straight from ring to ring, so the drawn piece lies within `reach` of the chord: the piece is
-  // cut to that capsule.
+  // Rings more than 90 degrees apart: the centre line turns back within this piece, as where the
+  // control polygon doubles back on itself. The blended tangent then nearly vanishes, the two
+  // ring planes face each other, and the region between them is unbounded. Every drawn ring
+  // vertex lies within `reach` of its ring's centre (the larger half-size of the oval, the
+  // corner of the rectangle), and the wire runs straight from ring to ring, so the drawn piece
+  // lies within `reach` of the chord: the piece is cut to that capsule.
   if (t[i] * t[j] + t[i + 1] * t[j + 1] + t[i + 2] * t[j + 2] < 0) {
     const ab2 = abx * abx + aby * aby + abz * abz;
     const h = ab2 > 0 ? Math.max(0, Math.min(1, (apx * abx + apy * aby + apz * abz) / ab2)) : 0;
