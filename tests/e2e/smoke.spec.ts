@@ -49,3 +49,19 @@ test('app loads with a rendered viewport and the sidebar accordion', async ({ pa
   // 'WebGL: INVALID_OPERATION: texImage3D: FLIP_Y or PREMULTIPLY_ALPHA isn't allowed ...'.
   expect(consoleWarnings.filter((w) => /WebGL/.test(w)), 'WebGL warnings').toEqual([])
 })
+
+test('the drawing buffer follows a devicePixelRatio change that comes without a resize (cd:review suspected 5)', async ({ page }) => {
+  await page.goto('/')
+  const canvas = page.locator('canvas').first()
+  await expect(canvas).toBeVisible()
+  const sizes = () =>
+    canvas.evaluate((el: HTMLCanvasElement) => ({ css: [el.clientWidth, el.clientHeight], buffer: [el.width, el.height] }))
+  await expect.poll(async () => (await sizes()).buffer[0]).toBeGreaterThan(0)
+  const before = await sizes()
+  expect(before.buffer, 'devicePixelRatio 1').toEqual(before.css)
+
+  // The window moves to a 2x display and keeps its size: no resize event, no ResizeObserver entry.
+  const cdp = await page.context().newCDPSession(page)
+  await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 800, deviceScaleFactor: 2, mobile: false })
+  await expect.poll(async () => (await sizes()).buffer).toEqual([before.css[0] * 2, before.css[1] * 2])
+})

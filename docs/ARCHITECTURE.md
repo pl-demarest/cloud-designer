@@ -154,9 +154,12 @@ cleanup calls `dispose()`. A layout effect, because OrbitControls removes its ke
 releases everything the constructor acquired, in this order: the resize observer, the store
 subscriptions, the drag controller's listeners, each view's geometries and textures, the three
 workers (terminated), and the viewport's render loop, controls, helpers, lights, shared materials
-and renderer; it then resets the job states in `uiStore`. The app renders in `React.StrictMode`,
-whose second mount must find nothing left over (`tests/unit/engineLifecycle.test.tsx` counts
-geometries, materials, textures, workers and listeners). The second renderer gets the canvas's
+and renderer; it then resets the job states in `uiStore`. The viewport draws at
+`devicePixelRatio`, capped at 2, read on every resize and checked at every frame, since a window
+moved to a display with another ratio keeps its size and gets no resize.
+The app renders in `React.StrictMode`, whose second mount must find nothing left over
+(`tests/unit/engineLifecycle.test.tsx` counts geometries, materials, textures, workers and
+listeners). The second renderer gets the canvas's
 WebGL context back, so the viewport also resets the two unpack flags three's texture uploads set. The views draw with one material per
 role (`src/engine/materials.ts`), owned and disposed by the viewport.
 

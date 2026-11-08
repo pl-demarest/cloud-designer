@@ -388,6 +388,35 @@ describe('Viewport pixel ratio', () => {
     dpr.mockRestore()
   })
 
+  test('a pixel ratio change that comes without a resize (the window moved to another display) is applied at the next frame (cd:review suspected 5)', () => {
+    const dpr = vi.spyOn(window, 'devicePixelRatio', 'get').mockReturnValue(1)
+    const ratios: number[] = []
+    const vp = new Viewport(document.createElement('canvas'), (canvas) => {
+      const renderer = createRendererStub(canvas)
+      renderer.setPixelRatio = (r: number) => void ratios.push(r)
+      return renderer
+    })
+    disposers.push(() => vp.dispose())
+    vp.start()
+    // The render loop the viewport handed to the renderer stub.
+    const frame = (time: number) => (vp.renderer as unknown as { loop: (time: number) => void }).loop(time)
+    frame(0)
+    expect(ratios, 'a frame at the same ratio sets nothing').toEqual([1])
+
+    dpr.mockReturnValue(2) // to a 2x display, with no resize
+    frame(16)
+    expect(ratios).toEqual([1, 2])
+    frame(32)
+    expect(ratios, 'once').toEqual([1, 2])
+    dpr.mockReturnValue(3) // on to a 3x one: still capped at 2
+    frame(48)
+    expect(ratios).toEqual([1, 2])
+    dpr.mockReturnValue(1.5)
+    frame(64)
+    expect(ratios).toEqual([1, 2, 1.5])
+    dpr.mockRestore()
+  })
+
   test('a zero-sized parent leaves the camera aspect as it was', () => {
     const vp = new Viewport(document.createElement('canvas'), createRendererStub)
     disposers.push(() => vp.dispose())

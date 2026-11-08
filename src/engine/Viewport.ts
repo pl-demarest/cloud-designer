@@ -54,10 +54,12 @@ export class Viewport {
   private grid: THREE.GridHelper;
   private axes: THREE.AxesHelper;
   private lights: THREE.Light[];
+  /** The pixel ratio the renderer draws at (applyPixelRatio). */
+  private pixelRatio = 0;
 
   constructor(canvas: HTMLCanvasElement, createRenderer: RendererFactory = createWebGLRenderer) {
     this.renderer = createRenderer(canvas);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
+    this.applyPixelRatio();
     this.renderer.setClearColor(0xffffff);
 
     this.scene = new THREE.Scene();
@@ -131,9 +133,14 @@ export class Viewport {
     this.scene.add(this.cutGlueGroup);
   }
 
-  /** Starts the render loop; calling it again replaces the loop rather than adding one. */
+  /**
+   * Starts the render loop; calling it again replaces the loop rather than adding one. Each frame
+   * first applies a devicePixelRatio that changed without a resize, as when the window moves to a
+   * display with another ratio and keeps its size.
+   */
   start(): void {
     this.renderer.setAnimationLoop(() => {
+      if (Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO) !== this.pixelRatio) this.applyPixelRatio();
       this.controls.update();
       this.renderer.render(this.scene, this.camera);
     });
@@ -143,12 +150,19 @@ export class Viewport {
     this.renderer.setAnimationLoop(null);
   }
 
+  /** Draws at the window's devicePixelRatio, capped at MAX_PIXEL_RATIO; three's setPixelRatio
+   *  sizes the drawing buffer again for it. */
+  private applyPixelRatio(): void {
+    this.pixelRatio = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
+    this.renderer.setPixelRatio(this.pixelRatio);
+  }
+
   /** Sizes the drawing buffer to the canvas's CSS size (EditorEngine's ResizeObserver calls it).
    *  The pixel ratio is read again, since the window may have moved to another display. A zero
    *  size (a collapsed parent) is ignored rather than giving the camera an infinite aspect. */
   resize(width: number, height: number): void {
     if (width === 0 || height === 0) return;
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
+    this.applyPixelRatio();
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
