@@ -72,11 +72,11 @@ export function wireframeScene(src: ExportSources): THREE.Group | null {
   return group('cloud-wireframe', [body, ...extras]);
 }
 
-/** 'cloud': the scaffold (spheres and base) and the flow cloud as 'wireframe', each when it has
- *  content; null when neither has. */
+/** 'cloud', everything: the scaffold (spheres and base), then 'tail', 'spirals' and the flow
+ *  cloud as 'wireframe', each when it has content; null when nothing has. */
 export function fullScene(src: ExportSources): THREE.Group | null {
   const scaffold = scaffoldScene(src);
-  const rest = [exportPart('wireframe', src.flowCloud)].filter(hasContent);
+  const rest = [exportPart('tail', src.tail), exportPart('spirals', src.spirals), exportPart('wireframe', src.flowCloud)].filter(hasContent);
   const children = scaffold ? [scaffold, ...rest] : rest;
   return children.length > 0 ? group('cloud', children) : null;
 }

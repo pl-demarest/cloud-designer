@@ -8,7 +8,7 @@ import { installCanvas2dStub } from '../helpers/engine'
 
 /**
  * src/export: the GLB scenes, which copy the editor's groups without anything flagged
- * userData.editorOnly (audit export-includes-handles).
+ * userData.editorOnly (audit export-includes-handles, export-full-omits-tail-spirals).
  */
 
 describe('cloneExportable', () => {
@@ -76,10 +76,10 @@ describe('the GLB scenes over the editor scene', () => {
     expect(handles.length).toBeGreaterThan(5)
   })
 
-  test('without a flow cloud: no wireframe scene; the full scene is the scaffold', () => {
+  test('without a flow cloud: no wireframe scene; the full scene has the scaffold, tail and spirals', () => {
     expect(wireframeScene(sources())).toBeNull()
     const full = outline(fullScene(sources())!)
-    expect(full.names).toEqual(['cloud', 'scaffold', 'spheres', 'base'])
+    expect(full.names).toEqual(['cloud', 'scaffold', 'spheres', 'base', 'tail', 'spirals'])
     expect(full.types).toEqual(new Set(['LineSegments']))
     expect(full.editorOnly).toBe(0)
   })
@@ -96,7 +96,8 @@ describe('the GLB scenes over the editor scene', () => {
     expect(wire.types, 'flow lines stay line strips').toEqual(new Set(['LineSegments', 'Line']))
 
     const full = outline(fullScene(sources())!)
-    expect(full.names.slice(0, 5)).toEqual(['cloud', 'scaffold', 'spheres', 'base', 'wireframe'])
+    expect(full.names.slice(0, 6)).toEqual(['cloud', 'scaffold', 'spheres', 'base', 'tail', 'spirals'])
+    expect(full.names).toContain('wireframe')
     for (const o of [scaffold, wire, full]) expect(o.editorOnly).toBe(0)
   })
 

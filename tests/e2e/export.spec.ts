@@ -183,11 +183,13 @@ for (const [button, file] of [
 test('Export Both (Full) includes the tail and spirals', async ({ page }) => {
   // Audit finding: "'Export Both (Full)' omits tail and spirals although docs say it contains all
   // geometry" (src/components/ExportPanel.tsx:124).
-  test.fail(true, 'export finding: Export Both (Full) omits tail and spirals')
+  const spirals = await openPanel(page, 'Spirals')
+  await spirals.getByRole('button', { name: '+ Add' }).click()
   await regenerate(page)
   await openPanel(page, 'Export')
-  const names = nodeNames(parseGlb((await download(page, exportButton(page, 'Export Both (Full)'))).bytes))
-  expect(names).toContain('tail')
+  const gltf = parseGlb((await download(page, exportButton(page, 'Export Both (Full)'))).bytes)
+  expect(nodeNames(gltf)).toEqual(expect.arrayContaining(['cloud', 'scaffold', 'spheres', 'base', 'tail', 'spirals', 'wireframe']))
+  expect(triangleMeshCount(gltf)).toBe(0)
 })
 
 // The GLB contract with githubLanding (src/export/scenes.ts cloudScene): its loadCloudLayer loads
