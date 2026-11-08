@@ -734,14 +734,14 @@
       },
       "flowCloudEdges": {
         "type": "Float32Array",
-        "length": 0,
+        "length": 6048,
         "nan": 0,
         "inf": 0,
-        "min": null,
-        "max": null,
-        "sum": 0,
-        "sumSq": 0,
-        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        "min": -2.320580005645752,
+        "max": 2.4096579551696777,
+        "sum": 404.0527383027886,
+        "sumSq": 5732.257339501055,
+        "sha256": "7fba004c9538600d59832cf0ff1c9f0317d6961c08599ff5b5d4dcc3163c8cb8"
       }
     },
     "output": {
@@ -750,14 +750,14 @@
       ],
       "clippedEdges": {
         "type": "Float32Array",
-        "length": 8640,
+        "length": 8952,
         "nan": 0,
         "inf": 0,
         "min": -3.377049207687378,
         "max": 4.377188682556152,
-        "sum": 1228.084651187295,
-        "sumSq": 15817.162869575142,
-        "sha256": "c427b2f39e5bf2ae7766335046bb7024372de30c6a89983fe0f86afd74c64251"
+        "sum": 1259.8054890499916,
+        "sumSq": 15979.30579953579,
+        "sha256": "b2fc791bb5110c1f6edd3318d53e7c98bcf3e30b778090a50fe12aaac9c5b3cf"
       },
       "transferIsOutputBuffer": true
     }

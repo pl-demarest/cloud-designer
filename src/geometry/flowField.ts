@@ -201,8 +201,9 @@ function wrapAngle(a: number): number {
 
 /**
  * The spiral wireframe over the flow-cloud mesh. Each vertex gets an axial coordinate u (0 at
- * the front of the frontmost sphere, 1 at the first tail setpoint) and an angle around the
- * front-to-back axis. Bands (only when generateBands is set) are contours of constant u, one
+ * the front of the frontmost sphere, 1 at the first tail setpoint, or one axis length past the
+ * front when the tail starts less than 1e-3 past it) and an angle around the front-to-back
+ * axis. Bands (only when generateBands is set) are contours of constant u, one
  * array of segment pairs per contour. Flow lines (only when showFlowLines is set) follow constant
  * angle + spiralTwist * u, one polyline per connected piece, running from low to high u. Both are
  * traced over the mesh by levelSetPolylines, so every point lies on a mesh edge and consecutive
@@ -251,21 +252,22 @@ export function extractSpiral(
   }
   if (!isFinite(uFront)) uFront = 0;
 
-  // u range ends at the tail's first setpoint (where the tail meets the cloud body).
+  // u range ends at the tail's first setpoint (where the tail meets the cloud body), when that
+  // lies more than 1e-3 past the front. A tail that starts at or in front of the front (an 'end'
+  // tail on a closed base starts at the base's first point) would leave no range, so the range
+  // then spans the axis length, as without a tail.
   // The tail tube is a separate sculpted piece — it is not part of the isosurface.
-  const tailFirst = tail.setpoints.length > 0 ? tail.setpoints[0] : null;
-  let uBack: number;
-  if (tailFirst) {
+  let uBack = uFront + rawLen;
+  if (tail.setpoints.length > 0) {
+    const tailFirst = tail.setpoints[0];
     const dx = tailFirst.position[0] - fp[0];
     const dy = tailFirst.position[1] - fp[1];
     const dz = tailFirst.position[2] - fp[2];
-    uBack = dx*axN[0] + dy*axN[1] + dz*axN[2];
-  } else {
-    uBack = uFront + rawLen;
+    const proj = dx*axN[0] + dy*axN[1] + dz*axN[2];
+    if (proj - uFront > 1e-3) uBack = proj;
   }
-
+  // Positive: rawLen is at least 1e-3 (checked above), and a range the tail ends is longer.
   const uRange = uBack - uFront;
-  if (uRange < 0.001) return { bands: [], flowLines: [] };
 
   // --- Per-vertex u and spiral angle ---
   const nVerts = vertices.length / 3;

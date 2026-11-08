@@ -1509,12 +1509,205 @@
       "items": []
     },
     "flowLines": {
-      "count": 0,
-      "items": []
+      "count": 16,
+      "items": [
+        {
+          "type": "Float32Array",
+          "length": 177,
+          "nan": 0,
+          "inf": 0,
+          "min": -2.2802345752716064,
+          "max": 2.300405263900757,
+          "sum": -12.805830452707596,
+          "sumSq": 155.35477839579394,
+          "sha256": "28da56dc2e42d91fbef02161ac17a8e7b62313f8a72ef0cb1ec1bd115123aefa"
+        },
+        {
+          "type": "Float32Array",
+          "length": 189,
+          "nan": 0,
+          "inf": 0,
+          "min": -2.2904765605926514,
+          "max": 2.2846789360046387,
+          "sum": -34.664874609559774,
+          "sumSq": 171.25485641127972,
+          "sha256": "35cdc13caa9ecbc2be5d25faaff65f30bfcff826dbe3beddd5ef53574897c9ab"
+        },
+        {
+          "type": "Float32Array",
+          "length": 177,
+          "nan": 0,
+          "inf": 0,
+          "min": -2.297828435897827,
+          "max": 2.2689526081085205,
+          "sum": -33.67100744601339,
+          "sumSq": 162.97402933182943,
+          "sha256": "9b81b7cf6c1345406b25ae15d85ee20d78cd64ff6609c16530c395359ac18685"
+        },
+        {
+          "type": "Float32Array",
+          "length": 183,
+          "nan": 0,
+          "inf": 0,
+          "min": -2.307219982147217,
+          "max": 2.2532262802124023,
+          "sum": -43.75089226756245,
+          "sumSq": 164.91547381951892,
+          "sha256": "7e1a7e7df3a08dc822f612298f50faf3ff97f5d197fb765f7324fad75298ca48"
+        },
+        {
+          "type": "Float32Array",
+          "length": 180,
+          "nan": 0,
+          "inf": 0,
+          "min": -2.320580005645752,
+          "max": 2.237499952316284,
+          "sum": -35.18083603363533,
+          "sumSq": 171.48035081590774,
+          "sha256": "76db73ffbdc9424e9eb567c5d4bc631b33f4f950c4a43aa4e8d15a120db56318"
+        },
+        {
+          "type": "Float32Array",
+          "length": 204,
+          "nan": 0,
+          "inf": 0,
+          "min": -2.317873954772949,
+          "max": 2.2571113109588623,
+          "sum": -29.469838205259293,
+          "sumSq": 179.75296779006476,
+          "sha256": "3742bd6e945fba2e5563480fe8f963d02352d08da0709a16b5664350af9fc4d5"
+        },
+        {
+          "type": "Float32Array",
+          "length": 198,
+          "nan": 0,
+          "inf": 0,
+          "min": -2.307896852493286,
+          "max": 2.2767226696014404,
+          "sum": -10.495082817040384,
+          "sumSq": 196.45752646253626,
+          "sha256": "cfe8266115d2872133af764245e3c2e20aa43b9b05efb80fa1e2caf42d1ceddc"
+        },
+        {
+          "type": "Float32Array",
+          "length": 207,
+          "nan": 0,
+          "inf": 0,
+          "min": -2.297919750213623,
+          "max": 2.2963337898254395,
+          "sum": 10.443290389608592,
+          "sumSq": 202.965960938232,
+          "sha256": "2de77497e098df49fc69d863afbb2806f61d9c96ec578172c8d844b272fd91b9"
+        },
+        {
+          "type": "Float32Array",
+          "length": 216,
+          "nan": 0,
+          "inf": 0,
+          "min": -2.2819135189056396,
+          "max": 2.3159451484680176,
+          "sum": 29.486752018681727,
+          "sumSq": 204.25355437112125,
+          "sha256": "60a37f9e94cb321a8d5816902d8abd5745420ddcafb1b994d68d042d3b2d487e"
+        },
+        {
+          "type": "Float32Array",
+          "length": 210,
+          "nan": 0,
+          "inf": 0,
+          "min": -2.2479448318481445,
+          "max": 2.339519739151001,
+          "sum": 49.35435513872653,
+          "sumSq": 194.83300815627274,
+          "sha256": "53417640ee4f04b66c8763fb13881badb399e2c33390ce2d66ce02b479379aa9"
+        },
+        {
+          "type": "Float32Array",
+          "length": 165,
+          "nan": 0,
+          "inf": 0,
+          "min": -2.2139761447906494,
+          "max": 2.3696672916412354,
+          "sum": 53.33505824394524,
+          "sumSq": 164.34927463382658,
+          "sha256": "3b6c7748b5cec568f4e88094a4083496811eaf64a820812dc76b83ae107b3a21"
+        },
+        {
+          "type": "Float32Array",
+          "length": 195,
+          "nan": 0,
+          "inf": 0,
+          "min": -2.2207348346710205,
+          "max": 2.39143443107605,
+          "sum": 71.47615445079282,
+          "sumSq": 199.56151039905728,
+          "sha256": "8026762c234b2a0087036e1e59a3a4fe47ba0e7245efc9e45047310758f5b26d"
+        },
+        {
+          "type": "Float32Array",
+          "length": 198,
+          "nan": 0,
+          "inf": 0,
+          "min": -2.236647129058838,
+          "max": 2.4096579551696777,
+          "sum": 72.78457813648367,
+          "sumSq": 195.18381613933758,
+          "sha256": "6656f57856fd438b692900e0e47712fc1e9840d3076c73bfb52ce5231f5119c7"
+        },
+        {
+          "type": "Float32Array",
+          "length": 204,
+          "nan": 0,
+          "inf": 0,
+          "min": -2.249476432800293,
+          "max": 2.39143443107605,
+          "sum": 58.69445185549557,
+          "sumSq": 213.08219402654288,
+          "sha256": "1ecaadd13e118346f68aa606ad1d5516fe16b855f2795341c369f410d23b3ada"
+        },
+        {
+          "type": "Float32Array",
+          "length": 189,
+          "nan": 0,
+          "inf": 0,
+          "min": -2.2597291469573975,
+          "max": 2.3696672916412354,
+          "sum": 46.55948982515838,
+          "sumSq": 194.72969777131934,
+          "sha256": "821c8e75ac4be43d41b8fc1cc3dcaee38044729b0d0b3db45e4ea4ba49a61886"
+        },
+        {
+          "type": "Float32Array",
+          "length": 180,
+          "nan": 0,
+          "inf": 0,
+          "min": -2.269981861114502,
+          "max": 2.339519739151001,
+          "sum": 9.522984063252807,
+          "sumSq": 178.7557764213395,
+          "sha256": "92db131c6339e0086976b7c696d7498fd730027256fc36b7069c5e0b85b29645"
+        }
+      ]
     },
     "transfer": [
       "vertices",
-      "indices"
+      "indices",
+      "flowLines[0]",
+      "flowLines[1]",
+      "flowLines[2]",
+      "flowLines[3]",
+      "flowLines[4]",
+      "flowLines[5]",
+      "flowLines[6]",
+      "flowLines[7]",
+      "flowLines[8]",
+      "flowLines[9]",
+      "flowLines[10]",
+      "flowLines[11]",
+      "flowLines[12]",
+      "flowLines[13]",
+      "flowLines[14]",
+      "flowLines[15]"
     ],
     "consoleCalls": 0
   },

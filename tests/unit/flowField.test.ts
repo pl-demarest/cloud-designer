@@ -48,7 +48,7 @@ function zeroLengthSegments(segments: Float32Array): number {
 }
 
 describe('flow lines', () => {
-  for (const name of ['default', 'rotated', 'tailStart', 'tailStrength'] as const) {
+  for (const name of ['default', 'rotated', 'rectClosedBase', 'tailStart', 'tailStrength'] as const) {
     test(`${name}: polylines over the mesh, no repeated point, no step longer than a mesh edge`, () => {
       const p = fixture(name)
       const { vertices, indices, flowLines } = generateFlowCloud(marchingCubesMessage(p))
@@ -61,6 +61,13 @@ describe('flow lines', () => {
       for (const line of flowLines) expect(line.length).toBeGreaterThanOrEqual(6)
     })
   }
+
+  // An 'end' tail on a closed base starts at the base's first point, here in front of the cloud,
+  // so the u range ending at the tail's first setpoint would be empty.
+  test('rectClosedBase: its tail starts in front of the cloud, and all 16 flow lines are drawn', () => {
+    const { flowLines } = generateFlowCloud(marchingCubesMessage(fixture('rectClosedBase')))
+    expect(flowLines).toHaveLength(16)
+  })
 })
 
 describe('bands', () => {
@@ -112,6 +119,18 @@ describe('extractSpiral on a sphere', () => {
       for (let k = 0; k < band.length; k += 3) expect(Math.abs(band[k] - x)).toBeLessThan(1e-5)
       expect(endpointUses(band)).toEqual([2])
     })
+  })
+
+  // The u range ends at the tail's first setpoint only where that lies more than 1e-3 past the
+  // front (u = 0 at x = -1 here); otherwise it spans the axis, as without a tail.
+  test("a tail starting less than 1e-3 past the cloud's front, or in front of it, leaves the u range as without a tail", () => {
+    const at = (x: number) => {
+      const t = { ...makeTail(), attachToBase: 'none' as const, setpoints: [{ id: 't', position: [x, 0, 0] as [number, number, number], width: 0.2 }] }
+      return extractSpiral(mesh.positions, mesh.indices, flowCloud, [makeSphere('s')], t)
+    }
+    for (const x of [-1 + 0.0005, -1, -3]) expect(at(x), `first setpoint at x = ${x}`).toEqual({ bands, flowLines })
+    // 2e-3 past the front, the tail ends the range: u is 1 almost everywhere.
+    expect(at(-1 + 0.002)).not.toEqual({ bands, flowLines })
   })
 
   test('each flow line is one polyline from front to back at its angle', () => {
