@@ -59,6 +59,55 @@ describe('baseSDF', () => {
     }
   })
 
+  describe('a base deeper than its ring spacing still ends at its caps', () => {
+    // The default base at the Height slider's maximum, 2: half-height 1 and half-width 0.6. Past a
+    // shared ring a piece keeps going with its depth reduced by the distance past the ring's
+    // plane, and that depth, 0.6, is almost three ring spacings (0.217) here.
+    const tall: BaseDef = { ...fixture('default').base, crossSectionHeight: 2 }
+    const TALL: Array<[string, BaseDef]> = [
+      ['oval', tall],
+      ['rect', { ...tall, crossSectionShape: 'rect' }],
+    ]
+    for (const [name, base] of TALL) {
+      test(`${name}: no point more than 1e-6 past the start or the end cap's plane is inside`, () => {
+        const v = buildBaseVolume(base)
+        const path = sampleBasePath(base, base.lengthSegments)
+        for (const [at, sign] of [[0, -1], [base.lengthSegments, 1]] as const) {
+          const c = path.points[at], t = path.tangents[at], N = path.normals[at], B = path.binormals[at]
+          const where = (h: number, ln: number, lb: number) => [
+            c.x + sign * h * t.x + ln * N.x + lb * B.x,
+            c.y + sign * h * t.y + ln * N.y + lb * B.y,
+            c.z + sign * h * t.z + ln * N.z + lb * B.z,
+          ] as const
+          // A grid past the cap's plane, across one and a half times the cross-section.
+          for (const h of [2e-6, 1e-3, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.72, 0.8, 1, 1.5]) {
+            for (let i = -6; i <= 6; i++) {
+              for (let j = -6; j <= 6; j++) {
+                const [x, y, z] = where(h, (i / 6) * 1.5 * v.halfH, (j / 6) * 1.5 * v.halfW)
+                const label = `ring ${at}, ${h} past, (${i}, ${j})`
+                expect(baseSDF(x, y, z, v), label).toBeGreaterThan(0)
+                expect(insideBase(x, y, z, v), label).toBe(false)
+              }
+            }
+          }
+          // Random points around the end, wherever they lie past the plane.
+          const rnd = lcg(29)
+          let past = 0
+          for (let n = 0; n < 3000; n++) {
+            const x = c.x + (rnd() * 2 - 1) * 2, y = c.y + (rnd() * 2 - 1) * 2, z = c.z + (rnd() * 2 - 1) * 2
+            if (sign * ((x - c.x) * t.x + (y - c.y) * t.y + (z - c.z) * t.z) <= 1e-6) continue
+            past++
+            expect(insideBase(x, y, z, v), `ring ${at}, (${x}, ${y}, ${z})`).toBe(false)
+          }
+          expect(past).toBeGreaterThan(1000)
+          // Inside the cap the solid is whole: on the axis the nearest surface is the cap.
+          const [x, y, z] = where(-0.05, 0, 0)
+          expect(baseSDF(x, y, z, v)).toBeCloseTo(-0.05, 9)
+        }
+      })
+    }
+  })
+
   test('a closed base has no caps: the ring where the loop closes is inside', () => {
     const base = fixture('rectClosedBase').base
     const v = buildBaseVolume(base)

@@ -50,6 +50,17 @@ export interface BaseVolume {
   t: Float64Array;
   n: Float64Array;
   b: Float64Array;
+  /** Per piece (ring k to ring k + 1) of an open base: 1 where its overlap past its rings can
+   *  reach the first (nearStart) or the last (nearEnd) ring's plane, because the chords between
+   *  are shorter than sectionReach. All 0 on a closed base, which has no caps. */
+  nearStart: Uint8Array;
+  nearEnd: Uint8Array;
+}
+
+/** How far from its ring's centre the section of `v` reaches: the larger half-size of the oval,
+ *  the corner of the rectangle. Every drawn ring vertex lies within it. */
+function sectionReach(v: Pick<BaseVolume, 'rect' | 'halfH' | 'halfW'>): number {
+  return v.rect ? Math.sqrt(v.halfH * v.halfH + v.halfW * v.halfW) : Math.max(v.halfH, v.halfW);
 }
 
 function packVectors(vs: Vec3[]): Float64Array {
@@ -71,16 +82,42 @@ export function buildBaseVolume(base: BaseDef): BaseVolume {
   };
   if (base.controlPoints.length < 2) {
     const empty = new Float64Array(0);
-    return { count: 0, ...volume, p: empty, t: empty, n: empty, b: empty };
+    const none = new Uint8Array(0);
+    return { count: 0, ...volume, p: empty, t: empty, n: empty, b: empty, nearStart: none, nearEnd: none };
   }
   const path = sampleBasePath(base, base.lengthSegments);
+  const count = path.points.length;
+  const p = packVectors(path.points);
+  const pieces = count - 1;
+  const nearStart = new Uint8Array(pieces);
+  const nearEnd = new Uint8Array(pieces);
+  if (!base.closed) {
+    // Past a shared ring a piece's depth drops with the distance past the ring's plane, so the
+    // overlap lies within sectionReach of that ring's centre (the depth is at most the smaller
+    // half-size, and at the section's edge it is 0). A piece within that distance of an end ring,
+    // along the chords, is cut at the end ring's plane too, as the end pieces are (tail.ts does
+    // the same).
+    const reach = sectionReach(volume);
+    const along = new Float64Array(count);
+    for (let k = 0; k < pieces; k++) {
+      const i = 3 * k;
+      const dx = p[i + 3] - p[i], dy = p[i + 4] - p[i + 1], dz = p[i + 5] - p[i + 2];
+      along[k + 1] = along[k] + Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+    for (let k = 0; k < pieces; k++) {
+      nearStart[k] = along[k] < reach ? 1 : 0;
+      nearEnd[k] = along[count - 1] - along[k + 1] < reach ? 1 : 0;
+    }
+  }
   return {
-    count: path.points.length,
+    count,
     ...volume,
-    p: packVectors(path.points),
+    p,
     t: packVectors(path.tangents),
     n: packVectors(path.normals),
     b: packVectors(path.binormals),
+    nearStart,
+    nearEnd,
   };
 }
 
@@ -109,7 +146,10 @@ function sectionSDF(qn: number, qb: number, v: BaseVolume): number {
  * Past a ring shared with the next piece it continues with its depth reduced by the distance
  * past that ring's plane, so neighbouring pieces overlap: inside, the union keeps the full
  * cross-section depth across the joint instead of dropping to 0 on the shared plane, and the
- * outside of a bend is filled.
+ * outside of a bend is filled. That overlap reaches up to the smaller half-size past the ring,
+ * which on a deep section is several ring spacings, so every piece it can carry past an end
+ * ring's plane (nearStart, nearEnd) stops in that plane too: the solid ends flat in its first and
+ * last ring, as the wire does.
  */
 function pieceSDF(x: number, y: number, z: number, v: BaseVolume, k: number): number {
   const { p, t, n, b } = v;
@@ -149,12 +189,16 @@ function pieceSDF(x: number, y: number, z: number, v: BaseVolume, k: number): nu
   const past = Math.max(startCap ? 0 : behind, endCap ? 0 : beyond, 0);
   let d = past > 0 ? Math.sqrt(Math.max(d2, 0) ** 2 + past * past) + Math.min(d2, 0) : d2;
 
-  // A cap: intersection with the half-space before the end ring's plane.
-  if (startCap || endCap) {
-    const h = Math.max(startCap ? behind : -Infinity, endCap ? beyond : -Infinity);
+  // The caps: intersection with the half-spaces before the first ring's plane and beyond the
+  // last ring's plane.
+  const toStart = startCap ? behind : v.nearStart[k] ? -((x - p[0]) * t[0] + (y - p[1]) * t[1] + (z - p[2]) * t[2]) : -Infinity;
+  const last = 3 * (v.count - 1);
+  const toEnd = endCap ? beyond : v.nearEnd[k] ? (x - p[last]) * t[last] + (y - p[last + 1]) * t[last + 1] + (z - p[last + 2]) * t[last + 2] : -Infinity;
+  const pastCap = Math.max(toStart, toEnd);
+  if (pastCap > -Infinity) {
     const od = Math.max(d, 0);
-    const oh = Math.max(h, 0);
-    d = Math.min(Math.max(d, h), 0) + Math.sqrt(od * od + oh * oh);
+    const oh = Math.max(pastCap, 0);
+    d = Math.min(Math.max(d, pastCap), 0) + Math.sqrt(od * od + oh * oh);
   }
 
   // Rings more than 90 degrees apart: the centre line turns back within this piece, as where the
@@ -167,8 +211,7 @@ function pieceSDF(x: number, y: number, z: number, v: BaseVolume, k: number): nu
     const ab2 = abx * abx + aby * aby + abz * abz;
     const h = ab2 > 0 ? Math.max(0, Math.min(1, (apx * abx + apy * aby + apz * abz) / ab2)) : 0;
     const cx = apx - h * abx, cy = apy - h * aby, cz = apz - h * abz;
-    const reach = v.rect ? Math.sqrt(v.halfH * v.halfH + v.halfW * v.halfW) : Math.max(v.halfH, v.halfW);
-    d = Math.max(d, Math.sqrt(cx * cx + cy * cy + cz * cz) - reach);
+    d = Math.max(d, Math.sqrt(cx * cx + cy * cy + cz * cz) - sectionReach(v));
   }
   return d;
 }
