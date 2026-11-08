@@ -160,10 +160,7 @@ export class TailMesh implements DragSource {
     return {
       position: () => useCloudStore.getState().preset.tail.setpoints.find((p) => p.id === id)?.position ?? [0, 0, 0],
       range: RANGES.tail.setpointPosition,
-      moveTo: (position) => {
-        useCloudStore.getState().updateTailSetpoint(id, { position });
-        return true;
-      },
+      moveTo: (position) => useCloudStore.getState().updateTailSetpoint(id, { position }),
     };
   }
 

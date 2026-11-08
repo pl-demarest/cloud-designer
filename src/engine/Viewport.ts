@@ -44,8 +44,6 @@ export class Viewport {
   /** The materials every view draws with, disposed with the viewport. */
   readonly materials: EditorMaterials = createEditorMaterials();
 
-  private tickCallbacks: Array<(dt: number) => void> = [];
-  private timer = new THREE.Timer();
   private grid: THREE.GridHelper;
   private axes: THREE.AxesHelper;
   private lights: THREE.Light[];
@@ -126,18 +124,10 @@ export class Viewport {
     this.scene.add(this.cutGlueGroup);
   }
 
-  onTick(cb: (dt: number) => void): void {
-    this.tickCallbacks.push(cb);
-  }
-
   /** Starts the render loop; calling it again replaces the loop rather than adding one. */
   start(): void {
-    this.timer.reset();
-    this.renderer.setAnimationLoop((time) => {
-      this.timer.update(time);
-      const dt = this.timer.getDelta();
+    this.renderer.setAnimationLoop(() => {
       this.controls.update();
-      this.tickCallbacks.forEach((cb) => cb(dt));
       this.renderer.render(this.scene, this.camera);
     });
   }
@@ -209,8 +199,6 @@ export class Viewport {
    */
   dispose(): void {
     this.stop();
-    this.timer.dispose();
-    this.tickCallbacks = [];
     this.controls.dispose();
     this.grid.dispose();
     this.axes.dispose();

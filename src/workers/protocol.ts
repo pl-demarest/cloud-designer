@@ -36,8 +36,6 @@ export interface FlowCloudResult {
   flowLines: Float32Array[];
 }
 
-export type FlowCloudResponse = FlowCloudResult | WorkerError;
-
 // ── Surface mesh: surfaceMesh.worker.ts ─────────────────────────────────────
 
 export interface SurfaceMeshRequest {
@@ -62,8 +60,6 @@ export interface SurfaceMeshResult {
   positions: Float32Array;
   indices: Uint32Array;
 }
-
-export type SurfaceMeshResponse = SurfaceMeshResult | WorkerError;
 
 // ── Cut & Glue: cutAndGlue.worker.ts ────────────────────────────────────────
 
@@ -90,4 +86,3 @@ export interface CutGlueResult {
   clippedEdges: Float32Array;
 }
 
-export type CutGlueResponse = CutGlueResult | WorkerError;

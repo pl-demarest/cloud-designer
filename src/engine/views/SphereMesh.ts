@@ -105,10 +105,7 @@ export class SphereMesh implements DragSource {
     return {
       position: () => useCloudStore.getState().preset.spheres.find((s) => s.id === id)!.position,
       range: RANGES.sphere.position,
-      moveTo: (position) => {
-        useCloudStore.getState().updateSphere(id, { position });
-        return true;
-      },
+      moveTo: (position) => useCloudStore.getState().updateSphere(id, { position }),
     };
   }
 

@@ -60,7 +60,6 @@ export function createViewportStub(): Viewport {
     renderer: { domElement: document.createElement('canvas') },
     materials: createEditorMaterials(),
     controls: { enabled: true },
-    onTick: () => {},
   }
   return stub as unknown as Viewport
 }

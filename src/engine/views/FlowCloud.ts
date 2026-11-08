@@ -141,10 +141,7 @@ export class FlowCloud implements DragSource {
     return {
       position: () => useCloudStore.getState().preset.flowCloud.position,
       range: RANGES.flowCloud.position,
-      moveTo: (position) => {
-        useCloudStore.getState().setFlowCloud({ position });
-        return true;
-      },
+      moveTo: (position) => useCloudStore.getState().setFlowCloud({ position }),
     };
   }
 

@@ -151,10 +151,7 @@ export class BaseMesh implements DragSource {
     return {
       position: () => useCloudStore.getState().preset.base.controlPoints[idx],
       range: RANGES.base.controlPoint,
-      moveTo: (position) => {
-        useCloudStore.getState().updateBasePoint(idx, position);
-        return true;
-      },
+      moveTo: (position) => useCloudStore.getState().updateBasePoint(idx, position),
     };
   }
 

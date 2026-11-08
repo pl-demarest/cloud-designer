@@ -10,8 +10,8 @@ export interface DragTarget {
   /** The position field's range in the range table (src/model/ranges.ts), one for all three
    *  axes or one per axis: a drag stops at it, so the preset stays inside the table. */
   range: NumberRange | readonly NumberRange[];
-  /** Moves the item; returns whether the preset changed. */
-  moveTo(position: [number, number, number]): boolean;
+  /** Moves the item there. */
+  moveTo(position: [number, number, number]): void;
 }
 
 /** A view whose handles can be dragged. */
@@ -24,17 +24,15 @@ export interface DragSource {
   readonly yieldsPress?: boolean;
 }
 
-/** Called around each drag; C2's history gesture API plugs in here. */
+/** Called around each drag: EditorEngine opens and closes a history gesture here. */
 export interface DragHooks {
   onDragStart?: () => void;
-  /** `moved`: at least one pointer move reached the preset. */
-  onDragEnd?: (moved: boolean) => void;
+  onDragEnd?: () => void;
 }
 
 interface ActiveDrag {
   pointerId: number;
   target: DragTarget;
-  moved: boolean;
 }
 
 /** Whether `obj` and every ancestor are visible; three's raycaster ignores visibility. */
@@ -139,7 +137,7 @@ export class DragController {
     const at = new THREE.Vector3(...target.position());
     this.offset.copy(hit.point).sub(activeUnitGroup.localToWorld(at));
 
-    this.drag = { pointerId: e.pointerId, target, moved: false };
+    this.drag = { pointerId: e.pointerId, target };
     controls.enabled = false;
     this.viewport.renderer.domElement.setPointerCapture(e.pointerId);
     this.hooks.onDragStart?.();
@@ -154,7 +152,7 @@ export class DragController {
     if (!this.raycaster.ray.intersectPlane(this.plane, target)) return;
     target.sub(this.offset);
     this.viewport.activeUnitGroup.worldToLocal(target);
-    if (drag.target.moveTo(clampVec3(drag.target.range, [target.x, target.y, target.z]))) drag.moved = true;
+    drag.target.moveTo(clampVec3(drag.target.range, [target.x, target.y, target.z]));
   };
 
   private onPointerEnd = (e: PointerEvent): void => {
@@ -170,6 +168,6 @@ export class DragController {
     this.viewport.controls.enabled = true;
     const canvas = this.viewport.renderer.domElement;
     if (canvas.hasPointerCapture?.(drag.pointerId)) canvas.releasePointerCapture(drag.pointerId);
-    this.hooks.onDragEnd?.(drag.moved);
+    this.hooks.onDragEnd?.();
   }
 }

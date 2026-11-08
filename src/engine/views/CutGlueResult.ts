@@ -54,10 +54,6 @@ export class CutGlueResult {
     }
   }
 
-  setVisible(v: boolean): void {
-    this.group.visible = v;
-  }
-
   setSurfaceMeshVisible(v: boolean): void {
     this.surfaceMeshShown = v;
     if (this.surfaceWire) this.surfaceWire.visible = v;

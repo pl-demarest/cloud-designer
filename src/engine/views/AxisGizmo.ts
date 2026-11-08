@@ -91,7 +91,6 @@ export class AxisGizmo implements DragSource {
       moveTo: (position) => {
         const wf = useCloudStore.getState().preset.flowCloud.wireframe;
         useCloudStore.getState().setFlowCloud({ wireframe: { ...wf, [point]: position } });
-        return true;
       },
     };
   }

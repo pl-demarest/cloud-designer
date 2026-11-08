@@ -92,10 +92,7 @@ export class SpiralMesh implements DragSource {
     return {
       position: () => useCloudStore.getState().preset.spirals.find((s) => s.id === id)!.position,
       range: RANGES.spiral.position,
-      moveTo: (position) => {
-        useCloudStore.getState().updateSpiral(id, { position });
-        return true;
-      },
+      moveTo: (position) => useCloudStore.getState().updateSpiral(id, { position }),
     };
   }
 

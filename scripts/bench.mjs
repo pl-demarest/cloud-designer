@@ -87,7 +87,6 @@ try {
       renderer: { domElement: new EventTarget() },
       materials: createEditorMaterials(),
       controls: { enabled: true },
-      onTick: () => {},
     }
   }
 
