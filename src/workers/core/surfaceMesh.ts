@@ -11,7 +11,7 @@
  */
 
 import type { FlowCloudSettings } from '../../model/types';
-import { BOUND_SLACK, boxDistance, type Box } from '../../geometry/bounds';
+import { BOUND_SLACK, boxDistance, emptyBox, expandBox, expandFlowCloudBounds, type Box } from '../../geometry/bounds';
 import { evalMetaballField } from '../../geometry/flowField';
 import { fillField, gridFromBounds, polygonise } from '../../geometry/marchingCubes/polygonise';
 import { sphereFrame, sphereSDF } from '../../geometry/primitives/sphere';
@@ -104,60 +104,41 @@ export function generateSurfaceMesh(input: SurfaceMeshRequest): SurfaceMeshResul
   );
 
   // Compute bounding box from all primitives
-  let minX = Infinity, minY = Infinity, minZ = Infinity;
-  let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
-
-  const expandBounds = (x: number, y: number, z: number, pad: number) => {
-    minX = Math.min(minX, x - pad);
-    minY = Math.min(minY, y - pad);
-    minZ = Math.min(minZ, z - pad);
-    maxX = Math.max(maxX, x + pad);
-    maxY = Math.max(maxY, y + pad);
-    maxZ = Math.max(maxZ, z + pad);
-  };
+  const box = emptyBox();
 
   // Spheres
   for (const sw of spheres) {
     const maxScale = Math.max(sw.scale[0], sw.scale[1], sw.scale[2]);
-    expandBounds(sw.position[0], sw.position[1], sw.position[2], sw.radius * maxScale + 0.5);
+    expandBox(box, sw.position[0], sw.position[1], sw.position[2], sw.radius * maxScale + 0.5);
   }
 
   // Tail setpoints
   for (const sp of tail.setpoints) {
-    expandBounds(sp.position[0], sp.position[1], sp.position[2], sp.width + 0.5);
+    expandBox(box, sp.position[0], sp.position[1], sp.position[2], sp.width + 0.5);
   }
 
   // Base control points
   const baseHalf = Math.max(base.crossSectionWidth, base.crossSectionHeight) / 2;
   for (const cp of base.controlPoints) {
-    expandBounds(cp[0], cp[1], cp[2], baseHalf + 0.5);
+    expandBox(box, cp[0], cp[1], cp[2], baseHalf + 0.5);
   }
 
-  // Flow cloud: sphere positions shifted by flowCloud.position
-  const fcPos = flowCloud.position;
-  for (const sw of spheres) {
-    const maxScale = Math.max(sw.scale[0], sw.scale[1], sw.scale[2]);
-    expandBounds(
-      sw.position[0] + fcPos[0],
-      sw.position[1] + fcPos[1],
-      sw.position[2] + fcPos[2],
-      sw.radius * maxScale + 1.5
-    );
-  }
+  // Flow cloud: its isosurface, moved by flowCloud.position
+  expandFlowCloudBounds(box, spheres, flowCloud.position);
 
   // Spiral samples (use pre-computed world-space centers)
   for (const samples of allSpiralSamples) {
     for (const s of samples) {
       const pad = Math.max(s.halfThick, s.halfSep) + 0.5;
-      expandBounds(s.cx, s.cy, s.cz, pad);
+      expandBox(box, s.cx, s.cy, s.cz, pad);
     }
   }
 
-  if (!isFinite(minX)) {
+  if (!isFinite(box.minX)) {
     return { positions: new Float32Array(), indices: new Uint32Array() };
   }
 
-  const grid = gridFromBounds(minX, minY, minZ, maxX, maxY, maxZ, res);
+  const grid = gridFromBounds(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ, res);
 
   // Build SDF field — store negated SDF so MC's "field >= 0" = "inside"
   const frames = spheres.map(sphereFrame);

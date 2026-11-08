@@ -5,6 +5,7 @@
  */
 
 import type { SphereDef, TailDef, FlowCloudSettings } from '../../model/types';
+import { emptyBox, expandBox, expandFlowCloudBounds } from '../../geometry/bounds';
 import { evalMetaballField, extractSpiral } from '../../geometry/flowField';
 import { fillField, gridFromBounds, polygonise } from '../../geometry/marchingCubes/polygonise';
 import { sphereFrame } from '../../geometry/primitives/sphere';
@@ -24,34 +25,19 @@ function marchingCubes(
   const tailSamples = tailStrength > 0 ? sampleTailSpine(tail) : [];
 
   // Compute bounding box from spheres
-  let minX = Infinity, minY = Infinity, minZ = Infinity;
-  let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
-  for (const sw of spheres) {
-    const r = sw.radius * Math.max(...sw.scale) + 1.5;
-    minX = Math.min(minX, sw.position[0] - r);
-    minY = Math.min(minY, sw.position[1] - r);
-    minZ = Math.min(minZ, sw.position[2] - r);
-    maxX = Math.max(maxX, sw.position[0] + r);
-    maxY = Math.max(maxY, sw.position[1] + r);
-    maxZ = Math.max(maxZ, sw.position[2] + r);
-  }
+  const box = emptyBox();
+  expandFlowCloudBounds(box, spheres, [0, 0, 0]);
 
   // Extend bounding box to include tail setpoints
   for (const sp of tail.setpoints) {
-    const w = sp.width + 0.5;
-    minX = Math.min(minX, sp.position[0] - w);
-    minY = Math.min(minY, sp.position[1] - w);
-    minZ = Math.min(minZ, sp.position[2] - w);
-    maxX = Math.max(maxX, sp.position[0] + w);
-    maxY = Math.max(maxY, sp.position[1] + w);
-    maxZ = Math.max(maxZ, sp.position[2] + w);
+    expandBox(box, sp.position[0], sp.position[1], sp.position[2], sp.width + 0.5);
   }
 
-  if (!isFinite(minX)) {
+  if (!isFinite(box.minX)) {
     return { vertices: new Float32Array(), indices: new Uint32Array() };
   }
 
-  const grid = gridFromBounds(minX, minY, minZ, maxX, maxY, maxZ, res);
+  const grid = gridFromBounds(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ, res);
 
   // Build scalar field
   const frames = spheres.map(sphereFrame);

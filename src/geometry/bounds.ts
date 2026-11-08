@@ -1,7 +1,9 @@
 /**
- * Axis-aligned boxes, for lower bounds that let a distance evaluation skip a primitive that
- * cannot change the result.
+ * Axis-aligned boxes: the region a marching-cubes grid must cover, and lower bounds that let a
+ * distance evaluation skip a primitive that cannot change the result.
  */
+
+import type { SphereDef } from '../model/types';
 
 export interface Box {
   minX: number; minY: number; minZ: number;
@@ -38,3 +40,16 @@ export function boxDistance(b: Box, x: number, y: number, z: number): number {
  * compared with by more than this, so the skip never changes a minimum.
  */
 export const BOUND_SLACK = 1e-9;
+
+/**
+ * Grows `box` to hold the flow cloud's metaball isosurface, moved by `offset`: each sphere's
+ * centre padded by its radius times its largest scale, plus 1.5. The flow-cloud worker meshes
+ * the isosurface in this box (offset 0) and the surface-mesh worker unions it in place (offset
+ * flowCloud.position).
+ */
+export function expandFlowCloudBounds(box: Box, spheres: SphereDef[], offset: readonly [number, number, number]): void {
+  for (const sw of spheres) {
+    const pad = sw.radius * Math.max(sw.scale[0], sw.scale[1], sw.scale[2]) + 1.5;
+    expandBox(box, sw.position[0] + offset[0], sw.position[1] + offset[1], sw.position[2] + offset[2], pad);
+  }
+}
