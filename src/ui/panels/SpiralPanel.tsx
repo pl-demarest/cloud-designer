@@ -73,21 +73,18 @@ export function SpiralPanel() {
                   value={sp.startRadius}
                   min={0.01} max={2.0} step={0.01}
                   onChange={(v) => handleUpdate(sp.id, { startRadius: v })}
-                  onCommit={commit}
                 />
                 <SliderRow
                   label="Outer Radius"
                   value={sp.endRadius}
                   min={0.1} max={6.0} step={0.05}
                   onChange={(v) => handleUpdate(sp.id, { endRadius: v })}
-                  onCommit={commit}
                 />
                 <SliderRow
                   label="Turns"
                   value={sp.turns}
                   min={0.25} max={6.0} step={0.25}
                   onChange={(v) => handleUpdate(sp.id, { turns: v })}
-                  onCommit={commit}
                   format={(v) => `${v.toFixed(2)}×`}
                 />
 
@@ -97,14 +94,12 @@ export function SpiralPanel() {
                   value={sp.separation}
                   min={0.0} max={2.0} step={0.01}
                   onChange={(v) => handleUpdate(sp.id, { separation: v })}
-                  onCommit={commit}
                 />
                 <SliderRow
                   label="Taper Power"
                   value={sp.taperPower}
                   min={0} max={4.0} step={0.05}
                   onChange={(v) => handleUpdate(sp.id, { taperPower: v })}
-                  onCommit={commit}
                   format={(v) => v === 0 ? 'uniform' : v.toFixed(2)}
                 />
                 <SliderRow
@@ -112,7 +107,6 @@ export function SpiralPanel() {
                   value={sp.rungDensity}
                   min={1} max={32} step={1}
                   onChange={(v) => handleUpdate(sp.id, { rungDensity: Math.round(v) })}
-                  onCommit={commit}
                   format={(v) => `${Math.round(v)}/turn`}
                 />
 
@@ -122,7 +116,6 @@ export function SpiralPanel() {
                   value={sp.thickness}
                   min={0} max={2.0} step={0.01}
                   onChange={(v) => handleUpdate(sp.id, { thickness: v })}
-                  onCommit={commit}
                   format={(v) => v === 0 ? 'flat' : v.toFixed(2)}
                 />
                 {sp.thickness > 0 && (
@@ -131,7 +124,6 @@ export function SpiralPanel() {
                     value={sp.cornerRadius}
                     min={0} max={1.0} step={0.01}
                     onChange={(v) => handleUpdate(sp.id, { cornerRadius: v })}
-                    onCommit={commit}
                   />
                 )}
 
@@ -141,7 +133,6 @@ export function SpiralPanel() {
                   value={sp.position}
                   min={[-8, -4, -4]} max={[8, 4, 4]} step={0.05}
                   onChange={(position) => handleUpdate(sp.id, { position })}
-                  onCommit={commit}
                 />
 
                 {/* Rotation */}
@@ -151,7 +142,6 @@ export function SpiralPanel() {
                   min={-Math.PI} max={Math.PI} step={0.01}
                   format={formatDegrees}
                   onChange={(rotation) => handleUpdate(sp.id, { rotation })}
-                  onCommit={commit}
                 />
 
               </div>

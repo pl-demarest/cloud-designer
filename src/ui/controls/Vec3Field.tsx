@@ -15,7 +15,6 @@ interface Props {
   format?: (v: number) => string;
   /** Receives the whole vector with one component replaced. */
   onChange: (value: Vec3) => void;
-  onCommit?: () => void;
 }
 
 /** `v` with component `axis` set to `x`. */
@@ -26,7 +25,7 @@ function withAxis(v: readonly [number, number, number], axis: number, x: number)
 }
 
 /** Three SliderRows, one per component of a vector field of the preset. */
-export function Vec3Field({ label, value, min, max, step, format, onChange, onCommit }: Props) {
+export function Vec3Field({ label, value, min, max, step, format, onChange }: Props) {
   return (
     <>
       {AXES.map((axis, i) => (
@@ -39,7 +38,6 @@ export function Vec3Field({ label, value, min, max, step, format, onChange, onCo
           step={step}
           format={format}
           onChange={(x) => onChange(withAxis(value, i, x))}
-          onCommit={onCommit}
         />
       ))}
     </>

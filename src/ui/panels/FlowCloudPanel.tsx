@@ -99,7 +99,6 @@ export function FlowCloudPanel({ onRegenerate, generating, showFlowCloud = true,
           value={flowCloud.position}
           min={-20} max={20} step={0.1}
           onChange={(position) => setFlowCloud({ position })}
-          onCommit={commit}
         />
       </div>
       <div className="field-row">
@@ -118,7 +117,6 @@ export function FlowCloudPanel({ onRegenerate, generating, showFlowCloud = true,
         value={flowCloud.threshold}
         min={0.5} max={2.0} step={0.05}
         onChange={(v) => setFlowCloud({ threshold: v })}
-        onCommit={commit}
       />
       <div className="field-row">
         <label>Smooth</label>
@@ -175,7 +173,6 @@ export function FlowCloudPanel({ onRegenerate, generating, showFlowCloud = true,
                 value={flowCloud.wireframe.numBands}
                 min={4} max={20} step={1}
                 onChange={(v) => setWireframe({ numBands: Math.round(v) })}
-                onCommit={commit}
                 format={(v) => String(Math.round(v))}
               />
             )}
@@ -184,7 +181,6 @@ export function FlowCloudPanel({ onRegenerate, generating, showFlowCloud = true,
               value={flowCloud.wireframe.numFlowLines}
               min={4} max={24} step={1}
               onChange={(v) => setWireframe({ numFlowLines: Math.round(v) })}
-              onCommit={commit}
               format={(v) => String(Math.round(v))}
             />
             <SliderRow
@@ -192,7 +188,6 @@ export function FlowCloudPanel({ onRegenerate, generating, showFlowCloud = true,
               value={flowCloud.wireframe.spiralTwist}
               min={0} max={Math.PI * 4} step={0.05}
               onChange={(v) => setWireframe({ spiralTwist: v })}
-              onCommit={commit}
               format={formatPi}
             />
             <div className="axis-coords">

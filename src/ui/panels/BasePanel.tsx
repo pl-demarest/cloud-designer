@@ -30,28 +30,24 @@ export function BasePanel() {
         value={base.crossSectionWidth}
         min={0.1} max={4} step={0.05}
         onChange={(v) => setBase({ crossSectionWidth: v })}
-        onCommit={commit}
       />
       <SliderRow
         label="Height"
         value={base.crossSectionHeight}
         min={0.05} max={2} step={0.05}
         onChange={(v) => setBase({ crossSectionHeight: v })}
-        onCommit={commit}
       />
       <SliderRow
         label="Ring Density"
         value={base.ringSegments}
         min={6} max={32} step={1}
         onChange={(v) => setBase({ ringSegments: v })}
-        onCommit={commit}
       />
       <SliderRow
         label="Length Density"
         value={base.lengthSegments}
         min={8} max={48} step={1}
         onChange={(v) => setBase({ lengthSegments: v })}
-        onCommit={commit}
       />
       <div className="field-row">
         <label>Closed</label>

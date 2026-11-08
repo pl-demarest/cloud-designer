@@ -1,4 +1,4 @@
-import { accordionHeader, expect, openApp, openPanel, test, toolbarButton } from './helpers'
+import { accordionHeader, expect, openApp, openPanel, sliderRow, test, toolbarButton } from './helpers'
 
 // Audit finding (react-layer, high): "commit() pushes the render-closure preset, so discrete edits
 // (add/remove/checkbox/select-onChange) record the pre-edit state" (src/components/SpherePanel.tsx:16).
@@ -87,4 +87,37 @@ test('a new edit after Undo clears the redo stack', async ({ page }) => {
   await body.locator('.swirl-item').first().getByRole('button', { name: '×' }).click()
   await expect(accordionHeader(page, 'Spheres')).toContainText('Spheres (2)')
   await expect(toolbarButton(page, 'Redo')).toBeDisabled()
+})
+
+// Audit finding slider-commit-events: sliders committed only on mouseup and touchend, so keyboard
+// steps were never undo steps, and a release without a change pushed a duplicate entry.
+test('each keyboard step on a slider is one undo step', async ({ page }) => {
+  const row = sliderRow(await openPanel(page, 'Base'), 'Width')
+  const value = row.locator('.slider-value')
+  await row.locator('input[type=range]').focus()
+  await page.keyboard.press('ArrowRight')
+  await page.keyboard.press('ArrowRight')
+  await expect(value).toHaveText('1.30')
+
+  await toolbarButton(page, 'Undo').click()
+  await expect(value).toHaveText('1.25')
+  await toolbarButton(page, 'Undo').click()
+  await expect(value).toHaveText('1.20')
+  await expect(toolbarButton(page, 'Undo')).toBeDisabled()
+})
+
+test('a pointer drag on a slider is one undo step', async ({ page }) => {
+  const row = sliderRow(await openPanel(page, 'Base'), 'Width')
+  const value = row.locator('.slider-value')
+  const box = (await row.locator('input[type=range]').boundingBox())!
+  const y = box.y + box.height / 2
+  await page.mouse.move(box.x + box.width * 0.2, y)
+  await page.mouse.down()
+  for (let i = 1; i <= 4; i++) await page.mouse.move(box.x + box.width * (0.2 + 0.15 * i), y)
+  await page.mouse.up()
+  await expect(value).not.toHaveText('1.20')
+
+  await toolbarButton(page, 'Undo').click()
+  await expect(value).toHaveText('1.20')
+  await expect(toolbarButton(page, 'Undo')).toBeDisabled()
 })

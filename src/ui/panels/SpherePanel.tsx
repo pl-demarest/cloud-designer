@@ -68,21 +68,18 @@ export function SpherePanel() {
                   value={sw.position}
                   min={[-8, -4, -4]} max={[8, 4, 4]} step={0.05}
                   onChange={(position) => handleUpdate(sw.id, { position })}
-                  onCommit={commit}
                 />
                 <SliderRow
                   label="Radius"
                   value={sw.radius}
                   min={0.1} max={3.0} step={0.05}
                   onChange={(v) => handleUpdate(sw.id, { radius: v })}
-                  onCommit={commit}
                 />
                 <SliderRow
                   label="Falloff"
                   value={sw.falloff}
                   min={0.5} max={5.0} step={0.1}
                   onChange={(v) => handleUpdate(sw.id, { falloff: v })}
-                  onCommit={commit}
                 />
                 <div className="field-row">
                   <label>Half</label>
@@ -98,7 +95,6 @@ export function SpherePanel() {
                   min={-Math.PI} max={Math.PI} step={0.01}
                   format={formatDegrees}
                   onChange={(rotation) => handleUpdate(sw.id, { rotation })}
-                  onCommit={commit}
                 />
                 {sw.shape === 'ellipsoid' && (
                   <Vec3Field
@@ -106,7 +102,6 @@ export function SpherePanel() {
                     value={sw.scale}
                     min={0.2} max={3.0} step={0.05}
                     onChange={(scale) => handleUpdate(sw.id, { scale })}
-                    onCommit={commit}
                   />
                 )}
               </div>
