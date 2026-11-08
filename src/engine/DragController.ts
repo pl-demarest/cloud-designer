@@ -45,9 +45,10 @@ export function isWorldVisible(obj: THREE.Object3D): boolean {
  * The one pointer pipeline for every handle in the viewport. A press raycasts the handles of
  * all registered views in one pass and the nearest world-visible hit wins, except that a source
  * that yields its press (the flow cloud's handle) wins only where no other handle is under the
- * pointer. The drag moves its item on a camera-facing plane through the grab point, keeping the
- * grab offset, with pointer capture and OrbitControls disabled. pointerup (on the canvas or the
- * window), pointercancel and lostpointercapture end it and re-enable the controls.
+ * pointer. Only a primary-button press drags; other buttons go to OrbitControls. The drag moves
+ * its item on a camera-facing plane through the grab point, keeping the grab offset, with pointer
+ * capture and OrbitControls disabled. pointerup (on the canvas or the window), pointercancel,
+ * lostpointercapture and a window blur end it and re-enable the controls.
  */
 export class DragController {
   private readonly viewport: Viewport;
@@ -70,6 +71,8 @@ export class DragController {
     canvas.addEventListener('lostpointercapture', this.onPointerEnd);
     // A release outside the canvas when capture did not take.
     window.addEventListener('pointerup', this.onPointerEnd);
+    // A window that loses the focus mid-drag may never see the release.
+    window.addEventListener('blur', this.onBlur);
   }
 
   /** Adds a view's handles to the pick. */
@@ -92,6 +95,7 @@ export class DragController {
     canvas.removeEventListener('pointercancel', this.onPointerEnd);
     canvas.removeEventListener('lostpointercapture', this.onPointerEnd);
     window.removeEventListener('pointerup', this.onPointerEnd);
+    window.removeEventListener('blur', this.onBlur);
   }
 
   /** Normalized device coordinates of the event, from the canvas's own rectangle. */
@@ -105,7 +109,7 @@ export class DragController {
   }
 
   private onPointerDown = (e: PointerEvent): void => {
-    if (this.drag) return;
+    if (this.drag || e.button !== 0) return;
     // The press takes the focus from any field now, as the browser does on the mousedown that
     // follows, so a field that records its edit on blur (a number field, the name) records it
     // before a drag's gesture opens, as a step of its own, and before the pick.
@@ -152,6 +156,8 @@ export class DragController {
   private onPointerEnd = (e: PointerEvent): void => {
     if (this.drag && e.pointerId === this.drag.pointerId) this.endDrag();
   };
+
+  private onBlur = (): void => this.endDrag();
 
   private endDrag(): void {
     const drag = this.drag;

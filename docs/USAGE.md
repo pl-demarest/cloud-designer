@@ -65,10 +65,11 @@ drag). The keyboard does not move the camera.
 
 ### Handles
 
-Handles are drawn in Edit mode only. Press on a handle and drag: the item moves on the plane that
-faces the camera through the point you grabbed, and keeps the offset you grabbed it at. The drag
-ends when you release the button, also outside the canvas, or when the browser cancels the
-pointer. Where handles overlap, the one nearest the camera under the pointer wins, except the
+Handles are drawn in Edit mode only. Press on a handle with the left button (or one finger) and
+drag: the item moves on the plane that faces the camera through the point you grabbed, and keeps
+the offset you grabbed it at. A right or middle press on a handle pans or zooms, as on empty
+space. The drag ends when you release the button, also outside the canvas, when the browser
+cancels the pointer, or when the window loses the focus. Where handles overlap, the one nearest the camera under the pointer wins, except the
 teal flow-cloud handle, which gives way to any other handle under the pointer: on the default
 preset it covers sphere 1's handle at the origin, and a press there drags sphere 1. A drag that
 moved something is one undo step.
@@ -325,8 +326,9 @@ The history holds snapshots of the preset. Each of these is one undo step:
 
 - a choice in a drop-down list, a click on any checkbox but Surface Mesh, and every + Add,
   + Point, insert and remove button;
-- a slider: a pointer drag from press to release, or a step key from press to release (a held key
-  repeats within one step), or a change made by assistive technology;
+- a slider: a left-button drag from press to release (or until the window loses the focus), or a
+  step key from press to release (a held key repeats within one step), or a change made by
+  assistive technology;
 - a number field's value, applied on Enter or when you leave the field;
 - a rename, recorded on Enter or when you leave the name field;
 - a viewport drag that moved something;

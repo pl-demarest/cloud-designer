@@ -47,8 +47,8 @@ function over(obj: THREE.Object3D): THREE.Vector2 {
   return new THREE.Vector2(p.x, p.y)
 }
 
-function pointer(type: string, ndc: THREE.Vector2, target: EventTarget = canvas): void {
-  target.dispatchEvent(new PointerEvent(type, { clientX: (ndc.x + 1) * 50, clientY: (1 - ndc.y) * 50, pointerId: 1 }))
+function pointer(type: string, ndc: THREE.Vector2, target: EventTarget = canvas, button = 0): void {
+  target.dispatchEvent(new PointerEvent(type, { clientX: (ndc.x + 1) * 50, clientY: (1 - ndc.y) * 50, pointerId: 1, button }))
 }
 
 const orbitEnabled = () => engine.viewport.controls.enabled
@@ -134,7 +134,38 @@ describe('picking', () => {
   })
 })
 
+describe('only the primary button drags', () => {
+  for (const button of [2, 1]) {
+    test(`a press of button ${button} on a handle starts nothing: the orbit controls keep it`, () => {
+      history().push(store().preset)
+      const before = structuredClone(store().preset)
+      const at = over(sphereHandle('sphere-1'))
+      pointer('pointerdown', at, canvas, button)
+      expect(orbitEnabled(), 'the press goes to the orbit controls').toBe(true)
+      expect(store().gestureActive, 'no gesture').toBe(false)
+      pointer('pointermove', at.clone().add(new THREE.Vector2(0.1, 0)))
+      pointer('pointerup', at, canvas, button)
+      expect(store().preset).toEqual(before)
+      expect(history().past).toHaveLength(1)
+    })
+  }
+})
+
 describe('ending a drag', () => {
+  test('a window blur ends the drag: one undo step, the controls back, and later moves drag nothing', () => {
+    history().push(store().preset)
+    const at = over(sphereHandle('sphere-1'))
+    pointer('pointerdown', at)
+    pointer('pointermove', at.clone().add(new THREE.Vector2(0.1, 0)))
+    window.dispatchEvent(new Event('blur'))
+    expect(orbitEnabled(), 'orbit re-enabled').toBe(true)
+    expect(store().gestureActive, 'the gesture ended').toBe(false)
+    expect(history().past, 'the drag is one step').toHaveLength(2)
+    const after = structuredClone(store().preset.spheres[1].position)
+    pointer('pointermove', at.clone().add(new THREE.Vector2(0.2, 0)))
+    expect(store().preset.spheres[1].position).toEqual(after)
+  })
+
   for (const type of ['pointercancel', 'lostpointercapture'] as const) {
     test(`no-pointercancel: ${type} ends the drag and re-enables the orbit controls`, () => {
       const at = over(sphereHandle('sphere-1'))

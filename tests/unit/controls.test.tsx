@@ -107,6 +107,45 @@ describe('SliderRow', () => {
     expect(history().past).toHaveLength(2)
   })
 
+  test('a right or middle press opens no gesture', () => {
+    const { container } = render(<BasePanel />)
+    const width = slider(container, 'Width')
+    for (const button of [2, 1]) {
+      fireEvent.pointerDown(width, { pointerId: 1, button })
+      expect(store().gestureActive, `button ${button}`).toBe(false)
+      // A step key while the button is still down is its own step.
+      fireEvent.keyDown(width, { key: 'ArrowRight' })
+      step(width, String(1.2 + 0.05 * (3 - button)))
+      fireEvent.keyUp(width, { key: 'ArrowRight' })
+      fireEvent.pointerUp(window, { pointerId: 1, button })
+    }
+    expect(history().past.map((p) => p.base.crossSectionWidth)).toEqual([1.2, 1.25, 1.3])
+  })
+
+  for (const [name, end] of [
+    ['a window blur', () => fireEvent.blur(window)],
+    ['lost pointer capture', (input: HTMLInputElement) => fireEvent.lostPointerCapture(input, { pointerId: 1 })],
+  ] as const) {
+    test(`${name} without a pointerup ends the slider's gesture: the next typed edit is its own step`, () => {
+      const { container } = render(<BasePanel />)
+      const width = slider(container, 'Width')
+      fireEvent.pointerDown(width, { pointerId: 1 })
+      step(width, '1.5')
+      end(width)
+      expect(store().gestureActive, 'no gesture left open').toBe(false)
+      expect(history().past.map((p) => p.base.crossSectionWidth)).toEqual([1.2, 1.5])
+      const x = container.querySelector<HTMLInputElement>('.control-point-row input')!
+      fireEvent.change(x, { target: { value: '-2' } })
+      fireEvent.keyDown(x, { key: 'Enter' })
+      expect(history().past.map((p) => p.base.controlPoints[0][0])).toEqual([-2.5, -2.5, -2])
+      // A pointerup that comes later ends nothing: no other gesture was open.
+      store().beginGesture()
+      fireEvent.pointerUp(window, { pointerId: 1 })
+      expect(store().gestureActive, "a later pointerup leaves another gesture alone").toBe(true)
+      store().endGesture()
+    })
+  }
+
   test('a press takes the focus before the gesture opens: the number field it leaves records its own step', () => {
     const { container } = render(<BasePanel />)
     const x = container.querySelector<HTMLInputElement>('.control-point-row input')!

@@ -22,10 +22,11 @@ const store = () => useCloudStore.getState();
 
 /**
  * A labelled range input for one preset number. Each value goes to onChange as it changes; the
- * edit becomes one undo step. A pointer drag, and a step key from press to release (held, it
- * repeats), are history gestures. The native change event commits too, so a change made by
- * assistive technology is recorded. A press that changes nothing records nothing: commit()
- * skips a preset equal to the newest step.
+ * edit becomes one undo step. A pointer drag with the primary button, and a step key from press
+ * to release (held, it repeats), are history gestures; the drag's ends at the release, or at
+ * pointercancel, lostpointercapture or a window blur, whichever comes first. The native change
+ * event commits too, so a change made by assistive technology is recorded. A press that changes
+ * nothing records nothing: commit() skips a preset equal to the newest step.
  */
 export function SliderRow({ label, ariaLabel, value, min, max, step = 0.01, integer = false, onChange, format }: Props) {
   const id = useId();
@@ -43,20 +44,28 @@ export function SliderRow({ label, ariaLabel, value, min, max, step = 0.01, inte
   }, []);
 
   function handlePointerDown(e: PointerEvent<HTMLInputElement>) {
+    // A right press opens a context menu, which can swallow the release.
+    if (e.button !== 0) return;
     // The press takes the focus from any other field now (the browser moves it on the mousedown
     // that follows), so a field that records its edit on blur (a number field, the name) records
     // it before the gesture opens: a step of its own, not part of the drag's.
+    const input = e.currentTarget;
     const active = document.activeElement;
-    if (active instanceof HTMLElement && active !== e.currentTarget) active.blur();
+    if (active instanceof HTMLElement && active !== input) active.blur();
     store().beginGesture();
-    // On the window: the release can happen anywhere.
+    // On the window: the release can happen anywhere. A window that loses the focus may never
+    // see it, so its blur ends the gesture too.
     const end = () => {
       window.removeEventListener('pointerup', end);
       window.removeEventListener('pointercancel', end);
+      window.removeEventListener('blur', end);
+      input.removeEventListener('lostpointercapture', end);
       store().endGesture();
     };
     window.addEventListener('pointerup', end);
     window.addEventListener('pointercancel', end);
+    window.addEventListener('blur', end);
+    input.addEventListener('lostpointercapture', end);
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
