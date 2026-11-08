@@ -12,7 +12,8 @@ describe('tail width profile', () => {
     setpoints.forEach((sp, k) => {
       const t = k / (setpoints.length - 1)
       expect(tailWidthAt(setpoints, t)).toBe(sp.width)
-      expect(curve.getPoint(t).toArray().map((v, i) => v - sp.position[i]).every((d) => Math.abs(d) < 1e-12)).toBe(true)
+      const { x, y, z } = curve.getPoint(t)
+      expect([x, y, z].map((v, i) => v - sp.position[i]).every((d) => Math.abs(d) < 1e-12)).toBe(true)
     })
   })
 
@@ -28,7 +29,7 @@ describe('tail width profile', () => {
     const spine = sampleTailSpine(tail)
     expect(spine).toHaveLength(tail.lengthSegments + 1)
     spine.forEach((s, i) => {
-      expect([s.px, s.py, s.pz]).toEqual(path.points[i].toArray())
+      expect([s.px, s.py, s.pz]).toEqual([path.points[i].x, path.points[i].y, path.points[i].z])
       expect(s.width).toBe(path.widths[i])
     })
     expect(sampleTailSpine({ ...tail, setpoints: tail.setpoints.slice(0, 1) })).toEqual([])

@@ -3,20 +3,16 @@
  * the workers clip and mesh (BaseVolume), built from the same samples and frames.
  */
 
-import { CatmullRomCurve3, Vector3 } from 'three';
 import type { BaseDef } from '../../model/types';
+import { CatmullRomCurve } from '../catmullRom';
 import { samplePath, type PathSamples } from '../path';
+import { vec3, type Vec3 } from '../vec3';
 import { BOUND_SLACK } from '../bounds';
 
 /** The base's centre line: uniform Catmull-Rom (tension 0.5) through the control points,
  *  closed when the base is. */
-export function baseCurve(base: BaseDef): CatmullRomCurve3 {
-  return new CatmullRomCurve3(
-    base.controlPoints.map((p) => new Vector3(...p)),
-    base.closed,
-    'catmullrom',
-    0.5
-  );
+export function baseCurve(base: BaseDef): CatmullRomCurve {
+  return new CatmullRomCurve(base.controlPoints.map((p) => vec3(...p)), base.closed);
 }
 
 /** The centre line at `segments` equal arc-length steps with its Frenet frames: where
@@ -56,7 +52,7 @@ export interface BaseVolume {
   b: Float64Array;
 }
 
-function packVectors(vs: Vector3[]): Float64Array {
+function packVectors(vs: Vec3[]): Float64Array {
   const out = new Float64Array(vs.length * 3);
   vs.forEach((v, i) => {
     out[i * 3] = v.x;

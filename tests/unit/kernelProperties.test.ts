@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs'
 import * as THREE from 'three'
 import { describe, expect, test } from 'vitest'
+import { CatmullRomCurve } from '../../src/geometry/catmullRom'
+import { computeFrenetFrames } from '../../src/geometry/frames'
 import { eulerXYZ } from '../../src/geometry/mat3'
 import { sphereFrame, sphereSDF } from '../../src/geometry/primitives/sphere'
 import { basePointAt, buildBaseVolume, sampleBasePath } from '../../src/geometry/primitives/base'
@@ -166,6 +168,39 @@ describe('Catmull-Rom paths and Frenet frames against three', () => {
       }
     }
   })
+
+  // Branches the kernel's own curves rarely reach: the closed two-point curve, coincident points
+  // (zero-length chords, equal entries in the arc-length table), a curve of zero length (zero
+  // tangents) and signed zeros.
+  const EDGE_CASES: Array<[string, V3[]]> = [
+    ['two points', [[0, 0, 0], [1, 0.5, -0.25]]],
+    ['coincident points', [[0, 0, 0], [0, 0, 0], [1, 1, 0], [1, 1, 0], [2, 0, 1]]],
+    ['zero length', [[1, 2, 3], [1, 2, 3], [1, 2, 3]]],
+    ['doubling back', [[0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 1, 0]]],
+    ['signed zeros', [[-0, 0, -0], [0, -1, -0], [-0, -2, 0], [0, -3, -0]]],
+  ]
+  for (const [name, points] of EDGE_CASES) {
+    for (const closed of [false, true]) {
+      test(`CatmullRomCurve and computeFrenetFrames equal three on ${name}, ${closed ? 'closed' : 'open'}, bit for bit`, () => {
+        const ref = threeCurve(points, closed)
+        const curve = new CatmullRomCurve(points.map(([x, y, z]) => ({ x, y, z })), closed)
+        for (let k = 0; k <= 64; k++) {
+          const u = k / 64
+          expect(sameVector(curve.getPoint(u), ref.getPoint(u)), `getPoint(${u})`).toBe(true)
+          expect(Object.is(curve.getUtoTmapping(u), ref.getUtoTmapping(u, 0)), `getUtoTmapping(${u})`).toBe(true)
+          expect(sameVector(curve.getPointAt(u), ref.getPointAt(u)), `getPointAt(${u})`).toBe(true)
+          expect(sameVector(curve.getTangentAt(u), ref.getTangentAt(u)), `getTangentAt(${u})`).toBe(true)
+        }
+        const got = computeFrenetFrames(curve, 24, closed)
+        const want = ref.computeFrenetFrames(24, closed)
+        for (let i = 0; i <= 24; i++) {
+          expect(sameVector(got.tangents[i], want.tangents[i]), `tangent ${i}`).toBe(true)
+          expect(sameVector(got.normals[i], want.normals[i]), `normal ${i}`).toBe(true)
+          expect(sameVector(got.binormals[i], want.binormals[i]), `binormal ${i}`).toBe(true)
+        }
+      })
+    }
+  }
 
   test('sampleTailPath equals a fresh open CatmullRomCurve3, bit for bit, with widths at its curve parameter', () => {
     for (const [name, setpoints] of tails) {

@@ -4,9 +4,10 @@
  * through the same samples (sampleTailSpine, tailSDF, insideTailCapsule).
  */
 
-import { CatmullRomCurve3, Vector3 } from 'three';
 import type { BaseDef, TailDef, TailSetpoint } from '../../model/types';
+import { CatmullRomCurve } from '../catmullRom';
 import { samplePath, type PathSamples } from '../path';
+import { vec3 } from '../vec3';
 import { basePointAt } from './base';
 import { emptyBox, expandBox, type Box } from '../bounds';
 
@@ -31,13 +32,8 @@ export function attachedTail(tail: TailDef, base: BaseDef): TailDef {
 }
 
 /** The tail's spine: open uniform Catmull-Rom (tension 0.5) through the setpoint positions. */
-export function tailCurve(setpoints: TailSetpoint[]): CatmullRomCurve3 {
-  return new CatmullRomCurve3(
-    setpoints.map((sp) => new Vector3(...sp.position)),
-    false,
-    'catmullrom',
-    0.5
-  );
+export function tailCurve(setpoints: TailSetpoint[]): CatmullRomCurve {
+  return new CatmullRomCurve(setpoints.map((sp) => vec3(...sp.position)), false);
 }
 
 /**
@@ -67,8 +63,8 @@ export function sampleTailPath(setpoints: TailSetpoint[], segments: number): Tai
   const curve = tailCurve(setpoints);
   const path = samplePath(curve, segments, false);
   const widths: number[] = [];
-  // getPointAt(u) is getPoint(getUtoTmapping(u)); three reads the 0 distance as none.
-  for (let i = 0; i <= segments; i++) widths.push(tailWidthAt(setpoints, curve.getUtoTmapping(i / segments, 0)));
+  // getPointAt(u) is getPoint(getUtoTmapping(u)).
+  for (let i = 0; i <= segments; i++) widths.push(tailWidthAt(setpoints, curve.getUtoTmapping(i / segments)));
   return { ...path, widths };
 }
 
