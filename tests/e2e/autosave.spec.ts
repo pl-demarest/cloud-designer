@@ -53,3 +53,24 @@ test('a save that does not read as a preset is ignored and removed', async ({ pa
   await expect(page.locator('.notice')).toHaveCount(0)
   expect(await saved(page)).toBeNull()
 })
+
+test('a save holding a base point of 1e200 opens the editor, with the point clamped (cd:explore CDX-01)', async ({ page }) => {
+  // Before the range table (plan D11) the engine mount threw from the curve code on this save, and
+  // every reload left the page blank, with no Discard button to recover.
+  const hostile = { base: { controlPoints: [[-2.5, -0.8, 0], [1e200, -1, 0.3], [1, -1, -0.3], [2.5, -0.8, 0]] } }
+  await page.addInitScript(
+    ([key, record]) => {
+      if (!sessionStorage.getItem('seeded')) {
+        sessionStorage.setItem('seeded', '1')
+        localStorage.setItem(key, record)
+      }
+    },
+    [KEY, JSON.stringify({ savedAt: '2026-11-08T12:00:00.000Z', preset: hostile })] as const,
+  )
+  await openApp(page)
+  await expect(page.locator('.notice')).toContainText('Restored the cloud from autosave')
+  const body = await openPanel(page, 'Base')
+  await expect(body.getByLabel('P1 X')).toHaveValue('50.00')
+  await page.reload()
+  await openApp(page)
+})

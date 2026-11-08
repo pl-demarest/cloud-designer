@@ -208,3 +208,19 @@ describe('a job started before a replacement shows nothing after it', () => {
     expect([jobs.cutAndGlue.status, jobs.surfaceMesh.status]).toEqual(['idle', 'idle'])
   })
 })
+
+describe('an autosave holding a huge base point (cd:explore CDX-01)', () => {
+  test('restores clamped, and the editor mounts on it', () => {
+    const hostile = structuredClone(DEFAULT_PRESET)
+    hostile.base.controlPoints[1] = [1e200, -1, 0.3]
+    window.localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ savedAt: new Date().toISOString(), preset: hostile }))
+    engine.dispose()
+    expect(restoreAutosave(window.localStorage)).toBe(true)
+    expect(store().preset.base.controlPoints[1][0]).toBe(50)
+    // Before D11 the engine mount threw from the curve code, and every reload left the page blank.
+    const manual = manualWorkers()
+    workers = manual.workers
+    engine = new EditorEngine(mountCanvas(), { createRenderer: createRendererStub, createWorker: manual.createWorker })
+    expect(engine.base.getEdges().every(Number.isFinite)).toBe(true)
+  })
+})
