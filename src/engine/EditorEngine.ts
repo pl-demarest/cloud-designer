@@ -104,7 +104,8 @@ export class EditorEngine {
     this.flowCloudJob = new WorkerClient(createWorker('flowCloud'), {
       name: 'flowCloud',
       onResult: (result, request) => {
-        this.flowCloud.show(result);
+        // In the mode the request was computed in: the Mode select may have changed since.
+        this.flowCloud.show(result, request.flowCloud.wireframe.mode);
         this.shownFlowCloud = request;
       },
       onState: (state) => ui().setJob('flowCloud', state),

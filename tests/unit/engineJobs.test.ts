@@ -47,7 +47,7 @@ afterEach(() => {
 /** What a FlowCloud view shows for the flow-cloud worker's reply to `request`. */
 async function edgesShownFor(request: FlowCloudRequest): Promise<ReturnType<typeof digestArray>> {
   const view = new FlowCloud(createViewportStub())
-  view.show((await runWorker<FlowCloudResult>('marchingCubes', request)).message)
+  view.show((await runWorker<FlowCloudResult>('marchingCubes', request)).message, request.flowCloud.wireframe.mode)
   const edges = digestArray(view.getEdges())
   view.dispose()
   return edges
@@ -304,5 +304,35 @@ describe('Cut & Glue and the flow cloud follow the toggles, not what the viewpor
     setWireframe({ generateBands: false })
     await regenerate()
     expect((workers.flowCloud.replies.at(-1) as FlowCloudResult).bands).toHaveLength(0)
+  })
+})
+
+describe('a flow cloud is drawn in the mode its Regenerate computed it for (cd:explore CDX-09, cd:review CDR-03)', () => {
+  async function regenerateThenSwitch(from: 'edges' | 'spiral', to: 'edges' | 'spiral'): Promise<void> {
+    const wf = store().preset.flowCloud.wireframe
+    // Resolution 32: at 64 the default cloud has no crease above 15 degrees (CDX-10).
+    store().setFlowCloud({ resolution: 32, wireframe: { ...wf, mode: from } })
+    void engine!.regenerate()
+    await pastDebounce()
+    store().setFlowCloud({ wireframe: { ...store().preset.flowCloud.wireframe, mode: to } }) // before the reply
+    await workers.flowCloud.answer()
+  }
+  const drawn = () => {
+    const objects = engine!.viewport.flowCloudGroup.children.filter((c) => !c.userData.editorOnly)
+    return { objects: objects.map((o) => o.name || o.type), vertices: engine!.flowCloud.getEdges().length / 3 }
+  }
+
+  test('Regenerate in Edges, Mode switched to Spiral before the reply: the crease edges are drawn', async () => {
+    await regenerateThenSwitch('edges', 'spiral')
+    expect(drawn().objects).toEqual(['LineSegments'])
+    expect(drawn().vertices).toBeGreaterThan(0)
+  })
+
+  test('Regenerate in Spiral, Mode switched to Edges before the reply: the flow lines are drawn', async () => {
+    await regenerateThenSwitch('spiral', 'edges')
+    expect(drawn().objects).toEqual(['spiralGroup'])
+    const flowLines = engine!.viewport.flowCloudGroup.getObjectByName('flowLines')!
+    expect(flowLines.children.length).toBe((workers.flowCloud.replies.at(-1) as FlowCloudResult).flowLines.length)
+    expect(drawn().vertices).toBeGreaterThan(0)
   })
 })

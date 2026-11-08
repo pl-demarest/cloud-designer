@@ -101,7 +101,7 @@ try {
     // Regenerate: the flow-cloud core's result for the request EditorEngine.regenerate builds.
     const p = useCloudStore.getState().preset
     const flowCloud = new FlowCloud(vp)
-    flowCloud.show(generateFlowCloud(structuredClone({ spheres: p.spheres, base: p.base, tail: p.tail, flowCloud: p.flowCloud })))
+    flowCloud.show(generateFlowCloud(structuredClone({ spheres: p.spheres, base: p.base, tail: p.tail, flowCloud: p.flowCloud })), p.flowCloud.wireframe.mode)
     const edges = {
       sphereEdgeGroups: sphere.getEdgesGrouped(),
       baseEdges: base.getEdges(),

@@ -100,8 +100,9 @@ request the surface mesh would union (`shownFlowCloud`), and cancels the jobs st
    `generateFlowCloud` and posts the result with every buffer in the transfer list, or `{ error }`.
 4. The client takes the reply. If a newer request is waiting, the reply is stale: it is dropped and
    the waiting request is posted. An `{ error }` reply sets the job to `failed` with its message.
-   Otherwise `onResult` runs: `FlowCloud.show(result)` replaces the shown geometry (drawn in the
-   wireframe mode current at that moment) and the engine keeps the request as `shownFlowCloud`.
+   Otherwise `onResult` runs: `FlowCloud.show(result, mode)` replaces the shown geometry, drawn in
+   the wireframe mode of the request (Mode may have changed while the job ran), and the engine
+   keeps the request as `shownFlowCloud`.
    The job becomes `done`.
 5. The panel reads `uiStore.jobs.flowCloud`: "Working..." while it runs, the error text when it
    failed.

@@ -237,7 +237,7 @@ export async function showFlowCloud(fc: FlowCloud): Promise<void> {
   const { spheres, base, tail, flowCloud } = useCloudStore.getState().preset
   const request: FlowCloudRequest = { spheres, base, tail, flowCloud }
   const run = await runWorker<FlowCloudResult>('marchingCubes', request)
-  fc.show(run.message)
+  fc.show(run.message, flowCloud.wireframe.mode)
 }
 
 // ── Rebuild counts ───────────────────────────────────────────────────────────

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Viewport } from '../Viewport';
 import { useCloudStore } from '../../store/cloudStore';
 import type { FlowCloudResult } from '../../workers/protocol';
+import type { WireframeStyle } from '../../model/types';
 import type { DragSource, DragTarget } from '../DragController';
 import { RANGES } from '../../model/ranges';
 
@@ -64,14 +65,17 @@ export class FlowCloud implements DragSource {
     this.handle.visible = visible && this.hasGeometry;
   }
 
-  /** Replaces what is shown with a flow-cloud worker result, in the current wireframe mode. */
-  show(result: FlowCloudResult): void {
+  /**
+   * Replaces what is shown with a flow-cloud worker result, drawn in `mode`, the wireframe mode
+   * its request was computed in (a spiral result has flow lines and no crease edges to draw, an
+   * edges result the other way round). Show Bands and Show Flow Lines apply as they are now.
+   */
+  show(result: FlowCloudResult, mode: WireframeStyle['mode']): void {
     const { vertices, indices, bands, flowLines } = result;
 
     this.clearScene();
 
     const preset = useCloudStore.getState().preset;
-    const mode   = preset.flowCloud.wireframe.mode;
     const { line } = this.viewport.materials;
 
     if (mode === 'edges' && vertices.length > 0) {
