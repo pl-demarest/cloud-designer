@@ -232,6 +232,22 @@ test.describe('number fields', () => {
     await expect(width).toHaveValue('0.40')
     await expect(toolbarButton(page, 'Undo')).toBeDisabled()
   })
+
+  // The fields show two decimals; in a 52px field Chrome's spin buttons left room for four
+  // characters, so '-2.50' showed as '-2.5' cut off.
+  test('every field shows its whole value, a negative one with two decimals included', async ({ page }) => {
+    for (const label of ['Base', 'Tail', 'Flow Cloud'] as const) await openPanel(page, label)
+    const fields = page.getByRole('spinbutton')
+    expect(await fields.count()).toBeGreaterThan(20)
+    const clipped = await fields.evaluateAll((els) =>
+      (els as HTMLInputElement[]).filter((el) => el.scrollWidth > el.clientWidth).map((el) => `${el.getAttribute('aria-label')} ${el.value}`),
+    )
+    expect(clipped).toEqual([])
+    const x = page.getByRole('spinbutton', { name: 'P0 X' })
+    await x.fill('-10.25')
+    await x.press('Enter')
+    expect(await x.evaluate((el) => el.scrollWidth <= el.clientWidth), '-10.25 fits').toBe(true)
+  })
 })
 
 test.describe('selects', () => {

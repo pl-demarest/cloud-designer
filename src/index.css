@@ -350,6 +350,15 @@ button:disabled {
   border-radius: 2px;
   text-align: right;
   outline: none;
+  appearance: textfield;
+}
+
+/* No spin buttons: in a 52px field they leave room for four characters, which cut off a negative
+   value with two decimals ('-2.50'). The arrow keys still step the value. */
+.cp-input::-webkit-inner-spin-button,
+.cp-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 /* Setpoints */
