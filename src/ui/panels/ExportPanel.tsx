@@ -2,6 +2,7 @@ import type { Object3D } from 'three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { useCloudStore } from '../../store/cloudStore';
 import { useEngine } from '../EngineContext';
+import { downloadBlob, safeFileName } from '../../export/download';
 import { cloudScene, fullScene, scaffoldScene, wireframeScene, type ExportSources } from '../../export/scenes';
 
 export function ExportPanel() {
@@ -14,18 +15,11 @@ export function ExportPanel() {
   }
 
   // Read when a button is pressed: the panel shows nothing of the preset.
-  const preset = () => useCloudStore.getState().preset;
-  const baseName = () => preset().name.replace(/\s+/g, '-').toLowerCase();
+  const fileStem = () => safeFileName(useCloudStore.getState().preset.name);
 
   function exportJSON() {
-    const json = JSON.stringify(preset(), null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${baseName()}-preset.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const json = JSON.stringify(useCloudStore.getState().preset, null, 2);
+    downloadBlob(new Blob([json], { type: 'application/json' }), `${fileStem()}-preset.json`);
   }
 
   function exportGLB(exportGroup: Object3D, suffix: string, done?: () => void) {
@@ -33,13 +27,7 @@ export function ExportPanel() {
     exporter.parse(
       exportGroup,
       (result) => {
-        const blob = new Blob([result as ArrayBuffer], { type: 'model/gltf-binary' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${baseName()}${suffix}.glb`;
-        a.click();
-        URL.revokeObjectURL(url);
+        downloadBlob(new Blob([result as ArrayBuffer], { type: 'model/gltf-binary' }), `${fileStem()}${suffix}.glb`);
         done?.();
       },
       (err) => {

@@ -1,15 +1,58 @@
 // @vitest-environment happy-dom
 import * as THREE from 'three'
-import { afterAll, beforeAll, describe, expect, test } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from 'vitest'
+import { REVOKE_DELAY_MS, downloadBlob, safeFileName } from '../../src/export/download'
 import { cloneExportable, cloudScene, fullScene, scaffoldScene, wireframeScene, type ExportSources } from '../../src/export/scenes'
 import { THICK_SPIRAL, fixture } from '../fixtures/presets'
 import { buildEditorScene, installFakeWorker, regenerateFlowCloud, type EditorScene } from '../helpers/scene'
 import { installCanvas2dStub } from '../helpers/engine'
 
 /**
- * src/export: the GLB scenes, which copy the editor's groups without anything flagged
- * userData.editorOnly (audit export-includes-handles, export-full-omits-tail-spirals).
+ * src/export: file names, the download link, and the GLB scenes, which copy the editor's groups
+ * without anything flagged userData.editorOnly (audit export-includes-handles,
+ * export-full-omits-tail-spirals, export-filename, export-json-duplicate).
  */
+
+describe('safeFileName', () => {
+  const cases: Array<[string, string]> = [
+    ['Default Cloud', 'default-cloud'],
+    ['Storm Front', 'storm-front'],
+    ['  spaced   out  ', 'spaced-out'],
+    ['a/b:c?d*e', 'a-b-c-d-e'],
+    ['Nuage d’été', 'nuage-d-ete'],
+    ['keep_under-score', 'keep_under-score'],
+    ['---', 'cloud'],
+    ['', 'cloud'],
+    ['雲', 'cloud'],
+    ['x'.repeat(200), 'x'.repeat(80)],
+  ]
+  for (const [name, stem] of cases) test(JSON.stringify(name.slice(0, 20)), () => expect(safeFileName(name)).toBe(stem))
+})
+
+describe('downloadBlob', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  test('clicks a link that names the file, then revokes the URL later, not at once', () => {
+    vi.useFakeTimers()
+    const create = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test')
+    const revoke = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    const clicks: Array<{ href: string; download: string; attached: boolean }> = []
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      clicks.push({ href: this.href, download: this.download, attached: this.isConnected })
+    })
+
+    downloadBlob(new Blob(['{}'], { type: 'application/json' }), 'default-cloud-preset.json')
+    expect(create).toHaveBeenCalledTimes(1)
+    expect(clicks).toEqual([{ href: 'blob:test', download: 'default-cloud-preset.json', attached: true }])
+    expect(document.querySelectorAll('a')).toHaveLength(0)
+    expect(revoke).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(REVOKE_DELAY_MS)
+    expect(revoke).toHaveBeenCalledWith('blob:test')
+  })
+})
 
 describe('cloneExportable', () => {
   test('copies the tree without editor-only objects, sharing geometry and material', () => {

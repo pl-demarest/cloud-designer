@@ -112,6 +112,20 @@ test('Export JSON reflects edits and the preset name', async ({ page }) => {
   expect(preset.spirals).toHaveLength(1)
 })
 
+// Audit finding export-filename: the name only had its whitespace collapsed, so an empty name gave
+// '-preset.json' and characters such as / : ? reached the browser.
+test('file names come from the preset name, made safe', async ({ page }) => {
+  const name = page.getByPlaceholder('Cloud name...')
+  await openPanel(page, 'Export')
+  for (const [typed, file] of [
+    ['a/b: c?', 'a-b-c-preset.json'],
+    ['', 'cloud-preset.json'],
+  ] as const) {
+    await name.fill(typed)
+    expect((await download(page, exportButton(page, 'Export JSON Preset'))).name).toBe(file)
+  }
+})
+
 test('Export Scaffold GLB downloads a binary glTF of spheres and base', async ({ page }) => {
   await openPanel(page, 'Export')
   const { name, bytes } = await download(page, exportButton(page, 'Export Scaffold GLB'))
