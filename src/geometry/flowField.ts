@@ -111,9 +111,9 @@ function levelSetPolylines(
   ends: EdgeEnds,
 ): Float64Array[] {
   const { count, lo, hi, sides } = mesh;
-  // Each crossed edge is a node: its point (x, y, z, u) and up to two links (the triangles on
-  // its sides; each mesh edge has at most two).
-  const edgeNode = new Int32Array(count).fill(-2); // -2 not evaluated, -1 not crossed
+  // Each crossed edge is a node, edgeNode[edge] (-1 for an edge not crossed), with its point
+  // (x, y, z, u) and up to two links (the triangles on its sides; each mesh edge has at most two).
+  const edgeNode = new Int32Array(count);
   const point = new Float64Array(4 * count);
   const link = new Int32Array(2 * count).fill(-1);
   const f = new Float64Array(2);
