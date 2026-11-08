@@ -17,7 +17,7 @@ does is in [USAGE.md](USAGE.md).
 
 | Layer | Folder | Holds | Imports from `src/` | Packages |
 |---|---|---|---|---|
-| Model | `src/model` | The preset types (`CloudPreset`, every field required), `DEFAULT_PRESET` and one factory per primitive, `normalizePreset`, and `presetFromJson` / `parsePresetJson` for files people supply | nothing | none |
+| Model | `src/model` | The preset types (`CloudPreset`, every field required), `DEFAULT_PRESET` and one factory per primitive, the range table of every numeric field (`RANGES`, `RESOLUTIONS`), `normalizePreset`, and `presetFromJson` / `parsePresetJson` for files people supply | nothing | none |
 | Geometry kernel | `src/geometry` | Vectors and rotations, the Catmull-Rom curve and Frenet frames, each primitive's path and volume, the metaball field and the flow lines, marching cubes, clipping, bounds | model (types) | none |
 | Workers | `src/workers` | `protocol.ts` (message types), three pure cores in `core/`, three thin worker shells | model, geometry | none |
 | Engine | `src/engine` | `EditorEngine`, which owns the `Viewport`, a view per primitive in `views/`, the `DragController` and a `WorkerClient` per worker | model, geometry, store, workers | three, zustand, react (only `useEditorEngine`) |
@@ -256,11 +256,12 @@ Conventions:
    width there (`tests/unit/gridBounds.test.ts`, at the sliders' limits).
 9. **Presets are normalized at the store's door.** Import, the autosave restore, undo and redo
    all go through `loadPreset`, which stores `normalizePreset(raw)`: version 2, every field set,
-   counts rounded into their sliders' ranges (`COUNT_RANGES`), resolutions taken from the offered
-   lists, sizes at least `MIN_DIMENSION` (0.001). `normalizePreset` is idempotent
-   (`kernelProperties.test.ts`: 3,000 mutated presets, the fixtures and two old exports), and
-   `tests/unit/presetLimits.test.tsx` reads the panels to hold `COUNT_RANGES` and the resolution
-   lists equal to the controls.
+   counts rounded into their sliders' ranges, resolutions taken from the offered lists, sizes at
+   least `MIN_DIMENSION` (0.001). The ranges and lists are those of `src/model/ranges.ts`, the
+   one range table the panels' sliders, number fields and selects read too
+   (`tests/unit/presetLimits.test.tsx` renders each panel and checks every control against it).
+   `normalizePreset` is idempotent (`kernelProperties.test.ts`: 3,000 mutated presets, the
+   fixtures and two old exports).
 
 ## Test layers
 

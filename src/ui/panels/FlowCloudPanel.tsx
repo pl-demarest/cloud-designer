@@ -10,6 +10,20 @@ import { AXES, withAxis } from '../controls/vec3';
 import { formatPi } from '../controls/format';
 import type { FlowCloudSettings } from '../../model/types';
 import { resolveTailSetpoints } from '../../geometry/primitives/tail';
+import { RANGES, RESOLUTIONS } from '../../model/ranges';
+
+const R = RANGES.flowCloud;
+
+/** The options of the two resolution selects: each value the range table lists, and its label. */
+const FLOW_CLOUD_LABELS: Record<number, string> = { 32: '32 (fast)', 64: '64 (balanced)', 128: '128 ⚠ slow' };
+const SURFACE_MESH_LABELS: Record<number, string> = {
+  32: '32 (fast)',
+  64: '64 (balanced)',
+  96: '96 (fine)',
+  128: '128 (dense)',
+  192: '192 ⚠ slow',
+  256: '256 ⚠ very slow',
+};
 
 /** The flow-line axis's anchors, the gizmo's F and B: also fields, so the keyboard can set them. */
 const ANCHORS = [
@@ -111,12 +125,9 @@ export function FlowCloudPanel() {
               value={surfaceMeshResolution}
               onChange={(e) => { setSurfaceMeshResolution(parseInt(e.target.value)); commit(); }}
             >
-              <option value={32}>32 (fast)</option>
-              <option value={64}>64 (balanced)</option>
-              <option value={96}>96 (fine)</option>
-              <option value={128}>128 (dense)</option>
-              <option value={192}>192 ⚠ slow</option>
-              <option value={256}>256 ⚠ very slow</option>
+              {RESOLUTIONS.surfaceMesh.map((r) => (
+                <option key={r} value={r}>{SURFACE_MESH_LABELS[r]}</option>
+              ))}
             </select>
           )}
         </FieldRow>
@@ -127,7 +138,7 @@ export function FlowCloudPanel() {
           label=""
           name="Position"
           value={flowCloud.position}
-          min={-20} max={20} step={0.1}
+          range={R.position}
           onChange={(position) => setFlowCloud({ position })}
         />
       </div>
@@ -138,16 +149,16 @@ export function FlowCloudPanel() {
             value={flowCloud.resolution}
             onChange={(e) => { setFlowCloud({ resolution: parseInt(e.target.value) }); commit(); }}
           >
-            <option value={32}>32 (fast)</option>
-            <option value={64}>64 (balanced)</option>
-            <option value={128}>128 ⚠ slow</option>
+            {RESOLUTIONS.flowCloud.map((r) => (
+              <option key={r} value={r}>{FLOW_CLOUD_LABELS[r]}</option>
+            ))}
           </select>
         )}
       </FieldRow>
       <SliderRow
         label="Threshold"
         value={flowCloud.threshold}
-        min={0.5} max={2.0} step={0.05}
+        range={R.threshold}
         onChange={(v) => setFlowCloud({ threshold: v })}
       />
       <div className="panel-subsection">
@@ -203,7 +214,7 @@ export function FlowCloudPanel() {
               <SliderRow
                 label="Bands"
                 value={flowCloud.wireframe.numBands}
-                min={4} max={20} step={1} integer
+                range={R.numBands}
                 onChange={(v) => setWireframe({ numBands: v })}
                 format={(v) => String(Math.round(v))}
               />
@@ -211,14 +222,14 @@ export function FlowCloudPanel() {
             <SliderRow
               label="Flow Lines"
               value={flowCloud.wireframe.numFlowLines}
-              min={4} max={24} step={1} integer
+              range={R.numFlowLines}
               onChange={(v) => setWireframe({ numFlowLines: v })}
               format={(v) => String(Math.round(v))}
             />
             <SliderRow
               label="Spiral Twist"
               value={flowCloud.wireframe.spiralTwist}
-              min={0} max={Math.PI * 4} step={0.05}
+              range={R.spiralTwist}
               onChange={(v) => setWireframe({ spiralTwist: v })}
               format={formatPi}
             />
@@ -232,7 +243,7 @@ export function FlowCloudPanel() {
                         key={axis}
                         label={`${label} ${axis}`}
                         value={flowCloud.wireframe[key][ai]}
-                        step={0.1}
+                        step={R.anchor.step}
                         onChange={(v) => setAnchor(key, ai, v)}
                       />
                     ))}

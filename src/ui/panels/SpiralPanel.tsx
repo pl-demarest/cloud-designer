@@ -7,6 +7,9 @@ import { Vec3Field } from '../controls/Vec3Field';
 import { formatDegrees } from '../controls/format';
 import { useToggleSet } from '../hooks/useToggleSet';
 import type { SpiralDef } from '../../model/types';
+import { RANGES } from '../../model/ranges';
+
+const R = RANGES.spiral;
 
 export function SpiralPanel() {
   const spirals = useCloudStore((s) => s.preset.spirals);
@@ -70,19 +73,19 @@ export function SpiralPanel() {
                 <SliderRow
                   label="Inner Radius"
                   value={sp.startRadius}
-                  min={0.01} max={2.0} step={0.01}
+                  range={R.startRadius}
                   onChange={(v) => handleUpdate(sp.id, { startRadius: v })}
                 />
                 <SliderRow
                   label="Outer Radius"
                   value={sp.endRadius}
-                  min={0.1} max={6.0} step={0.05}
+                  range={R.endRadius}
                   onChange={(v) => handleUpdate(sp.id, { endRadius: v })}
                 />
                 <SliderRow
                   label="Turns"
                   value={sp.turns}
-                  min={0.25} max={6.0} step={0.25}
+                  range={R.turns}
                   onChange={(v) => handleUpdate(sp.id, { turns: v })}
                   format={(v) => `${v.toFixed(2)}×`}
                 />
@@ -91,20 +94,20 @@ export function SpiralPanel() {
                 <SliderRow
                   label="Separation"
                   value={sp.separation}
-                  min={0.0} max={2.0} step={0.01}
+                  range={R.separation}
                   onChange={(v) => handleUpdate(sp.id, { separation: v })}
                 />
                 <SliderRow
                   label="Taper Power"
                   value={sp.taperPower}
-                  min={0} max={4.0} step={0.05}
+                  range={R.taperPower}
                   onChange={(v) => handleUpdate(sp.id, { taperPower: v })}
                   format={(v) => v === 0 ? 'uniform' : v.toFixed(2)}
                 />
                 <SliderRow
                   label="Rung Density"
                   value={sp.rungDensity}
-                  min={1} max={32} step={1} integer
+                  range={R.rungDensity}
                   onChange={(v) => handleUpdate(sp.id, { rungDensity: v })}
                   format={(v) => `${Math.round(v)}/turn`}
                 />
@@ -113,7 +116,7 @@ export function SpiralPanel() {
                 <SliderRow
                   label="Thickness"
                   value={sp.thickness}
-                  min={0} max={2.0} step={0.01}
+                  range={R.thickness}
                   onChange={(v) => handleUpdate(sp.id, { thickness: v })}
                   format={(v) => v === 0 ? 'flat' : v.toFixed(2)}
                 />
@@ -121,7 +124,7 @@ export function SpiralPanel() {
                   <SliderRow
                     label="Corner Rnd"
                     value={sp.cornerRadius}
-                    min={0} max={1.0} step={0.01}
+                    range={R.cornerRadius}
                     onChange={(v) => handleUpdate(sp.id, { cornerRadius: v })}
                   />
                 )}
@@ -130,7 +133,7 @@ export function SpiralPanel() {
                 <Vec3Field
                   label="Pos"
                   value={sp.position}
-                  min={[-8, -4, -4]} max={[8, 4, 4]} step={0.05}
+                  range={R.position}
                   onChange={(position) => handleUpdate(sp.id, { position })}
                 />
 
@@ -138,7 +141,7 @@ export function SpiralPanel() {
                 <Vec3Field
                   label="Rotate"
                   value={sp.rotation}
-                  min={-Math.PI} max={Math.PI} step={0.01}
+                  range={R.rotation}
                   format={formatDegrees}
                   onChange={(rotation) => handleUpdate(sp.id, { rotation })}
                 />

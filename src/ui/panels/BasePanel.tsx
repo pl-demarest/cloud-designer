@@ -3,6 +3,9 @@ import { SliderRow } from '../controls/SliderRow';
 import { FieldRow } from '../controls/FieldRow';
 import { NumberField } from '../controls/NumberField';
 import { AXES, withAxis } from '../controls/vec3';
+import { RANGES } from '../../model/ranges';
+
+const R = RANGES.base;
 
 export function BasePanel() {
   const base = useCloudStore((s) => s.preset.base);
@@ -33,25 +36,25 @@ export function BasePanel() {
       <SliderRow
         label="Width"
         value={base.crossSectionWidth}
-        min={0.1} max={4} step={0.05}
+        range={R.crossSectionWidth}
         onChange={(v) => setBase({ crossSectionWidth: v })}
       />
       <SliderRow
         label="Height"
         value={base.crossSectionHeight}
-        min={0.05} max={2} step={0.05}
+        range={R.crossSectionHeight}
         onChange={(v) => setBase({ crossSectionHeight: v })}
       />
       <SliderRow
         label="Ring Density"
         value={base.ringSegments}
-        min={6} max={32} step={1} integer
+        range={R.ringSegments}
         onChange={(v) => setBase({ ringSegments: v })}
       />
       <SliderRow
         label="Length Density"
         value={base.lengthSegments}
-        min={8} max={48} step={1} integer
+        range={R.lengthSegments}
         onChange={(v) => setBase({ lengthSegments: v })}
       />
       <FieldRow label="Closed">
@@ -73,7 +76,7 @@ export function BasePanel() {
                 key={axis}
                 label={`P${i} ${axis}`}
                 value={pt[ai]}
-                step={0.1}
+                step={R.controlPoint.step}
                 onChange={(v) => updateBasePoint(i, withAxis(pt, ai, v))}
               />
             ))}

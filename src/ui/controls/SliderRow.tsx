@@ -1,16 +1,15 @@
 import { useEffect, useId, useRef, type KeyboardEvent, type PointerEvent } from 'react';
 import { useCloudStore } from '../../store/cloudStore';
+import type { NumberRange } from '../../model/ranges';
 
 interface Props {
   label: string;
   /** The accessible name, when the visible label alone is not enough ("X" under "Position"). */
   ariaLabel?: string;
   value: number;
-  min: number;
-  max: number;
-  step?: number;
-  /** A whole-number field (a segment count, a density): each value is rounded. */
-  integer?: boolean;
+  /** The field's entry in the range table (src/model/ranges.ts): min, max, step, and whether it
+   *  is a whole number, whose every value is rounded. */
+  range: NumberRange;
   onChange: (v: number) => void;
   format?: (v: number) => string;
 }
@@ -28,7 +27,8 @@ const store = () => useCloudStore.getState();
  * event commits too, so a change made by assistive technology is recorded. A press that changes
  * nothing records nothing: commit() skips a preset equal to the newest step.
  */
-export function SliderRow({ label, ariaLabel, value, min, max, step = 0.01, integer = false, onChange, format }: Props) {
+export function SliderRow({ label, ariaLabel, value, range, onChange, format }: Props) {
+  const { min, max, step, integer = false } = range;
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const keyHeld = useRef(false);

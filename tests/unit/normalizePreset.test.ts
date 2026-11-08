@@ -1,12 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { DEFAULT_PRESET, PRESET_VERSION, makeBase, makeFlowCloud, makeSpiral, makeTail } from '../../src/model/defaults'
-import {
-  COUNT_RANGES,
-  FLOW_CLOUD_RESOLUTIONS,
-  MIN_DIMENSION,
-  SURFACE_MESH_RESOLUTIONS,
-  normalizePreset,
-} from '../../src/model/normalize'
+import { MIN_DIMENSION, normalizePreset } from '../../src/model/normalize'
+import { RANGES, RESOLUTIONS, type NumberRange } from '../../src/model/ranges'
 
 /** Every object and array reachable from `v`. */
 function containers(v: unknown, out = new Set<object>()): Set<object> {
@@ -213,14 +208,14 @@ describe('normalizePreset', () => {
   test("keeps every value the editor's controls produce", () => {
     const raw = structuredClone(DEFAULT_PRESET)
     raw.spirals = [makeSpiral('s')]
-    const fields: Array<[keyof typeof COUNT_RANGES, string]> = [
-      ['ringSegments', 'base.ringSegments'],
-      ['baseLengthSegments', 'base.lengthSegments'],
-      ['radialSegments', 'tail.radialSegments'],
-      ['tailLengthSegments', 'tail.lengthSegments'],
-      ['rungDensity', 'spirals.0.rungDensity'],
-      ['numBands', 'flowCloud.wireframe.numBands'],
-      ['numFlowLines', 'flowCloud.wireframe.numFlowLines'],
+    const fields: Array<[NumberRange, string]> = [
+      [RANGES.base.ringSegments, 'base.ringSegments'],
+      [RANGES.base.lengthSegments, 'base.lengthSegments'],
+      [RANGES.tail.radialSegments, 'tail.radialSegments'],
+      [RANGES.tail.lengthSegments, 'tail.lengthSegments'],
+      [RANGES.spiral.rungDensity, 'spirals.0.rungDensity'],
+      [RANGES.flowCloud.numBands, 'flowCloud.wireframe.numBands'],
+      [RANGES.flowCloud.numFlowLines, 'flowCloud.wireframe.numFlowLines'],
     ]
     /** The object that holds the field at `path`, and the field's key. */
     const at = (preset: unknown, path: string): [Record<string, unknown>, string] => {
@@ -229,7 +224,7 @@ describe('normalizePreset', () => {
       return [keys.reduce((o, k) => (o as Record<string, unknown>)[k], preset) as Record<string, unknown>, key]
     }
     for (const [range, path] of fields) {
-      for (let n = COUNT_RANGES[range].min; n <= COUNT_RANGES[range].max; n++) {
+      for (let n = range.min; n <= range.max; n++) {
         const p = structuredClone(raw)
         const [owner, key] = at(p, path)
         owner[key] = n
@@ -237,10 +232,10 @@ describe('normalizePreset', () => {
         expect(out[outKey], `${path} = ${n}`).toBe(n)
       }
     }
-    for (const resolution of FLOW_CLOUD_RESOLUTIONS) {
+    for (const resolution of RESOLUTIONS.flowCloud) {
       expect(normalizePreset({ ...raw, flowCloud: { ...raw.flowCloud, resolution } }).flowCloud.resolution).toBe(resolution)
     }
-    for (const resolution of SURFACE_MESH_RESOLUTIONS) {
+    for (const resolution of RESOLUTIONS.surfaceMesh) {
       expect(normalizePreset({ ...raw, surfaceMeshResolution: resolution }).surfaceMeshResolution).toBe(resolution)
     }
   })

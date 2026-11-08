@@ -1,71 +1,145 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 import { cleanup, fireEvent, render } from '@testing-library/react'
+import { SpherePanel } from '../../src/ui/panels/SpherePanel'
 import { BasePanel } from '../../src/ui/panels/BasePanel'
 import { TailPanel } from '../../src/ui/panels/TailPanel'
 import { SpiralPanel } from '../../src/ui/panels/SpiralPanel'
 import { FlowCloudPanel } from '../../src/ui/panels/FlowCloudPanel'
 import { useCloudStore } from '../../src/store/cloudStore'
-import { COUNT_RANGES, FLOW_CLOUD_RESOLUTIONS, SURFACE_MESH_RESOLUTIONS, type CountRange } from '../../src/model/normalize'
+import { RANGES, RESOLUTIONS, type NumberRange } from '../../src/model/ranges'
 import { THICK_SPIRAL, fixture } from '../fixtures/presets'
 
 /**
- * normalizePreset clamps the whole-number fields to the ranges of their sliders and the grid
- * resolutions to the values of their selects (src/model/normalize.ts). The ranges are written
- * twice, there and in the panels; this test reads the panels and holds the two together.
+ * Every slider, number field and resolution list of the panels takes its range from the range
+ * table (src/model/ranges.ts), which normalizePreset also clamps to. Each panel's sliders and
+ * fields are listed here by accessible name with the table entry they must show, and a control
+ * the list does not name fails the test, so a new control cannot bring a range of its own.
  */
 
 beforeEach(() => {
   const p = fixture('default')
-  p.spirals = [structuredClone(THICK_SPIRAL)]
+  p.spheres[0].shape = 'ellipsoid' // shows the Scale sliders
+  p.spirals = [structuredClone(THICK_SPIRAL)] // thick: shows Corner Rnd
   p.flowCloud.wireframe.generateBands = true // shows the Bands slider
   useCloudStore.getState().loadPreset(p)
 })
 afterEach(() => cleanup())
 
-/** The control in the row labelled `label` (SliderRow's .slider-row, a select's .field-row). */
-function control<T extends Element>(container: HTMLElement, label: string, selector: string): T {
-  const rows = Array.from(container.querySelectorAll('.slider-row, .field-row')).filter(
-    (row) => row.querySelector('label')?.textContent?.trim() === label,
-  )
-  expect(rows, label).toHaveLength(1)
-  return rows[0].querySelector<T>(selector)!
+/** The accessible name of a control: its aria-label, else the text of the label pointing at it. */
+function nameOf(input: HTMLInputElement, container: HTMLElement): string {
+  const aria = input.getAttribute('aria-label')
+  if (aria) return aria
+  return container.querySelector(`label[for="${CSS.escape(input.id)}"]`)?.textContent?.trim() ?? ''
 }
 
-/** A slider's range, and its step, which a whole-number field needs to be 1. */
-function sliderRange(container: HTMLElement, label: string): CountRange & { step: number } {
-  const input = control<HTMLInputElement>(container, label, 'input[type=range]')
-  return { min: Number(input.min), max: Number(input.max), step: Number(input.step) }
+/** min, max and step of every input of `type`, by accessible name. */
+function rangesOf(container: HTMLElement, type: 'range' | 'number'): Map<string, { min: number; max: number; step: number }> {
+  const out = new Map<string, { min: number; max: number; step: number }>()
+  for (const input of container.querySelectorAll<HTMLInputElement>(`input[type=${type}]`)) {
+    const at = (attr: string) => (input.hasAttribute(attr) ? Number(input.getAttribute(attr)) : NaN)
+    out.set(nameOf(input, container), { min: at('min'), max: at('max'), step: at('step') })
+  }
+  return out
 }
 
-function selectValues(container: HTMLElement, label: string): number[] {
-  return Array.from(control<HTMLSelectElement>(container, label, 'select').options).map((o) => Number(o.value))
+const slider = (r: NumberRange) => ({ min: r.min, max: r.max, step: r.step })
+const axes = (prefix: string, r: NumberRange | readonly NumberRange[]) =>
+  Object.fromEntries(['X', 'Y', 'Z'].map((a, i) => [`${prefix} ${a}`, slider('min' in r ? r : r[i])]))
+
+function expectRanges(container: HTMLElement, type: 'range' | 'number', want: Record<string, { min: number; max: number; step: number }>) {
+  const got = Object.fromEntries(rangesOf(container, type))
+  expect(got).toEqual(want)
 }
 
-describe("normalizePreset's ranges are those of the editor's controls", () => {
-  test('BasePanel: Ring Density and Length Density', () => {
+/** A coordinate number field: the table's step; with no range on the field yet, no min or max. */
+const coordinateField = (r: NumberRange) => ({ min: NaN, max: NaN, step: r.step })
+
+describe('the panels take every range from the range table', () => {
+  test('SpherePanel', () => {
+    const { container } = render(<SpherePanel />)
+    fireEvent.click(container.querySelector('.swirl-item-header')!)
+    const R = RANGES.sphere
+    expectRanges(container, 'range', {
+      ...axes('Pos', R.position),
+      Radius: slider(R.radius),
+      Falloff: slider(R.falloff),
+      ...axes('Rotate', R.rotation),
+      ...axes('Scale', R.scale),
+    })
+  })
+
+  test('BasePanel', () => {
     const { container } = render(<BasePanel />)
-    expect(sliderRange(container, 'Ring Density')).toEqual({ ...COUNT_RANGES.ringSegments, step: 1 })
-    expect(sliderRange(container, 'Length Density')).toEqual({ ...COUNT_RANGES.baseLengthSegments, step: 1 })
+    const R = RANGES.base
+    expectRanges(container, 'range', {
+      Width: slider(R.crossSectionWidth),
+      Height: slider(R.crossSectionHeight),
+      'Ring Density': slider(R.ringSegments),
+      'Length Density': slider(R.lengthSegments),
+    })
+    const points = fixture('default').base.controlPoints.flatMap((_, i) => Object.entries(axes(`P${i}`, R.controlPoint)))
+    expectRanges(container, 'number', Object.fromEntries(points.map(([name]) => [name, coordinateField(R.controlPoint)])))
   })
 
-  test('TailPanel: Radial Density and Length Density', () => {
+  test('TailPanel', () => {
     const { container } = render(<TailPanel />)
-    expect(sliderRange(container, 'Radial Density')).toEqual({ ...COUNT_RANGES.radialSegments, step: 1 })
-    expect(sliderRange(container, 'Length Density')).toEqual({ ...COUNT_RANGES.tailLengthSegments, step: 1 })
+    const R = RANGES.tail
+    expectRanges(container, 'range', {
+      'Start radius': slider(R.width),
+      'End radius': slider(R.width),
+      Curl: slider(R.curlAmount),
+      'Radial Density': slider(R.radialSegments),
+      'Length Density': slider(R.lengthSegments),
+      'Attach Offset': slider(R.attachOffset),
+    })
+    const want: Record<string, { min: number; max: number; step: number }> = {}
+    fixture('default').tail.setpoints.forEach((_, i) => {
+      for (const name of Object.keys(axes(`SP ${i}`, R.setpointPosition))) want[name] = coordinateField(R.setpointPosition)
+      want[`SP ${i} width`] = { min: R.width.min, max: R.width.max, step: R.width.fieldStep! }
+    })
+    expectRanges(container, 'number', want)
   })
 
-  test('SpiralPanel: Rung Density', () => {
+  test('SpiralPanel', () => {
     const { container } = render(<SpiralPanel />)
     fireEvent.click(container.querySelector('.swirl-item-header')!)
-    expect(sliderRange(container, 'Rung Density')).toEqual({ ...COUNT_RANGES.rungDensity, step: 1 })
+    const R = RANGES.spiral
+    expectRanges(container, 'range', {
+      'Inner Radius': slider(R.startRadius),
+      'Outer Radius': slider(R.endRadius),
+      Turns: slider(R.turns),
+      Separation: slider(R.separation),
+      'Taper Power': slider(R.taperPower),
+      'Rung Density': slider(R.rungDensity),
+      Thickness: slider(R.thickness),
+      'Corner Rnd': slider(R.cornerRadius),
+      ...axes('Pos', R.position),
+      ...axes('Rotate', R.rotation),
+    })
   })
 
-  test('FlowCloudPanel: Bands, Flow Lines, Resolution and Mesh Density', () => {
+  test('FlowCloudPanel, with its two resolution lists', () => {
     const { container } = render(<FlowCloudPanel />)
-    expect(sliderRange(container, 'Bands')).toEqual({ ...COUNT_RANGES.numBands, step: 1 })
-    expect(sliderRange(container, 'Flow Lines')).toEqual({ ...COUNT_RANGES.numFlowLines, step: 1 })
-    expect(selectValues(container, 'Resolution')).toEqual(FLOW_CLOUD_RESOLUTIONS)
-    expect(selectValues(container, 'Mesh Density')).toEqual(SURFACE_MESH_RESOLUTIONS)
+    const R = RANGES.flowCloud
+    expectRanges(container, 'range', {
+      ...axes('Position', R.position),
+      Threshold: slider(R.threshold),
+      Bands: slider(R.numBands),
+      'Flow Lines': slider(R.numFlowLines),
+      'Spiral Twist': slider(R.spiralTwist),
+    })
+    expectRanges(container, 'number', {
+      ...Object.fromEntries(Object.keys(axes('Front', R.anchor)).map((n) => [n, coordinateField(R.anchor)])),
+      ...Object.fromEntries(Object.keys(axes('Back', R.anchor)).map((n) => [n, coordinateField(R.anchor)])),
+    })
+    const options = (label: string) => {
+      const select = container.querySelector<HTMLSelectElement>(
+        `#${CSS.escape(Array.from(container.querySelectorAll('label')).find((l) => l.textContent === label)!.htmlFor)}`,
+      )!
+      return Array.from(select.options).map((o) => Number(o.value))
+    }
+    expect(options('Resolution')).toEqual(RESOLUTIONS.flowCloud)
+    expect(options('Mesh Density')).toEqual(RESOLUTIONS.surfaceMesh)
   })
 })

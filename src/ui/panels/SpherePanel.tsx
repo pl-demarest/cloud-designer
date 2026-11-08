@@ -7,6 +7,9 @@ import { ItemHeader } from '../controls/ItemHeader';
 import { Vec3Field } from '../controls/Vec3Field';
 import { formatDegrees } from '../controls/format';
 import { useToggleSet } from '../hooks/useToggleSet';
+import { RANGES } from '../../model/ranges';
+
+const R = RANGES.sphere;
 
 export function SpherePanel() {
   const spheres = useCloudStore((s) => s.preset.spheres);
@@ -65,19 +68,19 @@ export function SpherePanel() {
                 <Vec3Field
                   label="Pos"
                   value={sw.position}
-                  min={[-8, -4, -4]} max={[8, 4, 4]} step={0.05}
+                  range={R.position}
                   onChange={(position) => handleUpdate(sw.id, { position })}
                 />
                 <SliderRow
                   label="Radius"
                   value={sw.radius}
-                  min={0.1} max={3.0} step={0.05}
+                  range={R.radius}
                   onChange={(v) => handleUpdate(sw.id, { radius: v })}
                 />
                 <SliderRow
                   label="Falloff"
                   value={sw.falloff}
-                  min={0.5} max={5.0} step={0.1}
+                  range={R.falloff}
                   onChange={(v) => handleUpdate(sw.id, { falloff: v })}
                 />
                 <FieldRow label="Half">
@@ -93,7 +96,7 @@ export function SpherePanel() {
                 <Vec3Field
                   label="Rotate"
                   value={sw.rotation}
-                  min={-Math.PI} max={Math.PI} step={0.01}
+                  range={R.rotation}
                   format={formatDegrees}
                   onChange={(rotation) => handleUpdate(sw.id, { rotation })}
                 />
@@ -101,7 +104,7 @@ export function SpherePanel() {
                   <Vec3Field
                     label="Scale"
                     value={sw.scale}
-                    min={0.2} max={3.0} step={0.05}
+                    range={R.scale}
                     onChange={(scale) => handleUpdate(sw.id, { scale })}
                   />
                 )}

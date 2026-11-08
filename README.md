@@ -98,6 +98,7 @@ src/
 ├── model/                       the preset data model; imports nothing outside model/
 │   ├── types.ts                 CloudPreset and the primitive definitions, every field required
 │   ├── defaults.ts              DEFAULT_PRESET, PRESET_VERSION (2), one factory per primitive
+│   ├── ranges.ts                the range of every numeric field, which the panels and normalize read
 │   ├── normalize.ts             normalizePreset: any version or partial preset to a complete one
 │   └── presetFile.ts            reading a preset from JSON, with the reason when it is refused
 ├── geometry/                    the kernel the workers run and the base, tail and spiral views draw from
