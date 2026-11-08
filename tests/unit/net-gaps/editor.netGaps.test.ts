@@ -11,6 +11,7 @@ import { CutGlueResult } from '../../../src/engine/views/CutGlueResult'
 import { DragController, type DragSource } from '../../../src/engine/DragController'
 import { useCloudStore } from '../../../src/store/cloudStore'
 import { createViewportStub, isHandle, serializeGroup, showFlowCloud } from '../../helpers/scene'
+import { createRendererStub } from '../../helpers/engine'
 import { THICK_SPIRAL, fixture } from '../../fixtures/presets'
 import { digestArray } from '../../helpers/digest'
 import type { CloudPreset } from '../../../src/model/types'
@@ -295,51 +296,102 @@ describe('FlowCloud.getEdges is visibility-aware', () => {
 })
 
 describe('Viewport.zoomToFit', () => {
-  /** The fields zoomToFit reads, on a real camera; no WebGL. */
-  function fitStub() {
-    const camera = new THREE.PerspectiveCamera(50, 1, 0.01, 1000)
-    const stub = {
-      camera,
-      controls: { target: new THREE.Vector3(), update: vi.fn() },
-      flowCloudGroup: new THREE.Group(),
-      sphereGroup: new THREE.Group(),
-    }
-    const fit = (box?: THREE.Box3) => Viewport.prototype.zoomToFit.call(stub as unknown as Viewport, box)
-    return { stub, fit }
+  /** A real Viewport on a renderer stub, sized `width` x `height`. */
+  function fitViewport(width = 100, height = 100): Viewport {
+    const vp = new Viewport(document.createElement('canvas'), createRendererStub)
+    vp.resize(width, height)
+    disposers.push(() => vp.dispose())
+    return vp
   }
 
-  // dist = maxDim / (2 tan(fov / 2)); the camera sits at center + (0, 0.4 dist, 1.4 dist).
-  const DIST_PER_UNIT = 1 / (2 * Math.tan((25 * Math.PI) / 180))
+  // The bounding sphere fills the smaller field of view: dist = r / sin(min(vFov, hFov) / 2),
+  // and the camera sits at centre + dist along (0, 0.4, 1.4) normalized.
+  const DIRECTION = new THREE.Vector3(0, 0.4, 1.4).normalize()
+  const V_FOV = (50 * Math.PI) / 180
 
-  test('frames an explicit box from above and in front of its center', () => {
-    const { stub, fit } = fitStub()
-    fit(new THREE.Box3(new THREE.Vector3(0, -1, -2), new THREE.Vector3(4, 1, 2)))
-    const dist = 4 * DIST_PER_UNIT
-    expect(stub.camera.position.x).toBeCloseTo(2, 12)
-    expect(stub.camera.position.y).toBeCloseTo(0.4 * dist, 12)
-    expect(stub.camera.position.z).toBeCloseTo(1.4 * dist, 12)
-    expect(stub.controls.target.toArray()).toEqual([2, 0, 0])
-    expect(stub.controls.update).toHaveBeenCalledTimes(1)
+  function expectFramed(vp: Viewport, center: THREE.Vector3, radius: number, fov = V_FOV): void {
+    const expected = center.clone().addScaledVector(DIRECTION, radius / Math.sin(fov / 2))
+    expect(vp.camera.position.distanceTo(expected), `camera ${vp.camera.position.toArray()}`).toBeLessThan(1e-9)
+    expect(vp.controls.target.distanceTo(center)).toBeLessThan(1e-12)
+  }
+
+  function mesh(size: number, at: [number, number, number]): THREE.Mesh {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(size, size, size))
+    m.position.set(...at)
+    return m
+  }
+
+  test("frames an explicit box: its bounding sphere within a square viewport's field of view", () => {
+    const vp = fitViewport()
+    vp.zoomToFit(new THREE.Box3(new THREE.Vector3(0, -1, -2), new THREE.Vector3(4, 1, 2)))
+    expectFramed(vp, new THREE.Vector3(2, 0, 0), 3) // half the diagonal of 4 x 2 x 4
   })
 
-  test('with no box it frames the flow-cloud group, hidden children included', () => {
-    const { stub, fit } = fitStub()
-    const hidden = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.25))
+  test('zoomtofit-ignores-aspect: a portrait viewport fits the narrower horizontal field of view', () => {
+    const vp = fitViewport(50, 100)
+    vp.zoomToFit(new THREE.Box3(new THREE.Vector3(0, -1, -2), new THREE.Vector3(4, 1, 2)))
+    expectFramed(vp, new THREE.Vector3(2, 0, 0), 3, 2 * Math.atan(Math.tan(V_FOV / 2) * 0.5))
+  })
+
+  test('zoomtofit-always-flowcloud: with no box it frames the visible content, not hidden objects, handles or the gizmo', () => {
+    const vp = fitViewport()
+    vp.sphereGroup.add(mesh(2, [0, 0, 0]))
+    const hidden = mesh(10, [30, 0, 0])
     hidden.visible = false
-    stub.flowCloudGroup.add(hidden)
-    stub.sphereGroup.add(new THREE.Mesh(new THREE.BoxGeometry(4, 4, 4)))
-    fit()
-    expect(stub.camera.position.z).toBeCloseTo(1.4 * 0.25 * DIST_PER_UNIT, 12)
+    vp.baseGroup.add(hidden)
+    const handle = mesh(0.25, [0, 20, 0]) // like the flow cloud's handle
+    handle.userData.isHandle = true
+    vp.flowCloudGroup.add(handle)
+    const tailHandle = mesh(0.2, [0, -20, 0])
+    tailHandle.userData.isTailHandle = true
+    vp.tailGroup.add(tailHandle)
+    vp.gizmoGroup.add(mesh(1, [0, 0, 40]))
+    vp.zoomToFit()
+    expectFramed(vp, new THREE.Vector3(0, 0, 0), Math.sqrt(3))
   })
 
-  test('falls back to the sphere group when the flow-cloud group is empty, and ignores an empty box', () => {
-    const { stub, fit } = fitStub()
-    stub.sphereGroup.add(new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2)))
-    fit()
-    expect(stub.camera.position.z).toBeCloseTo(1.4 * 2 * DIST_PER_UNIT, 12)
-    const before = stub.camera.position.clone()
-    fit(new THREE.Box3())
-    expect(stub.camera.position.equals(before)).toBe(true)
-    expect(stub.controls.update).toHaveBeenCalledTimes(1)
+  test('in Preview, with the scaffold hidden, it frames the Cut & Glue result', () => {
+    const vp = fitViewport()
+    vp.sphereGroup.add(mesh(2, [0, 0, 0]))
+    vp.cutGlueGroup.add(mesh(2, [5, 0, 0]))
+    vp.sphereGroup.visible = false
+    vp.cutGlueGroup.visible = true
+    vp.zoomToFit()
+    expectFramed(vp, new THREE.Vector3(5, 0, 0), Math.sqrt(3))
+  })
+
+  test('with nothing visible to frame, or an empty box, the camera stays where it is', () => {
+    const vp = fitViewport()
+    vp.sphereGroup.add(mesh(2, [0, 0, 0]))
+    vp.sphereGroup.visible = false
+    const before = vp.camera.position.clone()
+    vp.zoomToFit()
+    vp.zoomToFit(new THREE.Box3())
+    expect(vp.camera.position.equals(before)).toBe(true)
+  })
+})
+
+describe('Viewport pixel ratio', () => {
+  test('dpr-uncapped: the pixel ratio is capped at 2 and read again on resize', () => {
+    const dpr = vi.spyOn(window, 'devicePixelRatio', 'get').mockReturnValue(3)
+    const ratios: number[] = []
+    const vp = new Viewport(document.createElement('canvas'), (canvas) => {
+      const renderer = createRendererStub(canvas)
+      renderer.setPixelRatio = (r: number) => void ratios.push(r)
+      return renderer
+    })
+    disposers.push(() => vp.dispose())
+    dpr.mockReturnValue(1.5) // the window moved to another display
+    vp.resize(100, 100)
+    expect(ratios).toEqual([2, 1.5])
+    dpr.mockRestore()
+  })
+
+  test('a zero-sized parent leaves the camera aspect as it was', () => {
+    const vp = new Viewport(document.createElement('canvas'), createRendererStub)
+    disposers.push(() => vp.dispose())
+    vp.resize(200, 100)
+    vp.resize(0, 0)
+    expect(vp.camera.aspect).toBe(2)
   })
 })

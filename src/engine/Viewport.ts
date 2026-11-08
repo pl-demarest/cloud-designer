@@ -8,6 +8,23 @@ export type RendererFactory = (canvas: HTMLCanvasElement) => THREE.WebGLRenderer
 export const createWebGLRenderer: RendererFactory = (canvas) =>
   new THREE.WebGLRenderer({ canvas, antialias: true });
 
+/** Above this the extra pixels cost fill rate on the dense wireframes and show no detail. */
+const MAX_PIXEL_RATIO = 2;
+
+/** After Fit the camera looks at the framed centre from above and in front, as it always has. */
+const FIT_DIRECTION = new THREE.Vector3(0, 0.4, 1.4).normalize();
+
+/**
+ * Whether `obj` or an ancestor is a handle or the axis gizmo: drawn for editing, not part of the
+ * cloud.
+ */
+function isEditorOnly(obj: THREE.Object3D, gizmoGroup: THREE.Object3D): boolean {
+  for (let o: THREE.Object3D | null = obj; o; o = o.parent) {
+    if (o === gizmoGroup || o.userData.isHandle || o.userData.isBaseHandle || o.userData.isTailHandle) return true;
+  }
+  return false;
+}
+
 export class Viewport {
   renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
@@ -35,7 +52,7 @@ export class Viewport {
 
   constructor(canvas: HTMLCanvasElement, createRenderer: RendererFactory = createWebGLRenderer) {
     this.renderer = createRenderer(canvas);
-    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
     this.renderer.setClearColor(0xffffff);
 
     this.scene = new THREE.Scene();
@@ -104,8 +121,6 @@ export class Viewport {
     this.cutGlueGroup.name = 'cutGlueGroup';
     this.cutGlueGroup.visible = false;
     this.scene.add(this.cutGlueGroup);
-
-    window.addEventListener('resize', this.handleResize);
   }
 
   onTick(cb: (dt: number) => void): void {
@@ -128,7 +143,12 @@ export class Viewport {
     this.renderer.setAnimationLoop(null);
   }
 
+  /** Sizes the drawing buffer to the canvas's CSS size (EditorEngine's ResizeObserver calls it).
+   *  The pixel ratio is read again, since the window may have moved to another display. A zero
+   *  size (a collapsed parent) is ignored rather than giving the camera an infinite aspect. */
   resize(width: number, height: number): void {
+    if (width === 0 || height === 0) return;
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
@@ -142,24 +162,42 @@ export class Viewport {
     this.grid.visible = visible;
   }
 
+  /**
+   * Frames `box`, or else what the viewport shows: the visible objects under the active unit and
+   * the Cut & Glue group (in Preview, the result), without handles or the gizmo. The bounding
+   * sphere fits within the smaller of the horizontal and vertical fields of view. Nothing to
+   * frame leaves the camera where it is.
+   */
   zoomToFit(box?: THREE.Box3): void {
-    const target = box ?? new THREE.Box3().setFromObject(this.flowCloudGroup.children.length > 0 ? this.flowCloudGroup : this.sphereGroup);
+    const target = box ?? this.visibleContentBox();
     if (target.isEmpty()) return;
-    const center = target.getCenter(new THREE.Vector3());
-    const size = target.getSize(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z);
-    const dist = maxDim / (2 * Math.tan((this.camera.fov * Math.PI) / 360));
-    this.camera.position.copy(center).add(new THREE.Vector3(0, dist * 0.4, dist * 1.4));
-    this.controls.target.copy(center);
+    const sphere = target.getBoundingSphere(new THREE.Sphere());
+    const vFov = THREE.MathUtils.degToRad(this.camera.fov);
+    const hFov = 2 * Math.atan(Math.tan(vFov / 2) * this.camera.aspect);
+    const dist = sphere.radius / Math.sin(Math.min(vFov, hFov) / 2);
+    this.camera.position.copy(sphere.center).addScaledVector(FIT_DIRECTION, dist);
+    this.controls.target.copy(sphere.center);
     this.controls.update();
   }
 
-  private handleResize = (): void => {
-    const canvas = this.renderer.domElement;
-    const parent = canvas.parentElement;
-    if (!parent) return;
-    this.resize(parent.clientWidth, parent.clientHeight);
-  };
+  /** The world box of every visible, not editor-only object with geometry. */
+  private visibleContentBox(): THREE.Box3 {
+    const box = new THREE.Box3();
+    const part = new THREE.Box3();
+    for (const root of [this.activeUnitGroup, this.cutGlueGroup]) {
+      root.updateWorldMatrix(true, true);
+      // traverseVisible skips hidden subtrees; both roots hang off the always-visible scene.
+      root.traverseVisible((obj) => {
+        if (!(obj instanceof THREE.Mesh || obj instanceof THREE.Line || obj instanceof THREE.Points)) return;
+        if (isEditorOnly(obj, this.gizmoGroup)) return;
+        const geometry = obj.geometry as THREE.BufferGeometry;
+        if (!geometry.getAttribute('position')) return;
+        if (!geometry.boundingBox) geometry.computeBoundingBox();
+        box.union(part.copy(geometry.boundingBox!).applyMatrix4(obj.matrixWorld));
+      });
+    }
+    return box;
+  }
 
   /**
    * Stops the loop and releases what the constructor created: listeners, the grid and axes
@@ -170,7 +208,6 @@ export class Viewport {
     this.stop();
     this.timer.dispose();
     this.tickCallbacks = [];
-    window.removeEventListener('resize', this.handleResize);
     this.controls.dispose();
     this.grid.dispose();
     this.axes.dispose();
