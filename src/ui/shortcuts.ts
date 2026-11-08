@@ -7,13 +7,14 @@
 const NON_TEXT_INPUTS = new Set(['button', 'checkbox', 'color', 'file', 'hidden', 'image', 'radio', 'range', 'reset', 'submit']);
 
 /**
- * Whether `target` takes text: a textarea, a select, a contenteditable element, or an input of
- * a text-entry type (text, number, search...). Ctrl+Z there is the field's own undo. A range,
- * checkbox or button is not one, so the history keys work while it has focus.
+ * Whether `target` takes text: a textarea, a contenteditable element, or an input of a text-entry
+ * type (text, number, search...). Ctrl+Z there is the field's own undo. A range, checkbox,
+ * drop-down list or button is not one: it has no text undo, so the history keys work while it
+ * has focus.
  */
 export function isEditableTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
-  if (target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement) return true;
+  if (target instanceof HTMLTextAreaElement) return true;
   if (target instanceof HTMLInputElement) return !NON_TEXT_INPUTS.has(target.type);
   return target.isContentEditable || target.closest('[contenteditable]:not([contenteditable="false"])') !== null;
 }

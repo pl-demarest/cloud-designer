@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
-import { cleanup, render } from '@testing-library/react'
+import { cleanup, fireEvent, render } from '@testing-library/react'
 import { historyShortcut, isEditableTarget } from '../../src/ui/shortcuts'
 import { useHistoryShortcuts } from '../../src/ui/hooks/useHistoryShortcuts'
 import { useCloudStore } from '../../src/store/cloudStore'
@@ -48,20 +48,20 @@ describe('isEditableTarget', () => {
     return el
   }
 
-  test('text entry: text and number inputs, textarea, select, contenteditable', () => {
+  test('text entry: text and number inputs, textarea, contenteditable', () => {
     const editable = document.createElement('div')
     editable.setAttribute('contenteditable', 'true')
     const inside = document.createElement('span')
     editable.append(inside)
     document.body.append(editable)
-    for (const el of [input('text'), input('number'), input('search'), document.createElement('textarea'), document.createElement('select'), editable, inside]) {
+    for (const el of [input('text'), input('number'), input('search'), document.createElement('textarea'), editable, inside]) {
       expect(isEditableTarget(el), el.outerHTML).toBe(true)
     }
     editable.remove()
   })
 
-  test('not text entry: range, checkbox, button, the page, nothing', () => {
-    for (const el of [input('range'), input('checkbox'), document.createElement('button'), document.body, window, null]) {
+  test('not text entry: range, checkbox, select, button, the page, nothing', () => {
+    for (const el of [input('range'), input('checkbox'), document.createElement('select'), document.createElement('button'), document.body, window, null]) {
       expect(isEditableTarget(el)).toBe(false)
     }
   })
@@ -102,6 +102,32 @@ describe('useHistoryShortcuts', () => {
     const e = press(getByLabelText('name'), { key: 'z', ctrlKey: true })
     expect(sphereCount()).toBe(4)
     expect(e.defaultPrevented).toBe(false)
+  })
+
+  test('D14: on a focused drop-down list, which has no text undo, the keys run the editor\'s undo and redo', () => {
+    function WithSelect() {
+      useHistoryShortcuts()
+      return (
+        <select
+          aria-label="Shape"
+          value={store().preset.base.crossSectionShape}
+          onChange={(e) => { store().setBase({ crossSectionShape: e.target.value as 'oval' | 'rect' }); store().commit() }}
+        >
+          <option value="oval">Oval</option>
+          <option value="rect">Rect</option>
+        </select>
+      )
+    }
+    const { getByLabelText } = render(<WithSelect />)
+    const select = getByLabelText('Shape') as HTMLSelectElement
+    select.focus()
+    fireEvent.change(select, { target: { value: 'rect' } })
+    expect(store().preset.base.crossSectionShape).toBe('rect')
+    const undo = press(select, { key: 'z', ctrlKey: true })
+    expect(undo.defaultPrevented).toBe(true)
+    expect(store().preset.base.crossSectionShape, 'Ctrl+Z undid the choice').toBe('oval')
+    press(select, { key: 'y', metaKey: true })
+    expect(store().preset.base.crossSectionShape, 'Cmd+Y redid it').toBe('rect')
   })
 
   test('one listener: a remount does not double the undo', () => {
