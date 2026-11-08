@@ -33,8 +33,11 @@ export function App() {
 
   const preset = useCloudStore((s) => s.preset);
 
+  // The first history entry is the preset the editor opens with. Pushed only into an empty
+  // history, so StrictMode's second run of this effect adds no undo step.
   useEffect(() => {
-    useHistoryStore.getState().push(useCloudStore.getState().preset);
+    const history = useHistoryStore.getState();
+    if (history.past.length === 0) history.push(useCloudStore.getState().preset);
   }, []);
 
   useEffect(() => {
